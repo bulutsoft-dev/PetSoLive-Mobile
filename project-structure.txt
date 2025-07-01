@@ -1,0 +1,74 @@
+/petso_live_mobile
+│
+├── /lib
+│   ├── /core                   # Temel yapı ve yardımcılar
+│   │   ├── /constants          # Sabitler (API url, renkler, vb.)
+│   │   ├── /utils              # Yardımcı metodlar
+│   │   ├── /routes             # Uygulama rotaları
+│   │   │   ├── app_routes.dart
+│   │   └── /services           # Genel servis yapılandırmaları
+│   │       ├── api_service.dart  # API isteklerini yöneten temel sınıf
+│   │       ├── auth_interceptor.dart  # Gerekirse token interceptor
+│
+│   ├── /models                 # DTO karşılıkları
+│   │   ├── user_model.dart
+│   │   ├── pet_model.dart
+│   │   ├── adoption_model.dart
+│   │   └── announcement_model.dart
+│
+│   ├── /features               # Özellik bazlı modüller
+│   │   ├── /auth               # Giriş, kayıt vs.
+│   │   │   ├── /screens
+│   │   │   │   ├── login_screen.dart
+│   │   │   │   ├── register_screen.dart
+│   │   │   ├── /view_model
+│   │   │   │   └── auth_view_model.dart
+│   │   │   └── /services
+│   │   │       └── auth_service.dart
+│   │   ├── /pets               # Pet işlemleri
+│   │   │   ├── /screens
+│   │   │   │   ├── pet_list_screen.dart
+│   │   │   │   ├── pet_detail_screen.dart
+│   │   │   ├── /view_model
+│   │   │   │   └── pet_view_model.dart
+│   │   │   └── /services
+│   │   │       └── pet_service.dart
+│   │   ├── /adoptions          # Evlat edinme işlemleri
+│   │   │   ├── /screens
+│   │   │   │   ├── adoption_list_screen.dart
+│   │   │   │   ├── adoption_detail_screen.dart
+│   │   │   ├── /view_model
+│   │   │   │   └── adoption_view_model.dart
+│   │   │   └── /services
+│   │   │       └── adoption_service.dart
+│   │   ├── /assistance         # Yardım işlemleri
+│   │   │   ├── /screens
+│   │   │   │   ├── assistance_list_screen.dart
+│   │   │   │   ├── assistance_create_screen.dart
+│   │   │   ├── /view_model
+│   │   │   │   └── assistance_view_model.dart
+│   │   │   └── /services
+│   │   │       └── assistance_service.dart
+│
+│   ├── /widgets                # Genel tekrar kullanılabilir widget'lar
+│   │   ├── custom_button.dart
+│   │   ├── pet_card.dart
+│   │   └── adoption_card.dart
+│
+│   ├── /l10n                   # Çok dilli destek
+│   │   ├── en.json
+│   │   ├── tr.json
+│   │   └── de.json
+│
+│   ├── main.dart               # Uygulama giriş noktası
+│
+├── /assets                     # Uygulama görselleri, fontları
+│   ├── /images
+│   ├── /icons
+│   └── /fonts
+│
+├── /test                       # Birim test dosyaları
+│   ├── auth_test.dart
+│   ├── pet_test.dart
+│
+├── pubspec.yaml                # Bağımlılıklar
