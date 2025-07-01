@@ -1,74 +1,150 @@
-/petso_live_mobile
+lib/
 │
-├── /lib
-│   ├── /core                   # Temel yapı ve yardımcılar
-│   │   ├── /constants          # Sabitler (API url, renkler, vb.)
-│   │   ├── /utils              # Yardımcı metodlar
-│   │   ├── /routes             # Uygulama rotaları
-│   │   │   ├── app_routes.dart
-│   │   └── /services           # Genel servis yapılandırmaları
-│   │       ├── api_service.dart  # API isteklerini yöneten temel sınıf
-│   │       ├── auth_interceptor.dart  # Gerekirse token interceptor
+├── main.dart
 │
-│   ├── /models                 # DTO karşılıkları
-│   │   ├── user_model.dart
-│   │   ├── pet_model.dart
+├── core/
+│   ├── constants/
+│   │   └── api_constants.dart
+│   ├── enums/
+│   │   ├── adoption_status.dart
+│   │   ├── emergency_level.dart
+│   │   ├── help_request_status.dart
+│   │   └── veterinarian_status.dart
+│   ├── exceptions/
+│   │   ├── api_exception.dart
+│   │   └── network_exception.dart
+│   ├── helpers/
+│   │   ├── date_helper.dart
+│   │   └── string_helper.dart
+│   ├── network/
+│   │   ├── api_client.dart
+│   │   └── network_info.dart
+│   └── utils.dart
+│
+├── data/
+│   ├── models/
+│   │   ├── admin_model.dart
 │   │   ├── adoption_model.dart
-│   │   └── announcement_model.dart
+│   │   ├── adoption_request_model.dart
+│   │   ├── assistance_model.dart
+│   │   ├── comment_model.dart
+│   │   ├── help_request_model.dart
+│   │   ├── lost_pet_ad_model.dart
+│   │   ├── pet_model.dart
+│   │   ├── pet_owner_model.dart
+│   │   ├── smtp_settings_model.dart
+│   │   ├── user_model.dart
+│   │   └── veterinarian_model.dart
+│   ├── repositories/
+│   │   ├── admin_repository_impl.dart
+│   │   ├── adoption_repository_impl.dart
+│   │   ├── adoption_request_repository_impl.dart
+│   │   ├── comment_repository_impl.dart
+│   │   ├── help_request_repository_impl.dart
+│   │   ├── lost_pet_repository_impl.dart
+│   │   ├── pet_owner_repository_impl.dart
+│   │   ├── pet_repository_impl.dart
+│   │   ├── user_repository_impl.dart
+│   │   └── veterinarian_repository_impl.dart
+│   └── providers/
+│       ├── api_client.dart
+│       ├── admin_api_service.dart
+│       ├── adoption_api_service.dart
+│       ├── adoption_request_api_service.dart
+│       ├── comment_api_service.dart
+│       ├── help_request_api_service.dart
+│       ├── lost_pet_api_service.dart
+│       ├── pet_api_service.dart
+│       ├── pet_owner_api_service.dart
+│       ├── user_api_service.dart
+│       └── veterinarian_api_service.dart
 │
-│   ├── /features               # Özellik bazlı modüller
-│   │   ├── /auth               # Giriş, kayıt vs.
-│   │   │   ├── /screens
-│   │   │   │   ├── login_screen.dart
-│   │   │   │   ├── register_screen.dart
-│   │   │   ├── /view_model
-│   │   │   │   └── auth_view_model.dart
-│   │   │   └── /services
-│   │   │       └── auth_service.dart
-│   │   ├── /pets               # Pet işlemleri
-│   │   │   ├── /screens
-│   │   │   │   ├── pet_list_screen.dart
-│   │   │   │   ├── pet_detail_screen.dart
-│   │   │   ├── /view_model
-│   │   │   │   └── pet_view_model.dart
-│   │   │   └── /services
-│   │   │       └── pet_service.dart
-│   │   ├── /adoptions          # Evlat edinme işlemleri
-│   │   │   ├── /screens
-│   │   │   │   ├── adoption_list_screen.dart
-│   │   │   │   ├── adoption_detail_screen.dart
-│   │   │   ├── /view_model
-│   │   │   │   └── adoption_view_model.dart
-│   │   │   └── /services
-│   │   │       └── adoption_service.dart
-│   │   ├── /assistance         # Yardım işlemleri
-│   │   │   ├── /screens
-│   │   │   │   ├── assistance_list_screen.dart
-│   │   │   │   ├── assistance_create_screen.dart
-│   │   │   ├── /view_model
-│   │   │   │   └── assistance_view_model.dart
-│   │   │   └── /services
-│   │   │       └── assistance_service.dart
+├── domain/
+│   ├── entities/
+│   │   ├── admin.dart
+│   │   ├── adoption.dart
+│   │   ├── adoption_request.dart
+│   │   ├── assistance.dart
+│   │   ├── comment.dart
+│   │   ├── help_request.dart
+│   │   ├── lost_pet_ad.dart
+│   │   ├── pet.dart
+│   │   ├── pet_owner.dart
+│   │   ├── smtp_settings.dart
+│   │   ├── user.dart
+│   │   └── veterinarian.dart
+│   ├── repositories/
+│   │   ├── admin_repository.dart
+│   │   ├── adoption_repository.dart
+│   │   ├── adoption_request_repository.dart
+│   │   ├── comment_repository.dart
+│   │   ├── help_request_repository.dart
+│   │   ├── lost_pet_repository.dart
+│   │   ├── pet_owner_repository.dart
+│   │   ├── pet_repository.dart
+│   │   ├── user_repository.dart
+│   │   └── veterinarian_repository.dart
+│   └── usecases/
+│       ├── get_admins.dart
+│       ├── get_adoptions.dart
+│       ├── get_adoption_requests.dart
+│       ├── get_comments.dart
+│       ├── get_help_requests.dart
+│       ├── get_lost_pet_ads.dart
+│       ├── get_pets.dart
+│       ├── get_pet_owners.dart
+│       ├── get_users.dart
+│       └── get_veterinarians.dart
 │
-│   ├── /widgets                # Genel tekrar kullanılabilir widget'lar
-│   │   ├── custom_button.dart
+├── presentation/
+│   ├── blocs/
+│   │   ├── admin_bloc.dart
+│   │   ├── adoption_bloc.dart
+│   │   ├── adoption_request_bloc.dart
+│   │   ├── comment_bloc.dart
+│   │   ├── help_request_bloc.dart
+│   │   ├── lost_pet_bloc.dart
+│   │   ├── pet_bloc.dart
+│   │   ├── pet_owner_bloc.dart
+│   │   ├── user_bloc.dart
+│   │   └── veterinarian_bloc.dart
+│   ├── screens/
+│   │   ├── admin_screen.dart
+│   │   ├── adoption_screen.dart
+│   │   ├── adoption_request_screen.dart
+│   │   ├── comment_screen.dart
+│   │   ├── help_request_screen.dart
+│   │   ├── lost_pet_screen.dart
+│   │   ├── pet_detail_screen.dart
+│   │   ├── pet_owner_screen.dart
+│   │   ├── user_profile_screen.dart
+│   │   └── veterinarian_screen.dart
+│   ├── widgets/
 │   │   ├── pet_card.dart
-│   │   └── adoption_card.dart
+│   │   ├── adoption_card.dart
+│   │   ├── comment_widget.dart
+│   │   ├── help_request_widget.dart
+│   │   └── common_widgets.dart
+│   ├── themes/
+│   │   ├── app_theme.dart
+│   │   └── colors.dart
+│   └── localization/
+│       ├── en.json
+│       ├── tr.json
+│       └── localization_helper.dart
 │
-│   ├── /l10n                   # Çok dilli destek
-│   │   ├── en.json
-│   │   ├── tr.json
-│   │   └── de.json
+├── injection_container.dart
 │
-│   ├── main.dart               # Uygulama giriş noktası
+├── routes/
+│   └── app_router.dart
 │
-├── /assets                     # Uygulama görselleri, fontları
-│   ├── /images
-│   ├── /icons
-│   └── /fonts
-│
-├── /test                       # Birim test dosyaları
-│   ├── auth_test.dart
-│   ├── pet_test.dart
-│
-├── pubspec.yaml                # Bağımlılıklar
+└── assets/
+    ├── images/
+    │   ├── logo.png
+    │   └── pet_placeholder.png
+    ├── icons/
+    │   ├── adoption_icon.png
+    │   └── veterinarian_icon.png
+    └── translations/
+        ├── en.json
+        └── tr.json
