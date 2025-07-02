@@ -4,8 +4,20 @@
   "home.title": "Home",
   "home.welcome": "Welcome to PetSoLive!",
   "home.description": "Find, adopt, and help pets easily.",
+  "home.animals_desc": "Discover pets waiting for a loving home.",
+  "home.lost_pets_desc": "Help reunite lost pets with their families.",
+  "home.help_requests_desc": "Support or request help for pets in need.",
   "explore.title": "Explore",
   "explore.coming_soon": "Explore coming soon!",
   "profile.title": "Profile",
-  "profile.coming_soon": "Profile coming soon!"
+  "profile.coming_soon": "Profile coming soon!",
+  "pet_detail.title": "Pet Detail",
+  "pet_detail.adopt": "Adopt Me",
+  "animals.title": "Animals",
+  "lost_pets.title": "Lost Pets",
+  "help_requests.title": "Help Requests",
+  "login.title": "Login",
+  "drawer.website": "Visit Website",
+  "theme.switch": "Switch Theme",
+  "drawer.change_language": "Change Language"
 }

@@ -4,8 +4,20 @@
   "home.title": "Ana Sayfa",
   "home.welcome": "PetSoLive'a Hoşgeldiniz!",
   "home.description": "Evcil hayvanları kolayca bulun, sahiplenin ve yardım edin.",
+  "home.animals_desc": "Yeni yuvasını bekleyen hayvanları keşfet.",
+  "home.lost_pets_desc": "Kayıp hayvanları aileleriyle buluşturmaya yardım et.",
+  "home.help_requests_desc": "Yardıma ihtiyacı olan hayvanlar için destek ol veya yardım iste.",
   "explore.title": "Keşfet",
   "explore.coming_soon": "Keşfet yakında!",
   "profile.title": "Profil",
-  "profile.coming_soon": "Profil yakında!"
+  "profile.coming_soon": "Profil yakında!",
+  "pet_detail.title": "Evcil Hayvan Detayı",
+  "pet_detail.adopt": "Sahiplen",
+  "animals.title": "Hayvanlar",
+  "lost_pets.title": "Kayıp İlanları",
+  "help_requests.title": "Yardım Talepleri",
+  "login.title": "Giriş",
+  "drawer.website": "Web Sitesini Ziyaret Et",
+  "theme.switch": "Temayı Değiştir",
+  "drawer.change_language": "Dili Değiştir"
 }

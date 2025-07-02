@@ -12,5 +12,14 @@ abstract class  LocaleKeys {
   static const explore.coming_soon = 'explore.coming_soon';
   static const profile.title = 'profile.title';
   static const profile.coming_soon = 'profile.coming_soon';
+  static const pet_detail.title = 'pet_detail.title';
+  static const pet_detail.adopt = 'pet_detail.adopt';
+  static const animals.title = 'animals.title';
+  static const lost_pets.title = 'lost_pets.title';
+  static const help_requests.title = 'help_requests.title';
+  static const login.title = 'login.title';
+  static const drawer.website = 'drawer.website';
+  static const theme.switch = 'theme.switch';
+  static const drawer.change_language = 'drawer.change_language';
 
 }
