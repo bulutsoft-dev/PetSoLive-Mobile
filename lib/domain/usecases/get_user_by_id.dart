@@ -1,9 +1,9 @@
 import '../../data/models/user_dto.dart';
 import '../repositories/user_repository.dart';
 
-class GetUsers {
+class GetUserById {
   final UserRepository repository;
-  GetUsers(this.repository);
+  GetUserById(this.repository);
 
-  Future<List<UserDto>> call() => repository.getAll();
+  Future<UserDto?> call(int id) => repository.getById(id);
 } 
