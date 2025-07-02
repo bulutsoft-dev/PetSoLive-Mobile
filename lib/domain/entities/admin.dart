@@ -1,3 +1,5 @@
+import 'package:petsolive/domain/entities/user.dart';
+
 class Admin {
   final int id;
   final int userId;

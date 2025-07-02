@@ -1,6 +1,7 @@
+import 'package:petsolive/core/enums/emergency_level.dart';
+import 'package:petsolive/core/enums/help_request_status.dart';
+
 import 'comment.dart';
-import 'emergency_level.dart';
-import 'help_request_status.dart';
 import 'user.dart';
 
 class HelpRequest {

@@ -1,8 +1,9 @@
 // Veterinarian entity burada olacak 
 
+import 'package:petsolive/core/enums/veterinarian_status.dart';
+
 import 'comment.dart';
 import 'user.dart';
-import 'veterinarian_status.dart';
 
 class Veterinarian {
   final int id;

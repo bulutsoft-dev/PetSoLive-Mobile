@@ -1,6 +1,7 @@
 // Adoption request entity burada olacak 
 
-import 'adoption_status.dart';
+import 'package:petsolive/core/enums/adoption_status.dart';
+
 import 'pet.dart';
 import 'user.dart';
 
