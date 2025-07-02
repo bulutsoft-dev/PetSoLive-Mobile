@@ -1,1 +1,5 @@
-// EmergencyLevel enumu burada tanımlanacak 
+enum EmergencyLevel {
+  low,
+  medium,
+  high,
+} 

@@ -1,1 +1,5 @@
-// VeterinarianStatus enumu burada tanımlanacak 
+enum VeterinarianStatus {
+  Pending, // Beklemede
+  Approved, // Onaylandı
+  Rejected // Reddedildi
+} 

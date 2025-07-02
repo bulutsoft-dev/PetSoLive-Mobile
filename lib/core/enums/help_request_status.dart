@@ -1,1 +1,4 @@
-// HelpRequestStatus enumu burada tanımlanacak 
+enum HelpRequestStatus {
+  Active,
+  Passive
+} 

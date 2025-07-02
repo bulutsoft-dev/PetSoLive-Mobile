@@ -1,1 +1,6 @@
-// AdoptionStatus enumu burada tanımlanacak 
+enum AdoptionStatus {
+  pending,
+  approved,
+  rejected,
+  completed,
+} 
