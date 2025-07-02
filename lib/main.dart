@@ -7,17 +7,19 @@ import 'presentation/partials/base_nav_bar.dart';
 import 'presentation/partials/base_drawer.dart';
 import 'presentation/localization/localization_manager.dart';
 import 'presentation/blocs/theme_cubit.dart';
-import 'presentation/screens/animals_screen.dart';
 import 'presentation/screens/lost_pets_screen.dart';
 import 'presentation/screens/help_requests_screen.dart';
 import 'presentation/screens/profile_screen.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/pets_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'injection_container.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+  init();
   runApp(
     EasyLocalization(
       supportedLocales: LocalizationManager.supportedLocales,
@@ -65,7 +67,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   int _currentIndex = 2;
 
   final List<Widget> _pages = const [
-    AnimalsScreen(),
+    PetsScreen(),
     LostPetsScreen(),
     HomeScreen(),
     HelpRequestsScreen(),

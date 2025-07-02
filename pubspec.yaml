@@ -37,6 +37,10 @@ dependencies:
   easy_localization: any
   flutter_bloc: any
   url_launcher: ^6.2.5
+  get_it:
+  flutter_lints: ^5.0.0
+  flutter_dotenv: ^5.1.0
+  http: ^1.2.1
 
 dev_dependencies:
   flutter_test:

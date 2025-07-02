@@ -13,11 +13,13 @@
   "profile.coming_soon": "Profil yakında!",
   "pet_detail.title": "Evcil Hayvan Detayı",
   "pet_detail.adopt": "Sahiplen",
-  "animals.title": "Hayvanlar",
+  "pets.title": "Hayvanlar",
   "lost_pets.title": "Kayıp İlanları",
   "help_requests.title": "Yardım Talepleri",
   "login.title": "Giriş",
   "drawer.website": "Web Sitesini Ziyaret Et",
   "theme.switch": "Temayı Değiştir",
-  "drawer.change_language": "Dili Değiştir"
+  "drawer.change_language": "Dili Değiştir",
+  "pets.error": "Evcil hayvanlar yüklenirken bir hata oluştu.",
+  "pets.empty": "Hiç evcil hayvan bulunamadı."
 }

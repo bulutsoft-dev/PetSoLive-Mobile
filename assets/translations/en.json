@@ -13,11 +13,13 @@
   "profile.coming_soon": "Profile coming soon!",
   "pet_detail.title": "Pet Detail",
   "pet_detail.adopt": "Adopt Me",
-  "animals.title": "Animals",
+  "pets.title": "Animals",
   "lost_pets.title": "Lost Pets",
   "help_requests.title": "Help Requests",
   "login.title": "Login",
   "drawer.website": "Visit Website",
   "theme.switch": "Switch Theme",
-  "drawer.change_language": "Change Language"
+  "drawer.change_language": "Change Language",
+  "pets.error": "An error occurred while loading pets.",
+  "pets.empty": "No pets found."
 }
