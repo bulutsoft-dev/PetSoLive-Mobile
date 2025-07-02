@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'presentation/themes/app_theme.dart';
 import 'presentation/partials/base_app_bar.dart';
 import 'presentation/partials/base_nav_bar.dart';
 import 'presentation/partials/base_drawer.dart';
+import 'presentation/localization/localization_manager.dart';
 
-void main() {
-  runApp(const PetSoLiveApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
+  runApp(
+    EasyLocalization(
+      supportedLocales: LocalizationManager.supportedLocales,
+      path: LocalizationManager.path,
+      fallbackLocale: LocalizationManager.fallbackLocale,
+      child: const PetSoLiveApp(),
+    ),
+  );
 }
 
 class PetSoLiveApp extends StatelessWidget {
@@ -20,6 +31,9 @@ class PetSoLiveApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       home: const HomeScreen(),
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
     );
   }
 }
@@ -35,36 +49,36 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    Center(child: Text('Ana Sayfa')), // Buraya gerçek sayfalar eklenecek
-    Center(child: Text('Keşfet')),
-    Center(child: Text('Profil')),
+    Center(child: Text('home.title').tr()),
+    Center(child: Text('explore.title').tr()),
+    Center(child: Text('profile.title').tr()),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const BaseAppBar(title: 'PetSoLive'),
+      appBar: BaseAppBar(title: 'appbar.title'.tr()),
       drawer: BaseDrawer(
         header: DrawerHeader(
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.primary,
           ),
-          child: const Text('Menü', style: TextStyle(color: Colors.white, fontSize: 20)),
+          child: Text('drawer.header'.tr(), style: const TextStyle(color: Colors.white, fontSize: 20)),
         ),
         children: [
           ListTile(
             leading: const Icon(Icons.home),
-            title: const Text('Ana Sayfa'),
+            title: Text('home.title').tr(),
             onTap: () => setState(() => _currentIndex = 0),
           ),
           ListTile(
             leading: const Icon(Icons.explore),
-            title: const Text('Keşfet'),
+            title: Text('explore.title').tr(),
             onTap: () => setState(() => _currentIndex = 1),
           ),
           ListTile(
             leading: const Icon(Icons.person),
-            title: const Text('Profil'),
+            title: Text('profile.title').tr(),
             onTap: () => setState(() => _currentIndex = 2),
           ),
         ],
@@ -73,10 +87,10 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BaseNavBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Ana Sayfa'),
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Keşfet'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
+        items: [
+          BottomNavigationBarItem(icon: const Icon(Icons.home), label: tr('home.title')),
+          BottomNavigationBarItem(icon: const Icon(Icons.explore), label: tr('explore.title')),
+          BottomNavigationBarItem(icon: const Icon(Icons.person), label: tr('profile.title')),
         ],
       ),
     );
