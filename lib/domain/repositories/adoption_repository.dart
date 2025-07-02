@@ -1,0 +1,1 @@
+// Adoption repository interface burada olacak 

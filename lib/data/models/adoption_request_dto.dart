@@ -1,0 +1,1 @@
+// Adoption request DTO modeli burada olacak 

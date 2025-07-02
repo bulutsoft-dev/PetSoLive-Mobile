@@ -1,0 +1,1 @@
+// EmergencyLevel enumu burada tanımlanacak 

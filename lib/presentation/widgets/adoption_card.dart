@@ -1,0 +1,1 @@
+// Adoption card widget burada olacak 

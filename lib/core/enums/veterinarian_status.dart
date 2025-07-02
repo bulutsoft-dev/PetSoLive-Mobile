@@ -1,0 +1,1 @@
+// VeterinarianStatus enumu burada tanımlanacak 

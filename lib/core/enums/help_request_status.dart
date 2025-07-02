@@ -1,0 +1,1 @@
+// HelpRequestStatus enumu burada tanımlanacak 

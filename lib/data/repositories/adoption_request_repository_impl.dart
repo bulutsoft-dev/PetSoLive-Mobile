@@ -1,0 +1,1 @@
+// Adoption request repository implementasyonu burada olacak 

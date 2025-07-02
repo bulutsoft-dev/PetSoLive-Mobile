@@ -1,0 +1,1 @@
+// API ile ilgili exceptionlar burada tanımlanacak 

@@ -1,0 +1,1 @@
+// Lost pet ad DTO modeli burada olacak 

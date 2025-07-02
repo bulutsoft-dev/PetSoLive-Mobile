@@ -1,0 +1,1 @@
+// String işlemleri için yardımcı fonksiyonlar burada olacak 

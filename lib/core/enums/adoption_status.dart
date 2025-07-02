@@ -1,0 +1,1 @@
+// AdoptionStatus enumu burada tanımlanacak 

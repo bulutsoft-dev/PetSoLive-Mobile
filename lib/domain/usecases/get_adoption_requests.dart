@@ -1,0 +1,1 @@
+// Get adoption requests usecase burada olacak 

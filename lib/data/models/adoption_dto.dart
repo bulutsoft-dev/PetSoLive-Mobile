@@ -1,0 +1,1 @@
+// Adoption DTO modeli burada olacak 

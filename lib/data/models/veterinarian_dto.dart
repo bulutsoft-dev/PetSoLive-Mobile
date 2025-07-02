@@ -1,0 +1,1 @@
+// Veterinarian DTO modeli burada olacak 

@@ -1,0 +1,1 @@
+// Adoption request entity burada olacak 

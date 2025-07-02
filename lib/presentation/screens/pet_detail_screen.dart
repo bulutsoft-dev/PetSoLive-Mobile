@@ -1,0 +1,1 @@
+// Pet detail ekranı burada olacak 
