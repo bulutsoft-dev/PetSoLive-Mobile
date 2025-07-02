@@ -22,5 +22,8 @@
   "drawer.change_language": "Change Language",
   "pets.error": "An error occurred while loading pets.",
   "pets.empty": "No pets found.",
-  "pets.detail": "Detail"
+  "pets.detail": "Detail",
+  "lost_pets.error": "An error occurred while loading lost pet ads.",
+  "lost_pets.empty": "No lost pet ads found.",
+  "lost_pets.status_open": "Open"
 }

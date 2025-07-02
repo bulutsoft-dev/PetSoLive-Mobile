@@ -22,5 +22,8 @@
   "drawer.change_language": "Dili Değiştir",
   "pets.error": "Evcil hayvanlar yüklenirken bir hata oluştu.",
   "pets.empty": "Hiç evcil hayvan bulunamadı.",
-  "pets.detail": "Detay"
+  "pets.detail": "Detay",
+  "lost_pets.error": "Kayıp ilanları yüklenirken bir hata oluştu.",
+  "lost_pets.empty": "Hiç kayıp ilanı bulunamadı.",
+  "lost_pets.status_open": "Açık"
 }

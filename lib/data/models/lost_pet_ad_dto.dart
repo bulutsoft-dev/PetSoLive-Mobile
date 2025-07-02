@@ -28,15 +28,15 @@ class LostPetAdDto {
   factory LostPetAdDto.fromJson(Map<String, dynamic> json) {
     return LostPetAdDto(
       id: json['id'],
-      petName: json['petName'],
-      description: json['description'],
+      petName: json['petName'] ?? '',
+      description: json['description'] ?? '',
       lastSeenDate: DateTime.parse(json['lastSeenDate']),
-      imageUrl: json['imageUrl'],
+      imageUrl: json['imageUrl'] ?? '',
       userId: json['userId'],
-      lastSeenCity: json['lastSeenCity'],
-      lastSeenDistrict: json['lastSeenDistrict'],
+      lastSeenCity: json['lastSeenCity'] ?? '',
+      lastSeenDistrict: json['lastSeenDistrict'] ?? '',
       createdAt: DateTime.parse(json['createdAt']),
-      userName: json['userName'],
+      userName: json['userName'] ?? '',
     );
   }
 

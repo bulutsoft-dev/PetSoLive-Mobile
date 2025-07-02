@@ -10,21 +10,21 @@ class LostPetAdApiService {
     final response = await http.get(
       Uri.parse('$baseUrl/api/LostPetAd'),
       headers: {
-        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+        'x-api-key': ApiConstants.apiKey,
       },
     );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((e) => LostPetAdDto.fromJson(e)).toList();
     }
-    throw Exception('Failed to fetch lost pet ads');
+    throw Exception('Failed to fetch lost pet ads: ${response.body}');
   }
 
   Future<LostPetAdDto?> getById(int id) async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/LostPetAd/$id'),
       headers: {
-        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+        'x-api-key': ApiConstants.apiKey,
       },
     );
     if (response.statusCode == 200) {
