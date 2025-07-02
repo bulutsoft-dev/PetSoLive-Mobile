@@ -21,9 +21,9 @@ class BaseNavBar extends StatelessWidget {
       onTap: onTap,
       items: items,
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: isDark ? AppColors.darkPrimary : AppColors.primary,
-      unselectedItemColor: Colors.grey,
-      backgroundColor: isDark ? AppColors.darkSurface : AppColors.surface,
+      selectedItemColor: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
+      unselectedItemColor: isDark ? AppColors.bsGray400 : AppColors.bsGray500,
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.petsoliveBg,
       showUnselectedLabels: true,
       elevation: 8,
     );

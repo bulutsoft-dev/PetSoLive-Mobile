@@ -19,7 +19,20 @@ class BaseDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          if (header != null) header!,
+          if (header != null)
+            header!
+          else
+            Container(
+              color: isDark ? AppColors.darkSurface : AppColors.surface,
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              child: Center(
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  height: 64,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
           ...children,
         ],
       ),

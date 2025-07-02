@@ -92,6 +92,15 @@ class _MainScaffoldState extends State<MainScaffold> {
             tooltip: 'theme.switch'.tr(),
             onPressed: () => themeCubit.toggleTheme(),
           ),
+          IconButton(
+            icon: const Icon(Icons.translate),
+            tooltip: 'drawer.change_language'.tr(),
+            onPressed: () {
+              final currentLocale = context.locale;
+              final newLocale = currentLocale.languageCode == 'tr' ? const Locale('en') : const Locale('tr');
+              context.setLocale(newLocale);
+            },
+          ),
         ],
       ),
       drawer: BaseDrawer(
@@ -191,10 +200,6 @@ class _MainScaffoldState extends State<MainScaffold> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.07),
@@ -235,7 +240,7 @@ class _MainScaffoldState extends State<MainScaffold> {
           padding: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
             color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.09) : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.zero,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

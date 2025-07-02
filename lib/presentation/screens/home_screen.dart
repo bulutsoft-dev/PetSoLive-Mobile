@@ -45,17 +45,6 @@ class HomeScreen extends StatelessWidget {
     ];
 
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colorScheme.primary.withOpacity(0.1),
-            colorScheme.secondary.withOpacity(0.08),
-            colorScheme.surface,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: 24),
         children: [

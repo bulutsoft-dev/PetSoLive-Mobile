@@ -18,6 +18,7 @@ class AppTheme {
       onBackground: AppColors.onBackground,
       onSurface: AppColors.onSurface,
       onError: AppColors.onError,
+      brightness: Brightness.light,
     ),
     scaffoldBackgroundColor: AppColors.background,
     appBarTheme: const AppBarTheme(
@@ -34,7 +35,7 @@ class AppTheme {
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: AppColors.surface,
       selectedItemColor: AppColors.primary,
-      unselectedItemColor: Colors.grey,
+      unselectedItemColor: AppColors.bsGray500,
       showUnselectedLabels: true,
     ),
     cardColor: AppColors.surface,
@@ -42,6 +43,8 @@ class AppTheme {
       bodyLarge: TextStyle(color: AppColors.onBackground),
       bodyMedium: TextStyle(color: AppColors.onBackground),
       titleLarge: TextStyle(color: AppColors.onBackground, fontWeight: FontWeight.bold),
+      labelLarge: TextStyle(color: AppColors.petsoliveInfo),
+      labelSmall: TextStyle(color: AppColors.bsGray700),
     ),
     inputDecorationTheme: const InputDecorationTheme(
       border: OutlineInputBorder(),
@@ -53,6 +56,14 @@ class AppTheme {
       buttonColor: AppColors.primary,
       textTheme: ButtonTextTheme.primary,
     ),
+    extensions: <ThemeExtension<dynamic>>[
+      CustomColors(
+        success: AppColors.petsoliveSuccess,
+        warning: AppColors.petsoliveWarning,
+        info: AppColors.petsoliveInfo,
+        danger: AppColors.petsoliveDanger,
+      ),
+    ],
   );
 
   static ThemeData darkTheme = ThemeData(
@@ -71,6 +82,7 @@ class AppTheme {
       onBackground: AppColors.darkOnBackground,
       onSurface: AppColors.darkOnSurface,
       onError: AppColors.darkOnError,
+      brightness: Brightness.dark,
     ),
     scaffoldBackgroundColor: AppColors.darkBackground,
     appBarTheme: const AppBarTheme(
@@ -87,7 +99,7 @@ class AppTheme {
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: AppColors.darkSurface,
       selectedItemColor: AppColors.darkPrimary,
-      unselectedItemColor: Colors.grey,
+      unselectedItemColor: AppColors.bsGray500,
       showUnselectedLabels: true,
     ),
     cardColor: AppColors.darkSurface,
@@ -95,6 +107,8 @@ class AppTheme {
       bodyLarge: TextStyle(color: AppColors.darkOnBackground),
       bodyMedium: TextStyle(color: AppColors.darkOnBackground),
       titleLarge: TextStyle(color: AppColors.darkOnBackground, fontWeight: FontWeight.bold),
+      labelLarge: TextStyle(color: AppColors.darkSecondary),
+      labelSmall: TextStyle(color: AppColors.bsGray300),
     ),
     inputDecorationTheme: const InputDecorationTheme(
       border: OutlineInputBorder(),
@@ -106,5 +120,44 @@ class AppTheme {
       buttonColor: AppColors.darkPrimary,
       textTheme: ButtonTextTheme.primary,
     ),
+    extensions: <ThemeExtension<dynamic>>[
+      CustomColors(
+        success: AppColors.petsoliveSuccess,
+        warning: AppColors.petsoliveWarning,
+        info: AppColors.darkSecondary,
+        danger: AppColors.petsoliveDanger,
+      ),
+    ],
   );
+}
+
+// Success, warning, info, danger gibi özel renkler için ThemeExtension
+class CustomColors extends ThemeExtension<CustomColors> {
+  final Color? success;
+  final Color? warning;
+  final Color? info;
+  final Color? danger;
+
+  const CustomColors({this.success, this.warning, this.info, this.danger});
+
+  @override
+  CustomColors copyWith({Color? success, Color? warning, Color? info, Color? danger}) {
+    return CustomColors(
+      success: success ?? this.success,
+      warning: warning ?? this.warning,
+      info: info ?? this.info,
+      danger: danger ?? this.danger,
+    );
+  }
+
+  @override
+  CustomColors lerp(ThemeExtension<CustomColors>? other, double t) {
+    if (other is! CustomColors) return this;
+    return CustomColors(
+      success: Color.lerp(success, other.success, t),
+      warning: Color.lerp(warning, other.warning, t),
+      info: Color.lerp(info, other.info, t),
+      danger: Color.lerp(danger, other.danger, t),
+    );
+  }
 } 
