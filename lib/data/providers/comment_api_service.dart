@@ -7,7 +7,12 @@ class CommentApiService {
   final String baseUrl = ApiConstants.baseUrl;
 
   Future<List<CommentDto>> getByHelpRequestId(int helpRequestId) async {
-    final response = await http.get(Uri.parse('$baseUrl/api/Comment/help-request/$helpRequestId'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/Comment/help-request/$helpRequestId'),
+      headers: {
+        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+      },
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((e) => CommentDto.fromJson(e)).toList();

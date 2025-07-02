@@ -7,7 +7,12 @@ class UserApiService {
   final String baseUrl = ApiConstants.baseUrl;
 
   Future<List<UserDto>> getAll() async {
-    final response = await http.get(Uri.parse('$baseUrl/api/User'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/User'),
+      headers: {
+        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+      },
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((e) => UserDto.fromJson(e)).toList();
@@ -16,7 +21,12 @@ class UserApiService {
   }
 
   Future<UserDto?> getById(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/api/User/$id'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/User/$id'),
+      headers: {
+        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+      },
+    );
     if (response.statusCode == 200) {
       return UserDto.fromJson(jsonDecode(response.body));
     }

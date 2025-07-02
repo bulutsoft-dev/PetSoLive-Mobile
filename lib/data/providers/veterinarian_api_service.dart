@@ -7,7 +7,12 @@ class VeterinarianApiService {
   final String baseUrl = ApiConstants.baseUrl;
 
   Future<List<VeterinarianDto>> getAll() async {
-    final response = await http.get(Uri.parse('$baseUrl/api/Veterinarian'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/Veterinarian'),
+      headers: {
+        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+      },
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((e) => VeterinarianDto.fromJson(e)).toList();

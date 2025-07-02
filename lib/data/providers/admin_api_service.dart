@@ -5,7 +5,9 @@ class AdminApiService {
   final String baseUrl = ApiConstants.baseUrl;
 
   Future<bool> isUserAdmin(int userId) async {
-    final response = await http.get(Uri.parse('$baseUrl/api/Admin/is-admin/$userId'));
+    final response = await http.get(Uri.parse('$baseUrl/api/Admin/is-admin/$userId'), headers: {
+      'Authorization': 'Bearer <API_KEY>',
+    });
     if (response.statusCode == 200) {
       return response.body == 'true';
     } else {

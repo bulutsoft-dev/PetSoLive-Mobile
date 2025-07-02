@@ -5,18 +5,30 @@ import '../models/pet_dto.dart';
 
 class PetApiService {
   final String baseUrl = ApiConstants.baseUrl;
+  final String apiKey = ApiConstants.apiKey;
 
   Future<List<PetDto>> getAll() async {
-    final response = await http.get(Uri.parse('$baseUrl/api/Pet'));
+    print('API KEY: ${ApiConstants.apiKey}');
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/Pet'),
+      headers: {
+        'x-api-key': apiKey,
+      },
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((e) => PetDto.fromJson(e)).toList();
     }
-    throw Exception('Failed to fetch pets');
+    throw Exception('Failed to fetch pets: ${response.body}');
   }
 
   Future<PetDto?> getById(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/api/Pet/$id'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/Pet/$id'),
+      headers: {
+        'x-api-key': apiKey,
+      },
+    );
     if (response.statusCode == 200) {
       return PetDto.fromJson(jsonDecode(response.body));
     }

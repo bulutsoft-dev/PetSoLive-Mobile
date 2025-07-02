@@ -7,7 +7,12 @@ class LostPetAdApiService {
   final String baseUrl = ApiConstants.baseUrl;
 
   Future<List<LostPetAdDto>> getAll() async {
-    final response = await http.get(Uri.parse('$baseUrl/api/LostPetAd'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/LostPetAd'),
+      headers: {
+        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+      },
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((e) => LostPetAdDto.fromJson(e)).toList();
@@ -16,7 +21,12 @@ class LostPetAdApiService {
   }
 
   Future<LostPetAdDto?> getById(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/api/LostPetAd/$id'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/LostPetAd/$id'),
+      headers: {
+        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+      },
+    );
     if (response.statusCode == 200) {
       return LostPetAdDto.fromJson(jsonDecode(response.body));
     }

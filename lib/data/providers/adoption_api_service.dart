@@ -7,7 +7,12 @@ class AdoptionApiService {
   final String baseUrl = ApiConstants.baseUrl;
 
   Future<AdoptionDto?> getByPetId(int petId) async {
-    final response = await http.get(Uri.parse('$baseUrl/api/Adoption/$petId'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/Adoption/$petId'),
+      headers: {
+        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+      },
+    );
     if (response.statusCode == 200) {
       return AdoptionDto.fromJson(jsonDecode(response.body));
     }

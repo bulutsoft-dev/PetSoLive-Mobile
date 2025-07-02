@@ -7,7 +7,12 @@ class HelpRequestApiService {
   final String baseUrl = ApiConstants.baseUrl;
 
   Future<List<HelpRequestDto>> getAll() async {
-    final response = await http.get(Uri.parse('$baseUrl/api/HelpRequest'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/HelpRequest'),
+      headers: {
+        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+      },
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((e) => HelpRequestDto.fromJson(e)).toList();
@@ -16,7 +21,12 @@ class HelpRequestApiService {
   }
 
   Future<HelpRequestDto?> getById(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/api/HelpRequest/$id'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/HelpRequest/$id'),
+      headers: {
+        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+      },
+    );
     if (response.statusCode == 200) {
       return HelpRequestDto.fromJson(jsonDecode(response.body));
     }
