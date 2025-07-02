@@ -5,8 +5,14 @@ class PetDto {
   final String breed;
   final int age;
   final String gender;
-  final int ownerId;
-  final String? imageUrl;
+  final double weight;
+  final String color;
+  final DateTime dateOfBirth;
+  final String description;
+  final String vaccinationStatus;
+  final String microchipId;
+  final bool? isNeutered;
+  final String imageUrl;
 
   PetDto({
     required this.id,
@@ -15,8 +21,14 @@ class PetDto {
     required this.breed,
     required this.age,
     required this.gender,
-    required this.ownerId,
-    this.imageUrl,
+    required this.weight,
+    required this.color,
+    required this.dateOfBirth,
+    required this.description,
+    required this.vaccinationStatus,
+    required this.microchipId,
+    this.isNeutered,
+    required this.imageUrl,
   });
 
   factory PetDto.fromJson(Map<String, dynamic> json) {
@@ -27,7 +39,13 @@ class PetDto {
       breed: json['breed'],
       age: json['age'],
       gender: json['gender'],
-      ownerId: json['ownerId'],
+      weight: json['weight'],
+      color: json['color'],
+      dateOfBirth: DateTime.parse(json['dateOfBirth']),
+      description: json['description'],
+      vaccinationStatus: json['vaccinationStatus'],
+      microchipId: json['microchipId'],
+      isNeutered: json['isNeutered'],
       imageUrl: json['imageUrl'],
     );
   }
@@ -39,7 +57,13 @@ class PetDto {
     'breed': breed,
     'age': age,
     'gender': gender,
-    'ownerId': ownerId,
+    'weight': weight,
+    'color': color,
+    'dateOfBirth': dateOfBirth.toIso8601String(),
+    'description': description,
+    'vaccinationStatus': vaccinationStatus,
+    'microchipId': microchipId,
+    'isNeutered': isNeutered,
     'imageUrl': imageUrl,
   };
 } 

@@ -1,11 +1,13 @@
 class Admin {
   final int id;
-  final String name;
-  final String email;
+  final int userId;
+  final DateTime createdDate;
+  final User user;
 
   Admin({
     required this.id,
-    required this.name,
-    required this.email,
+    required this.userId,
+    required this.createdDate,
+    required this.user,
   });
 } 

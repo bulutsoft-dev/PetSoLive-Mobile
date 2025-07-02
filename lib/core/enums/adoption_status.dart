@@ -1,6 +1,5 @@
 enum AdoptionStatus {
-  pending,
-  approved,
-  rejected,
-  completed,
-} 
+    Pending,
+        Approved,
+        Rejected
+}  

@@ -1,29 +1,33 @@
 class PetOwnerDto {
-  final int id;
-  final String name;
-  final String email;
-  final String phoneNumber;
+  final int petId;
+  final String petName;
+  final int userId;
+  final String userName;
+  final DateTime ownershipDate;
 
   PetOwnerDto({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.phoneNumber,
+    required this.petId,
+    required this.petName,
+    required this.userId,
+    required this.userName,
+    required this.ownershipDate,
   });
 
   factory PetOwnerDto.fromJson(Map<String, dynamic> json) {
     return PetOwnerDto(
-      id: json['id'],
-      name: json['name'],
-      email: json['email'],
-      phoneNumber: json['phoneNumber'],
+      petId: json['petId'],
+      petName: json['petName'],
+      userId: json['userId'],
+      userName: json['userName'],
+      ownershipDate: DateTime.parse(json['ownershipDate']),
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'email': email,
-    'phoneNumber': phoneNumber,
+    'petId': petId,
+    'petName': petName,
+    'userId': userId,
+    'userName': userName,
+    'ownershipDate': ownershipDate.toIso8601String(),
   };
 } 

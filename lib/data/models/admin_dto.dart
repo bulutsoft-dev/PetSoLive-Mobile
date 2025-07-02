@@ -1,25 +1,29 @@
 class AdminDto {
   final int id;
-  final String name;
-  final String email;
+  final int userId;
+  final String userName;
+  final DateTime createdDate;
 
   AdminDto({
     required this.id,
-    required this.name,
-    required this.email,
+    required this.userId,
+    required this.userName,
+    required this.createdDate,
   });
 
   factory AdminDto.fromJson(Map<String, dynamic> json) {
     return AdminDto(
       id: json['id'],
-      name: json['name'],
-      email: json['email'],
+      userId: json['userId'],
+      userName: json['userName'],
+      createdDate: DateTime.parse(json['createdDate']),
     );
   }
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'name': name,
-    'email': email,
+    'userId': userId,
+    'userName': userName,
+    'createdDate': createdDate.toIso8601String(),
   };
 } 

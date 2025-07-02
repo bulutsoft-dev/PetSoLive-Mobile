@@ -1,15 +1,38 @@
+import 'comment.dart';
+import 'emergency_level.dart';
+import 'help_request_status.dart';
+import 'user.dart';
+
 class HelpRequest {
   final int id;
-  final int userId;
+  final String title;
   final String description;
-  final String emergencyLevel;
+  final EmergencyLevel emergencyLevel;
   final DateTime createdAt;
+  final int userId;
+  final User? user;
+  final String location;
+  final String? contactName;
+  final String? contactPhone;
+  final String? contactEmail;
+  final String? imageUrl;
+  final HelpRequestStatus status;
+  final List<Comment>? comments;
 
   HelpRequest({
     required this.id,
-    required this.userId,
+    required this.title,
     required this.description,
     required this.emergencyLevel,
     required this.createdAt,
+    required this.userId,
+    this.user,
+    required this.location,
+    this.contactName,
+    this.contactPhone,
+    this.contactEmail,
+    this.imageUrl,
+    required this.status,
+    this.comments,
   });
 } 
