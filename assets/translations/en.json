@@ -16,6 +16,8 @@
   "pets.title": "Animals",
   "lost_pets.title": "Lost Pets",
   "help_requests.title": "Help Requests",
+  "help_requests.empty": "No help requests found.",
+  "error.occurred": "An error occurred: {0}",
   "login.title": "Login",
   "drawer.website": "Visit Website",
   "theme.switch": "Switch Theme",

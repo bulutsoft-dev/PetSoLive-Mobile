@@ -10,7 +10,7 @@ class HelpRequestApiService {
     final response = await http.get(
       Uri.parse('$baseUrl/api/HelpRequest'),
       headers: {
-        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+        'x-api-key': ApiConstants.apiKey,
       },
     );
     if (response.statusCode == 200) {
@@ -24,7 +24,7 @@ class HelpRequestApiService {
     final response = await http.get(
       Uri.parse('$baseUrl/api/HelpRequest/$id'),
       headers: {
-        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+        'x-api-key': ApiConstants.apiKey,
       },
     );
     if (response.statusCode == 200) {
@@ -38,7 +38,7 @@ class HelpRequestApiService {
       Uri.parse('$baseUrl/api/HelpRequest'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
+        'x-api-key': ApiConstants.apiKey,
       },
       body: jsonEncode(dto.toJson()),
     );
@@ -52,7 +52,7 @@ class HelpRequestApiService {
       Uri.parse('$baseUrl/api/HelpRequest/$id'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
+        'x-api-key': ApiConstants.apiKey,
       },
       body: jsonEncode(dto.toJson()),
     );
@@ -64,7 +64,7 @@ class HelpRequestApiService {
   Future<void> delete(int id, String token) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/api/HelpRequest/$id'),
-      headers: {'Authorization': 'Bearer $token'},
+      headers: {'x-api-key': ApiConstants.apiKey},
     );
     if (response.statusCode != 204) {
       throw Exception('Failed to delete help request');
