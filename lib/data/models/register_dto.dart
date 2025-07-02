@@ -20,4 +20,30 @@ class RegisterDto {
     this.city,
     this.district,
   });
+
+  factory RegisterDto.fromJson(Map<String, dynamic> json) {
+    return RegisterDto(
+      username: json['username'],
+      email: json['email'],
+      password: json['password'],
+      phoneNumber: json['phoneNumber'],
+      address: json['address'],
+      dateOfBirth: DateTime.parse(json['dateOfBirth']),
+      profileImageUrl: json['profileImageUrl'],
+      city: json['city'],
+      district: json['district'],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'username': username,
+    'email': email,
+    'password': password,
+    'phoneNumber': phoneNumber,
+    'address': address,
+    'dateOfBirth': dateOfBirth.toIso8601String(),
+    'profileImageUrl': profileImageUrl,
+    'city': city,
+    'district': district,
+  };
 } 
