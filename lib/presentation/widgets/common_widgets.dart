@@ -1,1 +1,1 @@
- 
+// Bu dosya artık partials klasörüne taşınacak. 
