@@ -1,1 +1,5 @@
-// Tarih işlemleri için yardımcı fonksiyonlar burada olacak 
+class DateHelper {
+  static String formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+  }
+} 
