@@ -170,15 +170,21 @@ class _MainScaffoldState extends State<MainScaffold> {
       ),
       body: _pages[_currentIndex],
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: SizedBox(
-        height: 68,
-        width: 68,
+      floatingActionButton: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        height: _currentIndex == 2 ? 54 : 48,
+        width: _currentIndex == 2 ? 54 : 48,
         child: FloatingActionButton(
           onPressed: () => setState(() => _currentIndex = 2),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          elevation: 8,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Icon(Icons.home, size: 36, color: Colors.white),
+          backgroundColor: _currentIndex == 2 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondary,
+          elevation: 5,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: AnimatedScale(
+            scale: _currentIndex == 2 ? 1.08 : 1.0,
+            duration: const Duration(milliseconds: 180),
+            child: Icon(Icons.home, size: 26, color: Colors.white),
+          ),
           tooltip: 'home.title'.tr(),
         ),
       ),
@@ -186,26 +192,27 @@ class _MainScaffoldState extends State<MainScaffold> {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
+              color: Colors.black.withOpacity(0.07),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
             ),
           ],
         ),
         child: SafeArea(
           top: false,
           child: SizedBox(
-            height: 70,
+            height: 58,
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildNavBarItem(Icons.pets, 'animals.title', 0),
+                _buildNavBarItem(Icons.pets, 'pets.title', 0),
                 _buildNavBarItem(Icons.search, 'lost_pets.title', 1),
-                const Spacer(flex: 2), // Home butonu için geniş boşluk
+                const SizedBox(width: 44), // Home tuşu için boşluk
                 _buildNavBarItem(Icons.volunteer_activism, 'help_requests.title', 3),
                 _buildNavBarItem(Icons.person, 'profile.title', 4),
               ],
@@ -218,30 +225,34 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   Widget _buildNavBarItem(IconData icon, String labelKey, int index) {
     final isSelected = _currentIndex == index;
-    final color = isSelected ? Theme.of(context).colorScheme.primary : Colors.grey;
+    final color = isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _currentIndex = index),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 180),
           curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
-            color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.08) : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
+            color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.09) : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: color, size: 28),
-              const SizedBox(height: 2),
+              AnimatedScale(
+                scale: isSelected ? 1.08 : 1.0,
+                duration: const Duration(milliseconds: 180),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(height: 1),
               Text(
                 labelKey.tr(),
                 style: TextStyle(
                   color: color,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 12,
+                  fontSize: 11,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

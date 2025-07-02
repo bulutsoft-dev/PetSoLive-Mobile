@@ -21,5 +21,6 @@
   "theme.switch": "Temayı Değiştir",
   "drawer.change_language": "Dili Değiştir",
   "pets.error": "Evcil hayvanlar yüklenirken bir hata oluştu.",
-  "pets.empty": "Hiç evcil hayvan bulunamadı."
+  "pets.empty": "Hiç evcil hayvan bulunamadı.",
+  "pets.detail": "Detay"
 }

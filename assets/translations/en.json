@@ -21,5 +21,6 @@
   "theme.switch": "Switch Theme",
   "drawer.change_language": "Change Language",
   "pets.error": "An error occurred while loading pets.",
-  "pets.empty": "No pets found."
+  "pets.empty": "No pets found.",
+  "pets.detail": "Detail"
 }
