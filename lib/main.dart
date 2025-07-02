@@ -28,7 +28,6 @@ class PetSoLiveApp extends StatelessWidget {
           elevation: 3,
         ),
       ),
-      home: const HomeScreen(),
     );
   }
 }
