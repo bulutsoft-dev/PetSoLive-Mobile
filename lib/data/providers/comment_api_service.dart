@@ -77,4 +77,4 @@ class CommentApiService {
       throw Exception('Yorum silinemedi');
     }
   }
-} 
+}
