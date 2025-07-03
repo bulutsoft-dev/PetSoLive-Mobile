@@ -445,11 +445,11 @@ class _PetListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PetCubit, PetState>(
-      builder: (context, state) {
-        if (state is PetLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is PetError) {
-          return Center(child: Text('pets.error'.tr() + '\n' + state.error));
+        builder: (context, state) {
+          if (state is PetLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is PetError) {
+            return Center(child: Text('pets.error'.tr() + '\n' + state.error));
         } else if (state is PetLoaded || state is PetFiltered) {
           final pets = state is PetLoaded ? state.pets : (state as PetFiltered).pets;
           if (pets.isEmpty) {
@@ -460,42 +460,42 @@ class _PetListView extends StatelessWidget {
           }
           final filteredPets = filterPets(pets).where(filter).toList();
           if (filteredPets.isEmpty) {
-            return Center(child: Text('pets.empty'.tr()));
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+              return Center(child: Text('pets.empty'.tr()));
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 16),
             itemCount: filteredPets.length,
-            itemBuilder: (context, index) {
+              itemBuilder: (context, index) {
               final pet = filteredPets[index];
               final isAdopted = adoptedStatus[pet.id] ?? false;
               final ownerName = adoptedOwner[pet.id];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: PetCard(
-                  name: pet.name,
-                  species: pet.species,
-                  imageUrl: pet.imageUrl ?? '',
-                  description: pet.description ?? '',
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: PetCard(
+                    name: pet.name,
+                    species: pet.species,
+                    imageUrl: pet.imageUrl ?? '',
+                    description: pet.description ?? '',
                   age: pet.age,
                   gender: pet.gender,
                   color: pet.color,
                   vaccinationStatus: pet.vaccinationStatus,
                   isAdopted: isAdopted,
                   ownerName: ownerName,
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => PetDetailScreen(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => PetDetailScreen(
                         petId: pet.id,
-                      ),
-                    ));
-                  },
-                ),
-              );
-            },
-          );
-        }
-        return const SizedBox.shrink();
-      },
+                        ),
+                      ));
+                    },
+                  ),
+                );
+              },
+            );
+          }
+          return const SizedBox.shrink();
+        },
     );
   }
 }
@@ -524,4 +524,4 @@ class _CountBadge extends StatelessWidget {
       ),
     );
   }
-}
+} 

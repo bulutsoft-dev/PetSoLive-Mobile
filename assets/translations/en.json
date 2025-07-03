@@ -104,5 +104,6 @@
   "pet_detail.adopted_explanation": "This pet has been adopted.",
   "pet_detail.not_adopted_explanation": "This pet has not been adopted yet.",
   "pet_detail.owner_info_waiting": "Owner (Waiting)",
-  "pet_detail.waiting_explanation": "This pet is waiting to be adopted."
+  "pet_detail.waiting_explanation": "This pet is waiting to be adopted.",
+  "pet_detail.current_owner": "Current Owner"
 }

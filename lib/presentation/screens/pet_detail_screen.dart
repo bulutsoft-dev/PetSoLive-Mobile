@@ -10,6 +10,7 @@ import '../../data/models/adoption_dto.dart';
 import '../../data/providers/pet_api_service.dart';
 import '../../data/providers/pet_owner_api_service.dart';
 import '../../data/providers/adoption_api_service.dart';
+import '../widgets/ownership_id_card.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final int petId;
@@ -317,46 +318,61 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                                     ),
                                     child: Text(pet.description, style: theme.textTheme.bodyLarge),
                                   ),
-                                  const SizedBox(height: 8),
-                                  if (adoption != null) ...[
-                                    _GroupTitle(icon: Icons.verified, color: Colors.green, text: 'pet_detail.adopted_by_info'.tr(), badge: true),
-                                    const SizedBox(height: 8),
-                                    _PetDetailRow(
-                                      emoji: '👤',
-                                      label: 'pet_detail.adopted_by'.tr(),
-                                      value: adoption?.userName ?? '-',
-                                    ),
-                                    _PetDetailRow(
-                                      emoji: '📅',
-                                      label: 'pet_detail.adoption_date'.tr(),
-                                      value: adoption?.adoptionDate == null ? '-' : DateFormat('dd.MM.yyyy').format(adoption!.adoptionDate!),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 4, top: 4, bottom: 12),
-                                      child: Text('pet_detail.adopted_explanation'.tr(), style: theme.textTheme.bodySmall?.copyWith(color: Colors.green[800])),
-                                    ),
-                                  ] else ...[
-                                    _GroupTitle(icon: Icons.person, color: Colors.amber[800]!, text: 'pet_detail.owner_info_waiting'.tr()),
-                                    const SizedBox(height: 8),
-                                    _PetDetailRow(
-                                      emoji: '👤',
-                                      label: 'pet_detail.owner_name'.tr(),
-                                      value: owner?.userName ?? '-',
-                                      valueColor: Colors.amber[800],
-                                    ),
-                                    _PetDetailRow(
-                                      emoji: '📅',
-                                      label: 'pet_detail.ownership_date'.tr(),
-                                      value: owner?.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(owner!.ownershipDate!),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 4, top: 4, bottom: 12),
-                                      child: Text('pet_detail.waiting_explanation'.tr(), style: theme.textTheme.bodySmall?.copyWith(color: Colors.amber[900])),
-                                    ),
-                                  ],
                                 ],
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      // Sahiplik/adoption bilgileri ayrı kartta
+                      Card(
+                        elevation: 0,
+                        margin: EdgeInsets.zero,
+                        color: Colors.transparent,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (adoption != null) ...[
+                              OwnershipIdCard(
+                                icon: Icons.verified,
+                                color: Colors.green,
+                                title: 'pet_detail.adopted_by_info'.tr(),
+                                name: adoption.userName ?? '-',
+                                dateLabel: 'pet_detail.adoption_date'.tr(),
+                                date: adoption.adoptionDate == null ? '-' : DateFormat('dd.MM.yyyy').format(adoption.adoptionDate!),
+                                badge: 'pet_detail.status_owned'.tr(),
+                                badgeColor: Colors.green[700],
+                                explanation: 'pet_detail.adopted_explanation'.tr(),
+                                explanationColor: Colors.green[800],
+                              ),
+                              const SizedBox(height: 16),
+                              OwnershipIdCard(
+                                icon: Icons.person,
+                                color: Colors.blue,
+                                title: 'pet_detail.current_owner_info'.tr(),
+                                name: owner?.userName ?? '-',
+                                dateLabel: 'pet_detail.ownership_date'.tr(),
+                                date: owner?.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(owner!.ownershipDate!),
+                                badge: 'pet_detail.current_owner'.tr(),
+                                badgeColor: Colors.blue[700],
+                                explanation: 'pet_detail.current_owner_explanation'.tr(),
+                                explanationColor: Colors.blue[700],
+                              ),
+                            ] else ...[
+                              OwnershipIdCard(
+                                icon: Icons.person,
+                                color: Colors.amber[800]!,
+                                title: 'pet_detail.owner_info_waiting'.tr(),
+                                name: owner?.userName ?? '-',
+                                dateLabel: 'pet_detail.ownership_date'.tr(),
+                                date: owner?.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(owner!.ownershipDate!),
+                                badge: 'pet_detail.status_waiting'.tr(),
+                                badgeColor: Colors.amber[800],
+                                explanation: 'pet_detail.waiting_explanation'.tr(),
+                                explanationColor: Colors.amber[800],
+                              ),
+                            ],
                           ],
                         ),
                       ),

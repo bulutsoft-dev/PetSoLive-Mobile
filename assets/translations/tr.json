@@ -104,5 +104,6 @@
   "pet_detail.adopted_explanation": "Bu hayvan sahiplendirilmiştir.",
   "pet_detail.not_adopted_explanation": "Bu hayvan henüz sahiplendirilmemiştir.",
   "pet_detail.owner_info_waiting": "Sahiplendiren Kişi",
-  "pet_detail.waiting_explanation": "Bu hayvan sahiplendirilmeyi bekliyor."
+  "pet_detail.waiting_explanation": "Bu hayvan sahiplendirilmeyi bekliyor.",
+  "pet_detail.current_owner": "Güncel Sahip"
 }
