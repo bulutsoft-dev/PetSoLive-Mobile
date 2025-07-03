@@ -278,7 +278,13 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                                       Expanded(
                                         child: Text(
                                           pet.name,
-                                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 22),
+                                          style: theme.textTheme.titleLarge?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 22,
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? AppColors.darkOnBackground
+                                                : AppColors.onBackground,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -338,9 +344,9 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                                 icon: Icons.person,
                                 color: Colors.lightBlueAccent,
                                 title: 'pet_detail.adopted_by_info'.tr(),
-                                username: adoption.userName ?? '-',
+                                username: owner?.userName ?? '-',
                                 dateLabel: 'ownership_card.adoption_date'.tr(),
-                                date: adoption.adoptionDate == null ? '-' : DateFormat('dd.MM.yyyy').format(adoption.adoptionDate!),
+                                date: owner?.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(adoption.adoptionDate!),
                                 explanation: 'ownership_card.adopted_explanation'.tr(),
                                 explanationColor: Colors.green[800],
                               )

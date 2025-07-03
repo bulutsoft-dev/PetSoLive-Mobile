@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../themes/colors.dart';
 
 class OwnershipIdCard extends StatelessWidget {
   final IconData icon;
@@ -28,12 +29,19 @@ class OwnershipIdCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.darkSurface : AppColors.surface;
+    final borderCol = isDark ? AppColors.darkPrimary : AppColors.primary;
+    final titleCol = isDark ? AppColors.darkPrimary : AppColors.primary;
+    final labelCol = isDark ? AppColors.bsGray300 : AppColors.bsGray700;
+    final usernameCol = isDark ? AppColors.darkOnBackground : AppColors.onBackground;
+    final iconBg = color.withOpacity(0.13);
+    final iconBorder = color.withOpacity(0.25);
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF23272F) : const Color(0xFFF5F6FA),
+        color: cardBg,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isDark ? Colors.blueGrey[700]! : const Color(0xFFB0BEC5), width: 1.5),
+        border: Border.all(color: borderCol, width: 1.5),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.10),
@@ -66,7 +74,7 @@ class OwnershipIdCard extends StatelessWidget {
                     Text(
                       'ownership_card.app_name'.tr(),
                       style: theme.textTheme.titleSmall?.copyWith(
-                        color: Colors.teal[700],
+                        color: titleCol,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                         letterSpacing: 1.2,
@@ -77,7 +85,7 @@ class OwnershipIdCard extends StatelessWidget {
                     Text(
                       'ownership_card.card_title'.tr(),
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: Colors.grey[600],
+                        color: labelCol,
                         fontWeight: FontWeight.w500,
                         fontSize: 11,
                         letterSpacing: 1.1,
@@ -106,10 +114,10 @@ class OwnershipIdCard extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.13),
+                    color: iconBg,
                     shape: BoxShape.rectangle,
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: color.withOpacity(0.25), width: 1.1),
+                    border: Border.all(color: iconBorder, width: 1.1),
                   ),
                   child: avatarImagePath != null
                       ? ClipRRect(
@@ -128,8 +136,8 @@ class OwnershipIdCard extends StatelessWidget {
                         '${'pet_detail.username'.tr()}: @$username',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: isDark ? Colors.white : Colors.grey[900],
+                          fontSize: 14,
+                          color: usernameCol,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -137,25 +145,21 @@ class OwnershipIdCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          const Icon(Icons.calendar_today, size: 13, color: Colors.grey),
-                          const SizedBox(width: 4),
                           Text(
                             '$dateLabel: ',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
-                              color: dateLabel == 'ownership_card.adoption_date'.tr()
-                                  ? Colors.green[700]
-                                  : Colors.grey[700],
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: usernameCol
                             ),
                           ),
+                          Icon(Icons.calendar_today, size: 13, color: labelCol),
+
                           Text(
                             date,
                             style: theme.textTheme.bodySmall?.copyWith(
                               fontSize: 12,
-                              color: dateLabel == 'ownership_card.adoption_date'.tr()
-                                  ? Colors.green[700]
-                                  : null,
+                              color: usernameCol,
                             ),
                           ),
                         ],
@@ -170,7 +174,11 @@ class OwnershipIdCard extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8, left: 2, right: 2),
                 child: Text(
                   explanation,
-                  style: theme.textTheme.bodySmall?.copyWith(color: explanationColor ?? Colors.grey[600], fontStyle: FontStyle.italic, fontSize: 12),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: explanationColor ?? labelCol,
+                    fontStyle: FontStyle.italic,
+                    fontSize: 12,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.left,
