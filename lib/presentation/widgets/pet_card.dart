@@ -173,7 +173,7 @@ class PetCard extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Flexible(
                                     child: Text(
-                                      'Sahibi: $ownerName',
+                                      'pets.owner'.tr(args: [ownerName!]),
                                       style: TextStyle(fontSize: 12, color: subTextColor, fontWeight: FontWeight.w600),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,

@@ -21,4 +21,25 @@ class AdoptionRequestApiService {
     }
     return null;
   }
+
+  Future<List<AdoptionRequestDto>> getAllByPetId(int petId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/AdoptionRequest?petId=$petId'),
+      headers: {
+        'x-api-key': ApiConstants.apiKey,
+      },
+    );
+    debugPrint('AdoptionRequestApiService.getAllByPetId: petId=$petId statusCode=[33m[1m[4m[7m[5m${response.statusCode}[0m body=${response.body}');
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      final requests = data.map((e) => AdoptionRequestDto.fromJson(e)).toList();
+      for (final req in requests) {
+        debugPrint('AdoptionRequest: id=${req.id}, petId=${req.petId}, userId=${req.userId}, userName=${req.userName}, status=${req.status}, date=${req.requestDate}, message=${req.message}');
+      }
+      return requests;
+    } else {
+      debugPrint('AdoptionRequestApiService.getAllByPetId: ERROR statusCode=${response.statusCode} body=${response.body}');
+      return [];
+    }
+  }
 }

@@ -67,15 +67,15 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${'pet_detail.owner_name'.tr()}: ${owner.userName ?? '-'}'),
+            Text('pet_detail.owner_name'.tr() + ': ' + '${owner.userName ?? '-'}'),
             const SizedBox(height: 8),
-            Text('${'pet_detail.ownership_date'.tr()}: ${owner.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(owner.ownershipDate!)}'),
+            Text('pet_detail.ownership_date'.tr() + ': ' + '${owner.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(owner.ownershipDate!)}'),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('OK'),
+            child: Text('common.ok'.tr()),
           ),
         ],
       ),
@@ -244,30 +244,63 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                                 Positioned(
                                   top: 16,
                                   right: 16,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: adoption != null ? Colors.green[100] : Colors.amber[100],
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(color: adoption != null ? Colors.green : Colors.amber, width: 1.2),
-                                      boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(adoption != null ? Icons.verified : Icons.hourglass_bottom, color: adoption != null ? Colors.green : Colors.amber[800], size: 18),
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          adoption != null ? 'pet_detail.status_owned'.tr() : 'pet_detail.status_waiting'.tr(),
-                                          style: TextStyle(
-                                            color: adoption != null ? Colors.green[800] : Colors.amber[900],
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
+                                  child: adoption != null
+                                      ? Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: adoption.status.toLowerCase() == 'approved'
+                                                ? Colors.green[100]
+                                                : adoption.status.toLowerCase() == 'pending'
+                                                    ? Colors.amber[100]
+                                                    : Colors.red[100],
+                                            borderRadius: BorderRadius.circular(16),
+                                            border: Border.all(
+                                              color: adoption.status.toLowerCase() == 'approved'
+                                                  ? Colors.green
+                                                  : adoption.status.toLowerCase() == 'pending'
+                                                      ? Colors.amber
+                                                      : Colors.red,
+                                              width: 1.2,
+                                            ),
+                                            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                adoption.status.toLowerCase() == 'approved'
+                                                    ? Icons.verified
+                                                    : adoption.status.toLowerCase() == 'pending'
+                                                        ? Icons.hourglass_bottom
+                                                        : Icons.cancel,
+                                                color: adoption.status.toLowerCase() == 'approved'
+                                                    ? Colors.green
+                                                    : adoption.status.toLowerCase() == 'pending'
+                                                        ? Colors.amber[800]
+                                                        : Colors.red,
+                                                size: 18,
+                                              ),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                adoption.status.toLowerCase() == 'approved'
+                                                    ? 'pet_detail.status_owned'.tr()
+                                                    : adoption.status.toLowerCase() == 'pending'
+                                                        ? 'pet_detail.status_pending'.tr()
+                                                        : 'pet_detail.status_rejected'.tr(),
+                                                style: TextStyle(
+                                                  color: adoption.status.toLowerCase() == 'approved'
+                                                      ? Colors.green[800]
+                                                      : adoption.status.toLowerCase() == 'pending'
+                                                          ? Colors.amber[900]
+                                                          : Colors.red[800],
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : Container(),
                                 ),
                               ],
                             ),
@@ -398,11 +431,30 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                                       return const Center(child: CircularProgressIndicator());
                                     } else if (state is AdoptionRequestLoaded) {
                                       if (state.request == null) {
-                                        return Text('Henüz başvuru yok.', style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey));
+                                        return Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.info_outline, color: Colors.grey, size: 40),
+                                            const SizedBox(height: 8),
+                                            Text('pet_detail.no_adoption_request'.tr(), style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey)),
+                                          ],
+                                        );
                                       }
                                       return AdoptionRequestCommentWidget(request: state.request!);
                                     } else if (state is AdoptionRequestError) {
-                                      return Text('Başvurular yüklenemedi: \\${state.error}', style: theme.textTheme.bodySmall?.copyWith(color: Colors.red));
+                                      return Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.error_outline, color: Colors.red, size: 40),
+                                          const SizedBox(height: 8),
+                                          Text('pet_detail.adoption_request_error'.tr(args: [state.error]), style: theme.textTheme.bodySmall?.copyWith(color: Colors.red)),
+                                          const SizedBox(height: 8),
+                                          ElevatedButton(
+                                            onPressed: () => context.read<AdoptionRequestCubit>().getById(widget.petId),
+                                            child: Text('common.retry'.tr()),
+                                          ),
+                                        ],
+                                      );
                                     }
                                     return const SizedBox.shrink();
                                   },

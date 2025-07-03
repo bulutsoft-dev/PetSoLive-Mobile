@@ -90,7 +90,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 decoration: InputDecoration(labelText: 'Görsel URL'),
               ),
               SwitchListTile(
-                title: Text('Kısır mı?'),
+                title: Text('pets.is_neutered'.tr()),
                 value: _isNeutered ?? false,
                 onChanged: (v) => setState(() => _isNeutered = v),
               ),
@@ -120,7 +120,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                     Navigator.of(context).pop();
                   }
                 },
-                child: Text('Kaydet'),
+                child: Text('common.save'.tr()),
               ),
             ],
           ),

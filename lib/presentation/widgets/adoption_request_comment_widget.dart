@@ -25,20 +25,27 @@ class AdoptionRequestCommentWidget extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       color: isDark ? AppColors.darkSurface : AppColors.surface,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      elevation: 3,
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.person, color: Theme.of(context).colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text(request.userName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                const Spacer(),
+                CircleAvatar(
+                  backgroundColor: _statusColor(request.status, context).withOpacity(0.15),
+                  child: Icon(Icons.person, color: _statusColor(request.status, context)),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    request.userName ?? '-',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
@@ -46,23 +53,41 @@ class AdoptionRequestCommentWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: _statusColor(request.status, context), width: 1),
                   ),
-                  child: Text(request.status, style: TextStyle(color: _statusColor(request.status, context), fontWeight: FontWeight.w600, fontSize: 12)),
+                  child: Text(
+                    request.status,
+                    style: TextStyle(
+                      color: _statusColor(request.status, context),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             if (request.message != null && request.message!.isNotEmpty)
-              Text(request.message!, style: TextStyle(fontSize: 14)),
-            const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  request.message!,
+                  style: const TextStyle(fontSize: 15),
+                ),
+              ),
             Row(
               children: [
-                Icon(Icons.pets, size: 16, color: Colors.grey),
+                Icon(Icons.calendar_today, size: 14, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text(request.petName, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                Text(
+                  DateFormat('dd.MM.yyyy').format(request.requestDate),
+                  style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                ),
                 const Spacer(),
-                Icon(Icons.calendar_today, size: 13, color: Colors.grey),
-                const SizedBox(width: 3),
-                Text(DateFormat('dd.MM.yyyy').format(request.requestDate), style: TextStyle(fontSize: 12, color: Colors.grey)),
+                Icon(Icons.pets, size: 15, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text(
+                  request.petName,
+                  style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                ),
               ],
             ),
           ],
