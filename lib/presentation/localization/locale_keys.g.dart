@@ -56,5 +56,7 @@ abstract class  LocaleKeys {
   static const coming_soon = 'coming_soon';
   static const rate_us = 'rate_us';
   static const all_rights_reserved = 'all_rights_reserved';
+  static const more_from_bulutsoft = 'more_from_bulutsoft';
+  static const bulutsoft_description = 'bulutsoft_description';
 
 }
