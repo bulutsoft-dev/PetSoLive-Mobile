@@ -105,5 +105,15 @@
   "pet_detail.not_adopted_explanation": "This pet has not been adopted yet.",
   "pet_detail.owner_info_waiting": "Owner (Waiting)",
   "pet_detail.waiting_explanation": "This pet is waiting to be adopted.",
-  "pet_detail.current_owner": "Current Owner"
+  "pet_detail.current_owner": "Current Owner",
+  "pet_detail.username": "Username",
+  "ownership_card": {
+    "app_name": "PETSOLIVE",
+    "card_title": "USER CARD",
+    "adoption_date": "Adoption Date",
+    "ownership_date": "Ownership Date",
+    "username": "Username",
+    "waiting_explanation": "This pet is waiting to be adopted.",
+    "adopted_explanation": "This pet has been adopted."
+  }
 }
