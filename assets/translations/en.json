@@ -60,5 +60,14 @@
   "pets.waiting": "Waiting",
   "pets.adopted": "Adopted",
   "pets.search_hint": "Search...",
-  "pets.owned": "Owned"
+  "pets.owned": "Owned",
+  "pets.count": "pets",
+  "pets.filter_all": "All",
+  "pets.filter_species": "Species",
+  "pets.filter_color": "Color",
+  "pets.filter_breed": "Breed",
+  "pets.title_waiting": "Adoptable Pets",
+  "pets.title_owned": "Owned Pets",
+  "pets.title_all": "All Pets",
+  "pets.page_description": "On this page, you can see adoptable pets and use filters and search for detailed results."
 }

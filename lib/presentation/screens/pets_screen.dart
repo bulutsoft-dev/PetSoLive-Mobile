@@ -33,6 +33,16 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
   bool adoptionLoading = false;
   List petsCache = [];
 
+  // Filtreler
+  String statusFilter = 'all'; // all, owned, waiting
+  String? speciesFilter;
+  String? colorFilter;
+  String? breedFilter;
+
+  List<String> get speciesList => petsCache.map((p) => p.species as String).toSet().toList();
+  List<String> get colorList => petsCache.map((p) => p.color as String).toSet().toList();
+  List<String> get breedList => petsCache.map((p) => p.breed as String).toSet().toList();
+
   Future<void> fetchAdoptionStatuses(List pets) async {
     setState(() { adoptionLoading = true; });
     final adoptionRepo = sl<AdoptionRepository>();
@@ -72,6 +82,172 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
     }
   }
 
+  List filterPets(List pets) {
+    return pets.where((pet) {
+      final adopted = adoptedStatus[pet.id] ?? false;
+      if (statusFilter == 'owned' && !adopted) return false;
+      if (statusFilter == 'waiting' && adopted) return false;
+      if (speciesFilter != null && speciesFilter!.isNotEmpty && pet.species != speciesFilter) return false;
+      if (colorFilter != null && colorFilter!.isNotEmpty && pet.color != colorFilter) return false;
+      if (breedFilter != null && breedFilter!.isNotEmpty && pet.breed != breedFilter) return false;
+      return true;
+    }).toList();
+  }
+
+  void _openFilterModal(BuildContext context) async {
+    String tempStatus = statusFilter;
+    String? tempSpecies = speciesFilter;
+    String? tempColor = colorFilter;
+    String? tempBreed = breedFilter;
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            left: 16, right: 16, top: 24),
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40, height: 4,
+                        margin: EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    Text('Filtrele', style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 18),
+                    Text('Durum', style: Theme.of(context).textTheme.labelLarge),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: Text('pets.filter_all'.tr()),
+                          selected: tempStatus == 'all',
+                          onSelected: (_) => setModalState(() => tempStatus = 'all'),
+                        ),
+                        ChoiceChip(
+                          label: Text('pets.owned'.tr()),
+                          selected: tempStatus == 'owned',
+                          onSelected: (_) => setModalState(() => tempStatus = 'owned'),
+                        ),
+                        ChoiceChip(
+                          label: Text('pets.waiting'.tr()),
+                          selected: tempStatus == 'waiting',
+                          onSelected: (_) => setModalState(() => tempStatus = 'waiting'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    Text('Tür', style: Theme.of(context).textTheme.labelLarge),
+                    DropdownButtonFormField<String>(
+                      value: tempSpecies,
+                      isDense: true,
+                      decoration: InputDecoration(
+                        hintText: 'pets.filter_species'.tr(),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      ),
+                      items: [null, ...speciesList].map((s) => DropdownMenuItem(
+                        value: s,
+                        child: Text(s ?? 'pets.filter_all'.tr()),
+                      )).toList(),
+                      onChanged: (v) => setModalState(() => tempSpecies = v),
+                    ),
+                    const SizedBox(height: 14),
+                    Text('Renk', style: Theme.of(context).textTheme.labelLarge),
+                    DropdownButtonFormField<String>(
+                      value: tempColor,
+                      isDense: true,
+                      decoration: InputDecoration(
+                        hintText: 'pets.filter_color'.tr(),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      ),
+                      items: [null, ...colorList].map((c) => DropdownMenuItem(
+                        value: c,
+                        child: Text(c ?? 'pets.filter_all'.tr()),
+                      )).toList(),
+                      onChanged: (v) => setModalState(() => tempColor = v),
+                    ),
+                    const SizedBox(height: 14),
+                    Text('Cins', style: Theme.of(context).textTheme.labelLarge),
+                    DropdownButtonFormField<String>(
+                      value: tempBreed,
+                      isDense: true,
+                      decoration: InputDecoration(
+                        hintText: 'pets.filter_breed'.tr(),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      ),
+                      items: [null, ...breedList].map((b) => DropdownMenuItem(
+                        value: b,
+                        child: Text(b ?? 'pets.filter_all'.tr()),
+                      )).toList(),
+                      onChanged: (v) => setModalState(() => tempBreed = v),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              statusFilter = 'all';
+                              speciesFilter = null;
+                              colorFilter = null;
+                              breedFilter = null;
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: Text('Temizle'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              statusFilter = tempStatus;
+                              speciesFilter = tempSpecies;
+                              colorFilter = tempColor;
+                              breedFilter = tempBreed;
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: Text('Uygula'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _clearFilterChip(String type) {
+    setState(() {
+      if (type == 'status') statusFilter = 'all';
+      if (type == 'species') speciesFilter = null;
+      if (type == 'color') colorFilter = null;
+      if (type == 'breed') breedFilter = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,8 +255,38 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
         listener: (context, state) => _onPetStateChanged(state),
         child: Column(
           children: [
+            // Sayfa başlığı
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+              child: Builder(
+                builder: (context) {
+                  String title;
+                  if (statusFilter == 'waiting') {
+                    title = 'pets.title_waiting'.tr();
+                  } else if (statusFilter == 'owned') {
+                    title = 'pets.title_owned'.tr();
+                  } else {
+                    title = 'pets.title_all'.tr();
+                  }
+                  return Text(
+                    title,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  );
+                },
+              ),
+            ),
+            // Açıklama metni
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
+              child: Text(
+                'pets.page_description'.tr(),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            // Arama çubuğu
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: TextField(
                 controller: _controller,
                 decoration: InputDecoration(
@@ -92,6 +298,77 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                   setState(() => searchQuery = value);
                   context.read<PetCubit>().filterPets(value);
                 },
+              ),
+            ),
+            // Filtre barı
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 16, 10, 0),
+              child: Row(
+                children: [
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.filter_alt),
+                    label: Text('Filtrele'),
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    ),
+                    onPressed: () => _openFilterModal(context),
+                  ),
+                  const SizedBox(width: 6),
+                  // Seçili filtre chip'leri
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          if (speciesFilter != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 2),
+                              child: InputChip(
+                                label: Text(speciesFilter!),
+                                onDeleted: () => _clearFilterChip('species'),
+                              ),
+                            ),
+                          if (colorFilter != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 2),
+                              child: InputChip(
+                                label: Text(colorFilter!),
+                                onDeleted: () => _clearFilterChip('color'),
+                              ),
+                            ),
+                          if (breedFilter != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 2),
+                              child: InputChip(
+                                label: Text(breedFilter!),
+                                onDeleted: () => _clearFilterChip('breed'),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Hayvan sayısı
+                  Builder(
+                    builder: (context) {
+                      final pets = context.select<PetCubit, List>((cubit) {
+                        final state = cubit.state;
+                        if (state is PetLoaded) return state.pets;
+                        if (state is PetFiltered) return state.pets;
+                        return [];
+                      });
+                      final filteredPets = filterPets(pets);
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Text(
+                          '${filteredPets.length} ' + 'pets.count'.tr(),
+                          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Colors.grey[700]),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -109,11 +386,15 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                     if (adoptedStatus.length != pets.length || adoptionLoading) {
                       return const Center(child: CircularProgressIndicator());
                     }
+                    final filteredPets = filterPets(pets);
+                    if (filteredPets.isEmpty) {
+                      return Center(child: Text('pets.empty'.tr()));
+                    }
                     return ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      itemCount: pets.length,
+                      itemCount: filteredPets.length,
                       itemBuilder: (context, index) {
-                        final pet = pets[index];
+                        final pet = filteredPets[index];
                         final isAdopted = adoptedStatus[pet.id] ?? false;
                         final ownerName = adoptedOwner[pet.id];
                         return Padding(

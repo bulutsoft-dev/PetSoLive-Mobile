@@ -60,5 +60,14 @@
   "pets.waiting": "Bekliyor",
   "pets.adopted": "Sahiplendirildi",
   "pets.search_hint": "Ara...",
-  "pets.owned": "Sahipli"
+  "pets.owned": "Sahipli",
+  "pets.count": "adet",
+  "pets.filter_all": "Tümü",
+  "pets.filter_species": "Tür",
+  "pets.filter_color": "Renk",
+  "pets.filter_breed": "Cins",
+  "pets.title_waiting": "Sahiplenilebilecek Hayvanlar",
+  "pets.title_owned": "Sahipli Hayvanlar",
+  "pets.title_all": "Tüm Hayvanlar",
+  "pets.page_description": "Bu sayfada sahiplendirilebilecek hayvanları görebilir, filtre ve arama ile detaylı sonuçlara ulaşabilirsiniz."
 }
