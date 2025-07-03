@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../widgets/pet_card.dart';
 import '../widgets/help_request_card.dart';
 import 'pet_detail_screen.dart';
+import '../blocs/pet_cubit.dart';
+import '../../injection_container.dart';
 
 class HomeScreen extends StatelessWidget {
   final void Function(int)? onTabChange;
@@ -12,22 +15,6 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
-    // Örnek veri
-    final pets = [
-      {
-        'name': 'Mia',
-        'species': 'Cat',
-        'imageUrl': 'https://placekitten.com/200/200',
-        'description': 'A playful and friendly kitten looking for a home.',
-      },
-      {
-        'name': 'Max',
-        'species': 'Dog',
-        'imageUrl': 'https://placedog.net/200/200',
-        'description': 'Energetic and loyal, loves to play fetch.',
-      },
-    ];
 
     final helpRequests = [
       {
@@ -44,7 +31,8 @@ class HomeScreen extends StatelessWidget {
       },
     ];
 
-    return Container(
+    return BlocProvider(
+      create: (_) => PetCubit(sl())..getAll(),
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: 24),
         children: [
@@ -98,22 +86,56 @@ class HomeScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text('home.featured_pets', style: theme.textTheme.titleLarge).tr(),
           ),
-          ...pets.map((pet) => PetCard(
-                name: pet['name']!,
-                species: pet['species']!,
-                imageUrl: pet['imageUrl']!,
-                description: pet['description']!,
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => PetDetailScreen(
-                      name: pet['name']!,
-                      species: pet['species']!,
-                      imageUrl: pet['imageUrl']!,
-                      description: pet['description']!,
-                    ),
-                  ));
-                },
-              )),
+          BlocBuilder<PetCubit, PetState>(
+            builder: (context, state) {
+              if (state is PetLoading) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (state is PetError) {
+                return Center(child: Text('pets.error'.tr() + '\n' + state.error));
+              } else if (state is PetLoaded || state is PetFiltered) {
+                final pets = state is PetLoaded ? state.pets : (state as PetFiltered).pets;
+                if (pets.isEmpty) {
+                  return Center(child: Text('pets.empty'.tr()));
+                }
+                return Column(
+                  children: pets.take(3).map<Widget>((pet) => PetCard(
+                    name: pet.name,
+                    species: pet.species,
+                    imageUrl: pet.imageUrl ?? '',
+                    description: pet.description ?? '',
+                    age: pet.age,
+                    gender: pet.gender,
+                    color: pet.color,
+                    vaccinationStatus: pet.vaccinationStatus,
+                    isAdopted: false, // Ana ekranda öne çıkanlar için adoption durumu opsiyonel
+                    ownerName: null,
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => PetDetailScreen(
+                          name: pet.name,
+                          species: pet.species,
+                          breed: pet.breed ?? '',
+                          age: pet.age,
+                          gender: pet.gender,
+                          weight: pet.weight,
+                          color: pet.color,
+                          dateOfBirth: pet.dateOfBirth,
+                          description: pet.description ?? '',
+                          vaccinationStatus: pet.vaccinationStatus,
+                          microchipId: pet.microchipId,
+                          isNeutered: pet.isNeutered,
+                          imageUrl: pet.imageUrl ?? '',
+                          isAdopted: false,
+                          ownerName: null,
+                        ),
+                      ));
+                    },
+                  )).toList(),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text('home.help_requests', style: theme.textTheme.titleLarge).tr(),

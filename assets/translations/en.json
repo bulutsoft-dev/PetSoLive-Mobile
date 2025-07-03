@@ -72,5 +72,21 @@
   "pets.page_description": "On this page, you can see adoptable pets and use filters and search for detailed results.",
   "pets.info_title": "Page Info",
   "pets.info_description": "On this page, you can see adoptable, owned, and waiting pets, and use filters and search for detailed results.",
-  "pets.simple_count": "items listed"
+  "pets.simple_count": "items listed",
+  "pet_detail.species": "Species",
+  "pet_detail.breed": "Breed",
+  "pet_detail.age": "Age",
+  "pet_detail.gender": "Gender",
+  "pet_detail.weight": "Weight",
+  "pet_detail.color": "Color",
+  "pet_detail.date_of_birth": "Date of Birth",
+  "pet_detail.vaccination_status": "Vaccination Status",
+  "pet_detail.microchip_id": "Microchip ID",
+  "pet_detail.is_neutered": "Neutered",
+  "pet_detail.yes": "Yes",
+  "pet_detail.no": "No",
+  "pet_detail.owner": "Owner",
+  "pet_detail.status_owned": "Owned",
+  "pet_detail.status_waiting": "Waiting",
+  "pet_detail.description": "Description"
 }
