@@ -11,6 +11,10 @@ import '../../data/providers/pet_api_service.dart';
 import '../../data/providers/pet_owner_api_service.dart';
 import '../../data/providers/adoption_api_service.dart';
 import '../widgets/ownership_id_card.dart';
+import '../widgets/adoption_request_comment_widget.dart';
+import '../blocs/adoption_request_cubit.dart';
+import '../../data/repositories/adoption_request_repository_impl.dart';
+import '../../data/providers/adoption_request_api_service.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final int petId;
@@ -376,15 +380,34 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                             children: [
                               Row(
                                 children: [
-                                  const Text('💬', style: TextStyle(fontSize: 20)),
+                                  const Icon(Icons.assignment_turned_in, size: 20),
                                   const SizedBox(width: 8),
-                                  Text('Yorumlar', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                                  Text('pet_detail.adoption_requests_title'.tr(), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              Text('Bu bölümde hayvana gelen yorumları görebileceksiniz.', style: theme.textTheme.bodyMedium),
+                              Text('pet_detail.adoption_requests_desc'.tr(), style: theme.textTheme.bodyMedium),
                               const SizedBox(height: 8),
-                              Text('Henüz yorum yok.', style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey)),
+                              BlocProvider(
+                                create: (_) => AdoptionRequestCubit(
+                                  AdoptionRequestRepositoryImpl(AdoptionRequestApiService()),
+                                )..getById(widget.petId),
+                                child: BlocBuilder<AdoptionRequestCubit, AdoptionRequestState>(
+                                  builder: (context, state) {
+                                    if (state is AdoptionRequestLoading) {
+                                      return const Center(child: CircularProgressIndicator());
+                                    } else if (state is AdoptionRequestLoaded) {
+                                      if (state.request == null) {
+                                        return Text('Henüz başvuru yok.', style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey));
+                                      }
+                                      return AdoptionRequestCommentWidget(request: state.request!);
+                                    } else if (state is AdoptionRequestError) {
+                                      return Text('Başvurular yüklenemedi: \\${state.error}', style: theme.textTheme.bodySmall?.copyWith(color: Colors.red));
+                                    }
+                                    return const SizedBox.shrink();
+                                  },
+                                ),
+                              ),
                             ],
                           ),
                         ),

@@ -115,5 +115,7 @@
     "username": "Kullanıcı Adı",
     "waiting_explanation": "Bu hayvan sahiplendirilmeyi bekliyor.",
     "adopted_explanation": "Bu hayvan sahiplendirildi."
-  }
+  },
+  "adoption_requests_title": "Adoption Requestler",
+  "adoption_requests_desc": "Bu bölümde hayvana yapılan sahiplenme başvurularını görebilirsiniz."
 }

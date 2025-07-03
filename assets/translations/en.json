@@ -115,5 +115,7 @@
     "username": "Username",
     "waiting_explanation": "This pet is waiting to be adopted.",
     "adopted_explanation": "This pet has been adopted."
-  }
+  },
+  "adoption_requests_title": "Adoption Requests",
+  "adoption_requests_desc": "You can see all adoption requests for this pet in this section."
 }
