@@ -1,18 +1,18 @@
 class AdoptionDto {
   final int id;
   final int petId;
-  final String petName;
+  final String? petName;
   final int userId;
-  final String userName;
+  final String? userName;
   final DateTime adoptionDate;
   final String status;
 
   AdoptionDto({
     required this.id,
     required this.petId,
-    required this.petName,
+    this.petName,
     required this.userId,
-    required this.userName,
+    this.userName,
     required this.adoptionDate,
     required this.status,
   });
@@ -21,11 +21,11 @@ class AdoptionDto {
     return AdoptionDto(
       id: json['id'],
       petId: json['petId'],
-      petName: json['petName'],
+      petName: json['petName'] ?? '',
       userId: json['userId'],
-      userName: json['userName'],
+      userName: json['userName'] ?? '',
       adoptionDate: DateTime.parse(json['adoptionDate']),
-      status: json['status'],
+      status: json['status'] ?? '',
     );
   }
 

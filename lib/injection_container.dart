@@ -16,6 +16,10 @@ import 'data/providers/account_api_service.dart';
 import 'presentation/blocs/account_cubit.dart';
 import 'data/repositories/account_repository_impl.dart';
 import 'domain/repositories/account_repository.dart';
+import 'data/providers/adoption_api_service.dart';
+import 'data/repositories/adoption_repository_impl.dart';
+import 'domain/repositories/adoption_repository.dart';
+import 'presentation/blocs/adoption_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -32,4 +36,9 @@ void init() {
   sl.registerLazySingleton<AccountApiService>(() => AccountApiService());
   sl.registerLazySingleton<AccountRepository>(() => AccountRepositoryImpl(sl()));
   sl.registerFactory(() => AccountCubit(sl<AccountRepository>()));
+
+  // Adoption
+  sl.registerLazySingleton<AdoptionApiService>(() => AdoptionApiService());
+  sl.registerLazySingleton<AdoptionRepository>(() => AdoptionRepositoryImpl(sl()));
+  sl.registerFactory(() => AdoptionCubit(sl()));
 }

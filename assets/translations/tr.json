@@ -55,5 +55,10 @@
   "login_title": "Giriş",
   "profile_login_prompt": "Profilinizi görüntülemek için lütfen giriş yapın.",
   "more_from_bulutsoft": "BulutSoft'tan daha fazlası",
-  "bulutsoft_description": "BulutSoft, bağımsız bir uygulama geliştirici organizasyondur."
+  "bulutsoft_description": "BulutSoft, bağımsız bir uygulama geliştirici organizasyondur.",
+  "pets.add": "Hayvan Ekle",
+  "pets.waiting": "Bekliyor",
+  "pets.adopted": "Sahiplendirildi",
+  "pets.search_hint": "Ara...",
+  "pets.owned": "Sahipli"
 }

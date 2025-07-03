@@ -55,5 +55,10 @@
   "login_title": "Login",
   "profile_login_prompt": "Please log in to view your profile.",
   "more_from_bulutsoft": "More from BulutSoft",
-  "bulutsoft_description": "BulutSoft is an independent app developer organization."
+  "bulutsoft_description": "BulutSoft is an independent app developer organization.",
+  "pets.add": "Add Pet",
+  "pets.waiting": "Waiting",
+  "pets.adopted": "Adopted",
+  "pets.search_hint": "Search...",
+  "pets.owned": "Owned"
 }

@@ -58,5 +58,10 @@ abstract class  LocaleKeys {
   static const all_rights_reserved = 'all_rights_reserved';
   static const more_from_bulutsoft = 'more_from_bulutsoft';
   static const bulutsoft_description = 'bulutsoft_description';
+  static const pets_add = 'pets_add';
+  static const pets_waiting = 'pets_waiting';
+  static const pets_adopted = 'pets_adopted';
+  static const pets_search_hint = 'pets_search_hint';
+  static const pets_owned = 'pets_owned';
 
 }

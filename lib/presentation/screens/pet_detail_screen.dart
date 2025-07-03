@@ -6,6 +6,11 @@ class PetDetailScreen extends StatelessWidget {
   final String species;
   final String imageUrl;
   final String description;
+  final int? age;
+  final String? gender;
+  final String? color;
+  final String? vaccinationStatus;
+  // final String? ownerName; // İleride sahip bilgisi için
 
   const PetDetailScreen({
     Key? key,
@@ -13,6 +18,11 @@ class PetDetailScreen extends StatelessWidget {
     required this.species,
     required this.imageUrl,
     required this.description,
+    this.age,
+    this.gender,
+    this.color,
+    this.vaccinationStatus,
+    // this.ownerName,
   }) : super(key: key);
 
   @override
@@ -41,8 +51,28 @@ class PetDetailScreen extends StatelessWidget {
           Text(name, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(species, style: Theme.of(context).textTheme.bodyMedium),
+          if (age != null) ...[
+            const SizedBox(height: 8),
+            Text('Yaş: $age'),
+          ],
+          if (gender != null) ...[
+            const SizedBox(height: 8),
+            Text('Cinsiyet: $gender'),
+          ],
+          if (color != null) ...[
+            const SizedBox(height: 8),
+            Text('Renk: $color'),
+          ],
+          if (vaccinationStatus != null) ...[
+            const SizedBox(height: 8),
+            Text('Aşı Durumu: $vaccinationStatus'),
+          ],
           const SizedBox(height: 16),
           Text(description, style: Theme.of(context).textTheme.bodyLarge),
+          // if (ownerName != null) ...[
+          //   const SizedBox(height: 16),
+          //   Text('Sahibi: $ownerName'),
+          // ],
           const SizedBox(height: 32),
           ElevatedButton.icon(
             onPressed: () {},

@@ -17,18 +17,37 @@ class PetError extends PetState {
   final String error;
   PetError(this.error);
 }
+class PetFiltered extends PetState {
+  final List<PetDto> pets;
+  PetFiltered(this.pets);
+}
 
 class PetCubit extends Cubit<PetState> {
   final PetRepository repository;
+  List<PetDto> _allPets = [];
   PetCubit(this.repository) : super(PetInitial());
 
+  @override
   Future<void> getAll() async {
     emit(PetLoading());
     try {
       final list = await repository.getAll();
+      _allPets = list;
       emit(PetLoaded(list));
     } catch (e) {
       emit(PetError(e.toString()));
+    }
+  }
+
+  void filterPets(String query) {
+    if (state is PetLoaded || state is PetFiltered) {
+      final filtered = _allPets.where((pet) {
+        final lower = query.toLowerCase();
+        return pet.name.toLowerCase().contains(lower) ||
+               pet.species.toLowerCase().contains(lower) ||
+               (pet.breed?.toLowerCase().contains(lower) ?? false);
+      }).toList();
+      emit(PetFiltered(filtered));
     }
   }
 
