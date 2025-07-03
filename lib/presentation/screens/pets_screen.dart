@@ -129,28 +129,6 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                     ),
                     Text('Filtrele', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 18),
-                    Text('Durum', style: Theme.of(context).textTheme.labelLarge),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        ChoiceChip(
-                          label: Text('pets.filter_all'.tr()),
-                          selected: tempStatus == 'all',
-                          onSelected: (_) => setModalState(() => tempStatus = 'all'),
-                        ),
-                        ChoiceChip(
-                          label: Text('pets.owned'.tr()),
-                          selected: tempStatus == 'owned',
-                          onSelected: (_) => setModalState(() => tempStatus = 'owned'),
-                        ),
-                        ChoiceChip(
-                          label: Text('pets.waiting'.tr()),
-                          selected: tempStatus == 'waiting',
-                          onSelected: (_) => setModalState(() => tempStatus = 'waiting'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
                     Text('Tür', style: Theme.of(context).textTheme.labelLarge),
                     DropdownButtonFormField<String>(
                       value: tempSpecies,
@@ -250,201 +228,306 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocListener<PetCubit, PetState>(
-        listener: (context, state) => _onPetStateChanged(state),
-        child: Column(
-          children: [
-            // Sayfa başlığı
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
-              child: Builder(
-                builder: (context) {
-                  String title;
-                  if (statusFilter == 'waiting') {
-                    title = 'pets.title_waiting'.tr();
-                  } else if (statusFilter == 'owned') {
-                    title = 'pets.title_owned'.tr();
-                  } else {
-                    title = 'pets.title_all'.tr();
-                  }
-                  return Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                  );
-                },
-              ),
-            ),
-            // Açıklama metni
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
-              child: Text(
-                'pets.page_description'.tr(),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            // Arama çubuğu
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: TextField(
-                controller: _controller,
-                decoration: InputDecoration(
-                  hintText: 'pets.search_hint'.tr(),
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        body: BlocListener<PetCubit, PetState>(
+          listener: (context, state) => _onPetStateChanged(state),
+          child: Column(
+            children: [
+              // TabBar en üstte
+              Padding(
+                padding: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 0),
+                child: TabBar(
+                  onTap: (index) {
+                    setState(() {
+                      if (index == 0) statusFilter = 'all';
+                      if (index == 1) statusFilter = 'owned';
+                      if (index == 2) statusFilter = 'waiting';
+                    });
+                  },
+                  indicatorColor: Theme.of(context).colorScheme.primary,
+                  labelColor: Theme.of(context).colorScheme.primary,
+                  unselectedLabelColor: Colors.grey[600],
+                  tabs: [
+                    Tab(text: 'pets.filter_all'.tr()),
+                    Tab(text: 'pets.owned'.tr()),
+                    Tab(text: 'pets.waiting'.tr()),
+                  ],
                 ),
-                onChanged: (value) {
-                  setState(() => searchQuery = value);
-                  context.read<PetCubit>().filterPets(value);
-                },
               ),
-            ),
-            // Filtre barı
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 16, 10, 0),
-              child: Row(
-                children: [
-                  ElevatedButton.icon(
-                    icon: Icon(Icons.filter_alt),
-                    label: Text('Filtrele'),
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    ),
-                    onPressed: () => _openFilterModal(context),
+              // Arama çubuğu
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: TextField(
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    hintText: 'pets.search_hint'.tr(),
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  const SizedBox(width: 6),
-                  // Seçili filtre chip'leri
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          if (speciesFilter != null)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 2),
-                              child: InputChip(
-                                label: Text(speciesFilter!),
-                                onDeleted: () => _clearFilterChip('species'),
+                  onChanged: (value) {
+                    setState(() => searchQuery = value);
+                    context.read<PetCubit>().filterPets(value);
+                  },
+                ),
+              ),
+              // Filtre barı
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 12, 10, 0),
+                child: Row(
+                  children: [
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.filter_alt),
+                      label: Text('Filtrele'),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
+                      onPressed: () => _openFilterModal(context),
+                    ),
+                    const SizedBox(width: 6),
+                    // Seçili filtre chip'leri (status hariç)
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            if (speciesFilter != null)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 2),
+                                child: InputChip(
+                                  label: Text(speciesFilter!),
+                                  onDeleted: () => _clearFilterChip('species'),
+                                ),
                               ),
-                            ),
-                          if (colorFilter != null)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 2),
-                              child: InputChip(
-                                label: Text(colorFilter!),
-                                onDeleted: () => _clearFilterChip('color'),
+                            if (colorFilter != null)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 2),
+                                child: InputChip(
+                                  label: Text(colorFilter!),
+                                  onDeleted: () => _clearFilterChip('color'),
+                                ),
                               ),
-                            ),
-                          if (breedFilter != null)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 2),
-                              child: InputChip(
-                                label: Text(breedFilter!),
-                                onDeleted: () => _clearFilterChip('breed'),
+                            if (breedFilter != null)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 2),
+                                child: InputChip(
+                                  label: Text(breedFilter!),
+                                  onDeleted: () => _clearFilterChip('breed'),
+                                ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  // Hayvan sayısı
-                  Builder(
-                    builder: (context) {
-                      final pets = context.select<PetCubit, List>((cubit) {
-                        final state = cubit.state;
-                        if (state is PetLoaded) return state.pets;
-                        if (state is PetFiltered) return state.pets;
-                        return [];
-                      });
-                      final filteredPets = filterPets(pets);
-                      return Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Text(
-                          '${filteredPets.length} ' + 'pets.count'.tr(),
-                          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Colors.grey[700]),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: BlocBuilder<PetCubit, PetState>(
-                builder: (context, state) {
-                  if (state is PetLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (state is PetError) {
-                    return Center(child: Text('pets.error'.tr() + '\n' + state.error));
-                  } else if (state is PetLoaded || state is PetFiltered) {
-                    final pets = state is PetLoaded ? state.pets : (state as PetFiltered).pets;
-                    if (pets.isEmpty) {
-                      return Center(child: Text('pets.empty'.tr()));
-                    }
-                    if (adoptedStatus.length != pets.length || adoptionLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final filteredPets = filterPets(pets);
-                    if (filteredPets.isEmpty) {
-                      return Center(child: Text('pets.empty'.tr()));
-                    }
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      itemCount: filteredPets.length,
-                      itemBuilder: (context, index) {
-                        final pet = filteredPets[index];
-                        final isAdopted = adoptedStatus[pet.id] ?? false;
-                        final ownerName = adoptedOwner[pet.id];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: PetCard(
-                            name: pet.name,
-                            species: pet.species,
-                            imageUrl: pet.imageUrl ?? '',
-                            description: pet.description ?? '',
-                            age: pet.age,
-                            gender: pet.gender,
-                            color: pet.color,
-                            vaccinationStatus: pet.vaccinationStatus,
-                            isAdopted: isAdopted,
-                            ownerName: ownerName,
-                            onTap: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                builder: (_) => PetDetailScreen(
-                                  name: pet.name,
-                                  species: pet.species,
-                                  imageUrl: pet.imageUrl ?? '',
-                                  description: pet.description ?? '',
-                                  age: pet.age,
-                                  gender: pet.gender,
-                                  color: pet.color,
-                                  vaccinationStatus: pet.vaccinationStatus,
-                                ),
-                              ));
-                            },
-                          ),
+                    // Hayvan sayısı ve badge'ler + ünlem
+                    Builder(
+                      builder: (context) {
+                        final pets = context.select<PetCubit, List>((cubit) {
+                          final state = cubit.state;
+                          if (state is PetLoaded) return state.pets;
+                          if (state is PetFiltered) return state.pets;
+                          return [];
+                        });
+                        final filteredPets = filterPets(pets);
+                        return Row(
+                          children: [
+                            // Basit hayvan sayısı metni
+                            Text(
+                              '${filteredPets.length} ' + 'pets.simple_count'.tr(),
+                              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Colors.grey[700]),
+                            ),
+                            const SizedBox(width: 4),
+                            // Ünlem ikonu ve tooltip/modal
+                            GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: Row(
+                                      children: [
+                                        Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
+                                        const SizedBox(width: 8),
+                                        Text('pets.info_title'.tr()),
+                                      ],
+                                    ),
+                                    content: Text('pets.info_description'.tr()),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(ctx),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              child: Icon(Icons.info_outline, color: Colors.amber[800], size: 22),
+                            ),
+                          ],
                         );
                       },
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              // TabBarView
+              Expanded(
+                child: TabBarView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    // All
+                    _PetListView(
+                      filter: (pet) => true,
+                      adoptedStatus: adoptedStatus,
+                      adoptedOwner: adoptedOwner,
+                      adoptionLoading: adoptionLoading,
+                      filterPets: filterPets,
+                      petsCache: petsCache,
+                    ),
+                    // Adopted
+                    _PetListView(
+                      filter: (pet) => adoptedStatus[pet.id] == true,
+                      adoptedStatus: adoptedStatus,
+                      adoptedOwner: adoptedOwner,
+                      adoptionLoading: adoptionLoading,
+                      filterPets: filterPets,
+                      petsCache: petsCache,
+                    ),
+                    // Waiting
+                    _PetListView(
+                      filter: (pet) => adoptedStatus[pet.id] == false,
+                      adoptedStatus: adoptedStatus,
+                      adoptedOwner: adoptedOwner,
+                      adoptionLoading: adoptionLoading,
+                      filterPets: filterPets,
+                      petsCache: petsCache,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          heroTag: 'pets_screen_fab',
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => AddPetScreen(),
+            ));
+          },
+          child: Icon(Icons.add),
+          tooltip: 'pets.add'.tr(),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'pets_screen_fab',
-        onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => AddPetScreen(),
-          ));
-        },
-        child: Icon(Icons.add),
-        tooltip: 'pets.add'.tr(),
+    );
+  }
+}
+
+// Pet listesi için ayrı widget
+class _PetListView extends StatelessWidget {
+  final bool Function(dynamic pet) filter;
+  final Map<int, bool> adoptedStatus;
+  final Map<int, String?> adoptedOwner;
+  final bool adoptionLoading;
+  final List petsCache;
+  final List Function(List) filterPets;
+
+  const _PetListView({
+    required this.filter,
+    required this.adoptedStatus,
+    required this.adoptedOwner,
+    required this.adoptionLoading,
+    required this.filterPets,
+    required this.petsCache,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<PetCubit, PetState>(
+      builder: (context, state) {
+        if (state is PetLoading) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is PetError) {
+          return Center(child: Text('pets.error'.tr() + '\n' + state.error));
+        } else if (state is PetLoaded || state is PetFiltered) {
+          final pets = state is PetLoaded ? state.pets : (state as PetFiltered).pets;
+          if (pets.isEmpty) {
+            return Center(child: Text('pets.empty'.tr()));
+          }
+          if (adoptedStatus.length != pets.length || adoptionLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final filteredPets = filterPets(pets).where(filter).toList();
+          if (filteredPets.isEmpty) {
+            return Center(child: Text('pets.empty'.tr()));
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            itemCount: filteredPets.length,
+            itemBuilder: (context, index) {
+              final pet = filteredPets[index];
+              final isAdopted = adoptedStatus[pet.id] ?? false;
+              final ownerName = adoptedOwner[pet.id];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: PetCard(
+                  name: pet.name,
+                  species: pet.species,
+                  imageUrl: pet.imageUrl ?? '',
+                  description: pet.description ?? '',
+                  age: pet.age,
+                  gender: pet.gender,
+                  color: pet.color,
+                  vaccinationStatus: pet.vaccinationStatus,
+                  isAdopted: isAdopted,
+                  ownerName: ownerName,
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => PetDetailScreen(
+                        name: pet.name,
+                        species: pet.species,
+                        imageUrl: pet.imageUrl ?? '',
+                        description: pet.description ?? '',
+                        age: pet.age,
+                        gender: pet.gender,
+                        color: pet.color,
+                        vaccinationStatus: pet.vaccinationStatus,
+                      ),
+                    ));
+                  },
+                ),
+              );
+            },
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+}
+
+// Hayvan sayısı badge'i
+class _CountBadge extends StatelessWidget {
+  final int count;
+  final String label;
+  final Color? color;
+  const _CountBadge({required this.count, required this.label, this.color});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color ?? Colors.blueGrey[50],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        '$count $label',
+        style: TextStyle(
+          color: color != null ? Colors.white : Colors.blueGrey[800],
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
       ),
     );
   }

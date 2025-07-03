@@ -69,5 +69,8 @@
   "pets.title_waiting": "Sahiplenilebilecek Hayvanlar",
   "pets.title_owned": "Sahipli Hayvanlar",
   "pets.title_all": "Tüm Hayvanlar",
-  "pets.page_description": "Bu sayfada sahiplendirilebilecek hayvanları görebilir, filtre ve arama ile detaylı sonuçlara ulaşabilirsiniz."
+  "pets.page_description": "Bu sayfada sahiplendirilebilecek hayvanları görebilir, filtre ve arama ile detaylı sonuçlara ulaşabilirsiniz.",
+  "pets.info_title": "Sayfa Bilgisi",
+  "pets.info_description": "Bu sayfada sahiplendirilebilecek, sahipli ve bekleyen hayvanları görebilir, filtre ve arama ile detaylı sonuçlara ulaşabilirsiniz.",
+  "pets.simple_count": "veri listeleniyor"
 }

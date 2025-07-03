@@ -69,5 +69,8 @@
   "pets.title_waiting": "Adoptable Pets",
   "pets.title_owned": "Owned Pets",
   "pets.title_all": "All Pets",
-  "pets.page_description": "On this page, you can see adoptable pets and use filters and search for detailed results."
+  "pets.page_description": "On this page, you can see adoptable pets and use filters and search for detailed results.",
+  "pets.info_title": "Page Info",
+  "pets.info_description": "On this page, you can see adoptable, owned, and waiting pets, and use filters and search for detailed results.",
+  "pets.simple_count": "items listed"
 }
