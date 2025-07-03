@@ -1,25 +1,27 @@
 class PetOwnerDto {
   final int petId;
-  final String petName;
+  final String? petName;
   final int userId;
-  final String userName;
-  final DateTime ownershipDate;
+  final String? userName;
+  final DateTime? ownershipDate;
 
   PetOwnerDto({
     required this.petId,
-    required this.petName,
+    this.petName,
     required this.userId,
-    required this.userName,
-    required this.ownershipDate,
+    this.userName,
+    this.ownershipDate,
   });
 
   factory PetOwnerDto.fromJson(Map<String, dynamic> json) {
     return PetOwnerDto(
       petId: json['petId'],
-      petName: json['petName'],
+      petName: json['petName'] as String?,
       userId: json['userId'],
-      userName: json['userName'],
-      ownershipDate: DateTime.parse(json['ownershipDate']),
+      userName: json['userName'] as String?,
+      ownershipDate: json['ownershipDate'] != null && json['ownershipDate'].toString().isNotEmpty
+          ? DateTime.tryParse(json['ownershipDate'])
+          : null,
     );
   }
 
@@ -28,6 +30,6 @@ class PetOwnerDto {
     'petName': petName,
     'userId': userId,
     'userName': userName,
-    'ownershipDate': ownershipDate.toIso8601String(),
+    'ownershipDate': ownershipDate?.toIso8601String(),
   };
 } 

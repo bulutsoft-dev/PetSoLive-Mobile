@@ -88,5 +88,21 @@
   "pet_detail.owner": "Sahibi",
   "pet_detail.status_owned": "Sahipli",
   "pet_detail.status_waiting": "Bekliyor",
-  "pet_detail.description": "Açıklama"
+  "pet_detail.description": "Açıklama",
+  "pet_detail.owner_error": "Sahip bilgisi yüklenirken bir hata oluştu.",
+  "pet_detail.owner_info": "Sahip Bilgisi",
+  "pet_detail.owner_name": "Sahip Adı",
+  "pet_detail.ownership_date": "Sahiplenme Tarihi",
+  "pet_detail.adoption_info": "Sahiplendirme Bilgisi",
+  "pet_detail.adopted_by": "Sahiplenen Kişi",
+  "pet_detail.adoption_date": "Sahiplendirme Tarihi",
+  "pet_detail.adoption_status": "Sahiplendirme Durumu",
+  "pet_detail.not_adopted": "Sahiplendirilmemiş",
+  "pet_detail.previous_owner": "Önceki Sahibi",
+  "pet_detail.previous_owner_explanation": "Bu kişi sahiplendirilmeden önceki sahibidir.",
+  "pet_detail.adopted_by_info": "Sahiplenen Kişi",
+  "pet_detail.adopted_explanation": "Bu hayvan sahiplendirilmiştir.",
+  "pet_detail.not_adopted_explanation": "Bu hayvan henüz sahiplendirilmemiştir.",
+  "pet_detail.owner_info_waiting": "Sahiplendiren Kişi",
+  "pet_detail.waiting_explanation": "Bu hayvan sahiplendirilmeyi bekliyor."
 }

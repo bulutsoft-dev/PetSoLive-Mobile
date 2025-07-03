@@ -88,5 +88,21 @@
   "pet_detail.owner": "Owner",
   "pet_detail.status_owned": "Owned",
   "pet_detail.status_waiting": "Waiting",
-  "pet_detail.description": "Description"
+  "pet_detail.description": "Description",
+  "pet_detail.owner_error": "An error occurred while loading the owner information.",
+  "pet_detail.owner_info": "Owner Information",
+  "pet_detail.owner_name": "Owner Name",
+  "pet_detail.ownership_date": "Ownership Date",
+  "pet_detail.adoption_info": "Adoption Information",
+  "pet_detail.adopted_by": "Adopted By",
+  "pet_detail.adoption_date": "Adoption Date",
+  "pet_detail.adoption_status": "Adoption Status",
+  "pet_detail.not_adopted": "Not Adopted",
+  "pet_detail.previous_owner": "Previous Owner",
+  "pet_detail.previous_owner_explanation": "This person was the previous owner before adoption.",
+  "pet_detail.adopted_by_info": "Adopted By",
+  "pet_detail.adopted_explanation": "This pet has been adopted.",
+  "pet_detail.not_adopted_explanation": "This pet has not been adopted yet.",
+  "pet_detail.owner_info_waiting": "Owner (Waiting)",
+  "pet_detail.waiting_explanation": "This pet is waiting to be adopted."
 }

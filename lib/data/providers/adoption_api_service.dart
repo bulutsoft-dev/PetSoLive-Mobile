@@ -34,4 +34,8 @@ class AdoptionApiService {
       throw Exception('Failed to create adoption');
     }
   }
+
+  Future<AdoptionDto?> fetchAdoptionByPetId(int petId) async {
+    return await getByPetId(petId);
+  }
 }

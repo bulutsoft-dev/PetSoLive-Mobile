@@ -112,21 +112,7 @@ class HomeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => PetDetailScreen(
-                          name: pet.name,
-                          species: pet.species,
-                          breed: pet.breed ?? '',
-                          age: pet.age,
-                          gender: pet.gender,
-                          weight: pet.weight,
-                          color: pet.color,
-                          dateOfBirth: pet.dateOfBirth,
-                          description: pet.description ?? '',
-                          vaccinationStatus: pet.vaccinationStatus,
-                          microchipId: pet.microchipId,
-                          isNeutered: pet.isNeutered,
-                          imageUrl: pet.imageUrl ?? '',
-                          isAdopted: false,
-                          ownerName: null,
+                          petId: pet.id,
                         ),
                       ));
                     },

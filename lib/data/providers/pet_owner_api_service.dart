@@ -10,12 +10,16 @@ class PetOwnerApiService {
     final response = await http.get(
       Uri.parse('$baseUrl/api/PetOwner/$petId'),
       headers: {
-        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+        'x-api-key': ApiConstants.apiKey,
       },
     );
     if (response.statusCode == 200) {
       return PetOwnerDto.fromJson(jsonDecode(response.body));
     }
     return null;
+  }
+
+  Future<PetOwnerDto?> fetchPetOwner(int petId) async {
+    return await getByPetId(petId);
   }
 }

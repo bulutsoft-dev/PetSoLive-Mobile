@@ -485,21 +485,7 @@ class _PetListView extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).push(MaterialPageRoute(
                       builder: (_) => PetDetailScreen(
-                        name: pet.name,
-                        species: pet.species,
-                        breed: pet.breed ?? '',
-                        age: pet.age,
-                        gender: pet.gender,
-                        weight: pet.weight,
-                        color: pet.color,
-                        dateOfBirth: pet.dateOfBirth,
-                        description: pet.description ?? '',
-                        vaccinationStatus: pet.vaccinationStatus,
-                        microchipId: pet.microchipId,
-                        isNeutered: pet.isNeutered,
-                        imageUrl: pet.imageUrl ?? '',
-                        isAdopted: isAdopted,
-                        ownerName: ownerName,
+                        petId: pet.id,
                       ),
                     ));
                   },

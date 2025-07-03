@@ -4,42 +4,33 @@ import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/theme_cubit.dart';
 import '../themes/colors.dart';
+import '../../data/models/pet_dto.dart';
+import '../../data/models/pet_owner_dto.dart';
+import '../../data/models/adoption_dto.dart';
+import '../../data/providers/pet_api_service.dart';
+import '../../data/providers/pet_owner_api_service.dart';
+import '../../data/providers/adoption_api_service.dart';
 
-class PetDetailScreen extends StatelessWidget {
-  final String name;
-  final String species;
-  final String breed;
-  final int? age;
-  final String? gender;
-  final double? weight;
-  final String? color;
-  final DateTime? dateOfBirth;
-  final String description;
-  final String? vaccinationStatus;
-  final String? microchipId;
-  final bool? isNeutered;
-  final String imageUrl;
-  final bool isAdopted;
-  final String? ownerName;
+class PetDetailScreen extends StatefulWidget {
+  final int petId;
+  const PetDetailScreen({Key? key, required this.petId}) : super(key: key);
 
-  const PetDetailScreen({
-    Key? key,
-    required this.name,
-    required this.species,
-    required this.breed,
-    this.age,
-    this.gender,
-    this.weight,
-    this.color,
-    this.dateOfBirth,
-    required this.description,
-    this.vaccinationStatus,
-    this.microchipId,
-    this.isNeutered,
-    required this.imageUrl,
-    this.isAdopted = false,
-    this.ownerName,
-  }) : super(key: key);
+  @override
+  State<PetDetailScreen> createState() => _PetDetailScreenState();
+}
+
+class _PetDetailScreenState extends State<PetDetailScreen> {
+  late Future<PetDto> _petFuture;
+  late Future<PetOwnerDto?> _ownerFuture;
+  late Future<AdoptionDto?> _adoptionFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _petFuture = PetApiService().fetchPet(widget.petId);
+    _ownerFuture = PetOwnerApiService().fetchPetOwner(widget.petId);
+    _adoptionFuture = AdoptionApiService().fetchAdoptionByPetId(widget.petId);
+  }
 
   Color? _getColor(String? colorName) {
     if (colorName == null) return null;
@@ -56,7 +47,7 @@ class PetDetailScreen extends StatelessWidget {
     return null;
   }
 
-  void _showOwnerDialog(BuildContext context) {
+  void _showOwnerDialog(BuildContext context, PetOwnerDto owner) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -64,10 +55,18 @@ class PetDetailScreen extends StatelessWidget {
           children: [
             Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 8),
-            Text('pet_detail.owner'.tr()),
+            Text('pet_detail.owner_info'.tr()),
           ],
         ),
-        content: Text(ownerName ?? '-'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${'pet_detail.owner_name'.tr()}: ${owner.userName ?? '-'}'),
+            const SizedBox(height: 8),
+            Text('${'pet_detail.ownership_date'.tr()}: ${owner.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(owner.ownershipDate!)}'),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -80,275 +79,329 @@ class PetDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd.MM.yyyy');
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: isDark ? AppColors.darkSurface : AppColors.petsoliveBg,
-        iconTheme: IconThemeData(
-          color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: FutureBuilder<PetDto>(
+          future: _petFuture,
+          builder: (context, petSnap) {
+            final petName = petSnap.hasData ? petSnap.data!.name : '';
+            return AppBar(
+              centerTitle: true,
+              backgroundColor: isDark ? AppColors.darkSurface : AppColors.petsoliveBg,
+              iconTheme: IconThemeData(
+                color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
+              ),
+              titleTextStyle: TextStyle(
+                color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).pop(),
+                tooltip: 'Geri',
+              ),
+              title: Text(
+                petName.isNotEmpty ? petName : 'pet_detail.title'.tr(),
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 22),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.translate),
+                  tooltip: 'Dili Değiştir',
+                  onPressed: () {
+                    final current = context.locale;
+                    final newLocale = current.languageCode == 'tr' ? const Locale('en') : const Locale('tr');
+                    context.setLocale(newLocale);
+                  },
+                  color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
+                ),
+                IconButton(
+                  icon: Icon(
+                    isDark ? Icons.light_mode : Icons.dark_mode,
+                    color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
+                  ),
+                  tooltip: isDark ? 'Aydınlık Tema' : 'Karanlık Tema',
+                  onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+                ),
+                FutureBuilder<AdoptionDto?>(
+                  future: _adoptionFuture,
+                  builder: (context, adoptionSnap) {
+                    final adoption = adoptionSnap.data;
+                    return IconButton(
+                      icon: Icon(
+                        adoption != null ? Icons.verified : Icons.hourglass_bottom,
+                        color: adoption != null ? Colors.green : Colors.amber[800],
+                      ),
+                      tooltip: adoption != null ? 'pet_detail.status_owned'.tr() : 'pet_detail.status_waiting'.tr(),
+                      onPressed: null,
+                    );
+                  },
+                ),
+              ],
+              elevation: 0,
+            );
+          },
         ),
-        titleTextStyle: TextStyle(
-          color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-          tooltip: 'Geri',
-        ),
-        title: Text(
-          name,
-          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.translate),
-            tooltip: 'Dili Değiştir',
-            onPressed: () {
-              final current = context.locale;
-              final newLocale = current.languageCode == 'tr' ? const Locale('en') : const Locale('tr');
-              context.setLocale(newLocale);
-            },
-            color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
-          ),
-          IconButton(
-            icon: Icon(
-              isDark ? Icons.light_mode : Icons.dark_mode,
-              color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
-            ),
-            tooltip: isDark ? 'Aydınlık Tema' : 'Karanlık Tema',
-            onPressed: () => context.read<ThemeCubit>().toggleTheme(),
-          ),
-          IconButton(
-            icon: Icon(
-              isAdopted ? Icons.verified : Icons.hourglass_bottom,
-              color: isAdopted ? Colors.green : Colors.amber[800],
-            ),
-            tooltip: isAdopted ? 'pet_detail.status_owned'.tr() : 'pet_detail.status_waiting'.tr(),
-            onPressed: null,
-          ),
-          if (ownerName != null && ownerName!.isNotEmpty)
-            IconButton(
-              icon: const Text('👤', style: TextStyle(fontSize: 22)),
-              tooltip: 'pet_detail.owner'.tr(),
-              onPressed: () => _showOwnerDialog(context),
-              color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
-            ),
-        ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Center(
-          //   child: ClipRRect(
-          //     borderRadius: BorderRadius.circular(22),
-          //     child: Image.network(
-          //       imageUrl,
-          //       height: 220,
-          //       width: 220,
-          //       fit: BoxFit.cover,
-          //       errorBuilder: (_, __, ___) => Container(
-          //         height: 220,
-          //         width: 220,
-          //         color: Colors.grey[300],
-          //         child: const Icon(Icons.pets, size: 80),
-          //       ),
-          //     ),
-          //   ),
-          // ),
-          Card(
-            elevation: 6,
-            margin: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-            color: isDark ? colorScheme.surfaceVariant : colorScheme.surface,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Büyük görsel ve badge overlay
-                Stack(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => Dialog(
-                            backgroundColor: Colors.transparent,
-                            child: InteractiveViewer(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(24),
-                                child: Image.network(
-                                  imageUrl,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    height: 320,
-                                    color: Colors.grey[300],
-                                    child: const Icon(Icons.pets, size: 80),
+      body: FutureBuilder<PetDto>(
+        future: _petFuture,
+        builder: (context, petSnap) {
+          if (petSnap.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!petSnap.hasData) {
+            return Center(child: Text('pet_detail.not_found'.tr()));
+          }
+          final pet = petSnap.data!;
+          return FutureBuilder<PetOwnerDto?>(
+            future: _ownerFuture,
+            builder: (context, ownerSnap) {
+              if (ownerSnap.connectionState != ConnectionState.done) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (ownerSnap.hasError) {
+                debugPrint('Owner fetch error: \\${ownerSnap.error}');
+                return Center(child: Text('pet_detail.owner_error'.tr()));
+              }
+              debugPrint('Owner fetch result: \\${ownerSnap.data}');
+              return FutureBuilder<AdoptionDto?>(
+                future: _adoptionFuture,
+                builder: (context, adoptionSnap) {
+                  if (adoptionSnap.connectionState != ConnectionState.done) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (adoptionSnap.hasError) {
+                    debugPrint('Adoption fetch error: \\${adoptionSnap.error}');
+                    return Center(child: Text('pet_detail.adoption_error'.tr()));
+                  }
+                  debugPrint('Adoption fetch result: \\${adoptionSnap.data}');
+                  final owner = ownerSnap.data;
+                  final adoption = adoptionSnap.data;
+                  return ListView(
+                    padding: const EdgeInsets.all(20),
+                    children: [
+                      Card(
+                        elevation: 6,
+                        margin: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                        color: isDark ? colorScheme.surfaceVariant : colorScheme.surface,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Büyük görsel ve badge overlay
+                            Stack(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (ctx) => Dialog(
+                                        backgroundColor: Colors.transparent,
+                                        child: InteractiveViewer(
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(24),
+                                            child: Image.network(
+                                              pet.imageUrl,
+                                              fit: BoxFit.contain,
+                                              errorBuilder: (_, __, ___) => Container(
+                                                height: 320,
+                                                color: Colors.grey[300],
+                                                child: const Icon(Icons.pets, size: 80),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                                    child: Image.network(
+                                      pet.imageUrl,
+                                      height: 240,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        height: 240,
+                                        color: Colors.grey[300],
+                                        child: const Icon(Icons.pets, size: 80),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                                Positioned(
+                                  top: 16,
+                                  right: 16,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: adoption != null ? Colors.green[100] : Colors.amber[100],
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: adoption != null ? Colors.green : Colors.amber, width: 1.2),
+                                      boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(adoption != null ? Icons.verified : Icons.hourglass_bottom, color: adoption != null ? Colors.green : Colors.amber[800], size: 18),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          adoption != null ? 'pet_detail.status_owned'.tr() : 'pet_detail.status_waiting'.tr(),
+                                          style: TextStyle(
+                                            color: adoption != null ? Colors.green[800] : Colors.amber[900],
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        );
-                      },
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                        child: Image.network(
-                          imageUrl,
-                          height: 240,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            height: 240,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.pets, size: 80),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 16,
-                      right: 16,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: isAdopted ? Colors.green[100] : Colors.amber[100],
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: isAdopted ? Colors.green : Colors.amber, width: 1.2),
-                          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(isAdopted ? Icons.verified : Icons.hourglass_bottom, color: isAdopted ? Colors.green : Colors.amber[800], size: 18),
-                            const SizedBox(width: 5),
-                            Text(
-                              isAdopted ? 'pet_detail.status_owned'.tr() : 'pet_detail.status_waiting'.tr(),
-                              style: TextStyle(
-                                color: isAdopted ? Colors.green[800] : Colors.amber[900],
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Adı ve sahip
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          pet.name,
+                                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 22),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 18),
+                                  // Kimlik Bilgileri
+                                  _GroupTitle(icon: Icons.badge, color: Colors.indigo, text: 'Kimlik Bilgileri'),
+                                  const SizedBox(height: 8),
+                                  _PetDetailRow(emoji: '🐾', label: 'pet_detail.species'.tr(), value: pet.species),
+                                  _PetDetailRow(emoji: '🧬', label: 'pet_detail.breed'.tr(), value: pet.breed),
+                                  _PetDetailRow(emoji: '🔗', label: 'pet_detail.microchip_id'.tr(), value: pet.microchipId ?? '-'),
+                                  const SizedBox(height: 16),
+                                  // Fiziksel Özellikler
+                                  _GroupTitle(icon: Icons.pets, color: Colors.teal, text: 'Fiziksel Özellikler'),
+                                  const SizedBox(height: 8),
+                                  _PetDetailRow(emoji: '🎂', label: 'pet_detail.age'.tr(), value: pet.age != null ? pet.age.toString() : '-'),
+                                  _PetDetailRow(emoji: pet.gender != null && pet.gender!.toLowerCase().contains('d') || (pet.gender != null && pet.gender!.toLowerCase().contains('f')) ? '♀️' : '♂️', label: 'pet_detail.gender'.tr(), value: pet.gender ?? '-'),
+                                  _PetDetailRow(emoji: '⚖️', label: 'pet_detail.weight'.tr(), value: pet.weight != null ? '${pet.weight!.toStringAsFixed(1)} kg' : '-'),
+                                  _PetDetailRow(emoji: '🎨', label: 'pet_detail.color'.tr(), value: pet.color ?? '-'),
+                                  _PetDetailRow(emoji: '📅', label: 'pet_detail.date_of_birth'.tr(), value: pet.dateOfBirth != null ? DateFormat('dd.MM.yyyy').format(pet.dateOfBirth!) : '-'),
+                                  const SizedBox(height: 16),
+                                  // Sağlık Bilgileri
+                                  _GroupTitle(icon: Icons.health_and_safety, color: Colors.redAccent, text: 'Sağlık Bilgileri'),
+                                  const SizedBox(height: 8),
+                                  _PetDetailRow(emoji: '💉', label: 'pet_detail.vaccination_status'.tr(), value: pet.vaccinationStatus ?? '-'),
+                                  _PetDetailRow(emoji: '✂️', label: 'pet_detail.is_neutered'.tr(), value: pet.isNeutered != null ? (pet.isNeutered! ? 'pet_detail.yes'.tr() : 'pet_detail.no'.tr()) : '-'),
+                                  const SizedBox(height: 16),
+                                  // Açıklama
+                                  _GroupTitle(icon: Icons.info_outline, color: Colors.blue, text: 'pet_detail.description'.tr()),
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? Colors.blueGrey[900] : Colors.blue[50],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(pet.description, style: theme.textTheme.bodyLarge),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (adoption != null) ...[
+                                    _GroupTitle(icon: Icons.verified, color: Colors.green, text: 'pet_detail.adopted_by_info'.tr(), badge: true),
+                                    const SizedBox(height: 8),
+                                    _PetDetailRow(
+                                      emoji: '👤',
+                                      label: 'pet_detail.adopted_by'.tr(),
+                                      value: adoption?.userName ?? '-',
+                                    ),
+                                    _PetDetailRow(
+                                      emoji: '📅',
+                                      label: 'pet_detail.adoption_date'.tr(),
+                                      value: adoption?.adoptionDate == null ? '-' : DateFormat('dd.MM.yyyy').format(adoption!.adoptionDate!),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 4, top: 4, bottom: 12),
+                                      child: Text('pet_detail.adopted_explanation'.tr(), style: theme.textTheme.bodySmall?.copyWith(color: Colors.green[800])),
+                                    ),
+                                  ] else ...[
+                                    _GroupTitle(icon: Icons.person, color: Colors.amber[800]!, text: 'pet_detail.owner_info_waiting'.tr()),
+                                    const SizedBox(height: 8),
+                                    _PetDetailRow(
+                                      emoji: '👤',
+                                      label: 'pet_detail.owner_name'.tr(),
+                                      value: owner?.userName ?? '-',
+                                      valueColor: Colors.amber[800],
+                                    ),
+                                    _PetDetailRow(
+                                      emoji: '📅',
+                                      label: 'pet_detail.ownership_date'.tr(),
+                                      value: owner?.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(owner!.ownershipDate!),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 4, top: 4, bottom: 12),
+                                      child: Text('pet_detail.waiting_explanation'.tr(), style: theme.textTheme.bodySmall?.copyWith(color: Colors.amber[900])),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Adı ve sahip
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              name,
-                              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 22),
-                            ),
-                          ),
-                          if (ownerName != null && ownerName!.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: isDark ? Colors.blueGrey[800] : Colors.blue[50],
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Row(
+                      const SizedBox(height: 22),
+                      Card(
+                        color: isDark ? Colors.grey[900] : Colors.grey[100],
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
                                 children: [
-                                  const Text('👤', style: TextStyle(fontSize: 18)),
-                                  const SizedBox(width: 6),
-                                  Text(ownerName!, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                                  const Text('💬', style: TextStyle(fontSize: 20)),
+                                  const SizedBox(width: 8),
+                                  Text('Yorumlar', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                                 ],
                               ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
-                      // Kimlik Bilgileri
-                      _GroupTitle(icon: Icons.badge, color: Colors.indigo, text: 'Kimlik Bilgileri'),
-                      const SizedBox(height: 8),
-                      _PetDetailRow(emoji: '🐾', label: 'pet_detail.species'.tr(), value: species),
-                      _PetDetailRow(emoji: '🧬', label: 'pet_detail.breed'.tr(), value: breed),
-                      _PetDetailRow(emoji: '🔗', label: 'pet_detail.microchip_id'.tr(), value: microchipId ?? '-'),
-                      const SizedBox(height: 16),
-                      // Fiziksel Özellikler
-                      _GroupTitle(icon: Icons.pets, color: Colors.teal, text: 'Fiziksel Özellikler'),
-                      const SizedBox(height: 8),
-                      _PetDetailRow(emoji: '🎂', label: 'pet_detail.age'.tr(), value: age != null ? age.toString() : '-'),
-                      _PetDetailRow(emoji: gender != null && gender!.toLowerCase().contains('d') || (gender != null && gender!.toLowerCase().contains('f')) ? '♀️' : '♂️', label: 'pet_detail.gender'.tr(), value: gender ?? '-'),
-                      _PetDetailRow(emoji: '⚖️', label: 'pet_detail.weight'.tr(), value: weight != null ? '${weight!.toStringAsFixed(1)} kg' : '-'),
-                      _PetDetailRow(emoji: '🎨', label: 'pet_detail.color'.tr(), value: color ?? '-'),
-                      _PetDetailRow(emoji: '📅', label: 'pet_detail.date_of_birth'.tr(), value: dateOfBirth != null ? dateFormat.format(dateOfBirth!) : '-'),
-                      const SizedBox(height: 16),
-                      // Sağlık Bilgileri
-                      _GroupTitle(icon: Icons.health_and_safety, color: Colors.redAccent, text: 'Sağlık Bilgileri'),
-                      const SizedBox(height: 8),
-                      _PetDetailRow(emoji: '💉', label: 'pet_detail.vaccination_status'.tr(), value: vaccinationStatus ?? '-'),
-                      _PetDetailRow(emoji: '✂️', label: 'pet_detail.is_neutered'.tr(), value: isNeutered != null ? (isNeutered! ? 'pet_detail.yes'.tr() : 'pet_detail.no'.tr()) : '-'),
-                      const SizedBox(height: 16),
-                      // Açıklama
-                      _GroupTitle(icon: Icons.info_outline, color: Colors.blue, text: 'pet_detail.description'.tr()),
-                      const SizedBox(height: 8),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: isDark ? Colors.blueGrey[900] : Colors.blue[50],
-                          borderRadius: BorderRadius.circular(12),
+                              const SizedBox(height: 8),
+                              Text('Bu bölümde hayvana gelen yorumları görebileceksiniz.', style: theme.textTheme.bodyMedium),
+                              const SizedBox(height: 8),
+                              Text('Henüz yorum yok.', style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey)),
+                            ],
+                          ),
                         ),
-                        child: Text(description, style: theme.textTheme.bodyLarge),
+                      ),
+                      const SizedBox(height: 32),
+                      ElevatedButton.icon(
+                        onPressed: () {},
+                        icon: const Icon(Icons.favorite_border),
+                        label: Text('pet_detail.adopt').tr(),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
                       ),
                     ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 22),
-          Card(
-            color: isDark ? Colors.grey[900] : Colors.grey[100],
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Text('💬', style: TextStyle(fontSize: 20)),
-                      const SizedBox(width: 8),
-                      Text('Yorumlar', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text('Bu bölümde hayvana gelen yorumları görebileceksiniz.', style: theme.textTheme.bodyMedium),
-                  const SizedBox(height: 8),
-                  Text('Henüz yorum yok.', style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey)),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.favorite_border),
-            label: Text('pet_detail.adopt').tr(),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          ),
-        ],
+                  );
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -391,7 +444,8 @@ class _GroupTitle extends StatelessWidget {
   final IconData icon;
   final Color color;
   final String text;
-  const _GroupTitle({required this.icon, required this.color, required this.text});
+  final bool badge;
+  const _GroupTitle({required this.icon, required this.color, required this.text, this.badge = false});
   @override
   Widget build(BuildContext context) {
     return Row(

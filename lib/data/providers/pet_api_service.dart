@@ -72,4 +72,10 @@ class PetApiService {
       throw Exception('Failed to delete pet');
     }
   }
+
+  Future<PetDto> fetchPet(int id) async {
+    final pet = await getById(id);
+    if (pet == null) throw Exception('Pet not found');
+    return pet;
+  }
 }
