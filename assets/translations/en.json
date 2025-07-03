@@ -17,6 +17,7 @@
   "lost_pets.title": "Lost Pets",
   "help_requests.title": "Help Requests",
   "help_requests.empty": "No help requests found.",
+  "help_requests.error": "An error occured.",
   "error.occurred": "An error occurred: {0}",
   "login.title": "Login",
   "drawer.website": "Visit Website",
@@ -27,5 +28,15 @@
   "pets.detail": "Detail",
   "lost_pets.error": "An error occurred while loading lost pet ads.",
   "lost_pets.empty": "No lost pet ads found.",
-  "lost_pets.status_open": "Open"
+  "lost_pets.status_open": "Open",
+  "animals.title": "Pets",
+  "home.featured_pets": "Last added Pets",
+  "home.help_requests": "Help Requests",
+  "profile.login_prompt": "Please log in to view your profile.",
+  "profile.logout": "Logout",
+  "profile.app_info": "App Information",
+  "profile.developer_info": "Developer Information",
+  "profile.language": "Language",
+  "profile.change_language": "Change Language",
+  "profile.supported_languages": "Supported Languages"
 }

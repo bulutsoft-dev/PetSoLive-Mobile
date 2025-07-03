@@ -8,6 +8,14 @@ import 'data/providers/lost_pet_ad_api_service.dart';
 import 'data/repositories/help_request_repository_impl.dart';
 import 'domain/repositories/help_request_repository.dart';
 import 'data/providers/help_request_api_service.dart';
+import 'data/providers/user_api_service.dart';
+import 'data/repositories/user_repository_impl.dart';
+import 'domain/repositories/user_repository.dart';
+import 'presentation/blocs/user_cubit.dart';
+import 'data/providers/account_api_service.dart';
+import 'presentation/blocs/account_cubit.dart';
+import 'data/repositories/account_repository_impl.dart';
+import 'domain/repositories/account_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -18,4 +26,10 @@ void init() {
   sl.registerLazySingleton<LostPetAdRepository>(() => LostPetAdRepositoryImpl(sl()));
   sl.registerLazySingleton<HelpRequestApiService>(() => HelpRequestApiService());
   sl.registerLazySingleton<HelpRequestRepository>(() => HelpRequestRepositoryImpl(sl()));
+  sl.registerLazySingleton<UserApiService>(() => UserApiService());
+  sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(sl()));
+  sl.registerFactory(() => UserCubit(sl()));
+  sl.registerLazySingleton<AccountApiService>(() => AccountApiService());
+  sl.registerLazySingleton<AccountRepository>(() => AccountRepositoryImpl(sl()));
+  sl.registerFactory(() => AccountCubit(sl<AccountRepository>()));
 }

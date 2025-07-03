@@ -17,6 +17,7 @@
   "lost_pets.title": "Kayıp İlanları",
   "help_requests.title": "Yardım Talepleri",
   "help_requests.empty": "Hiç yardım talebi bulunamadı.",
+  "help_requests.error": "Hata oluştu.",
   "error.occurred": "Bir hata oluştu: {0}",
   "login.title": "Giriş",
   "drawer.website": "Web Sitesini Ziyaret Et",
@@ -27,5 +28,15 @@
   "pets.detail": "Detay",
   "lost_pets.error": "Kayıp ilanları yüklenirken bir hata oluştu.",
   "lost_pets.empty": "Hiç kayıp ilanı bulunamadı.",
-  "lost_pets.status_open": "Açık"
+  "lost_pets.status_open": "Açık",
+  "animals.title": "Hayvanlar",
+  "home.featured_pets": "En son eklenen hayvanlar",
+  "home.help_requests": "Yardım istekleri",
+  "profile.login_prompt": "Profilinizi görüntülemek için lütfen giriş yapın.",
+  "profile.logout": "Çıkış Yap",
+  "profile.app_info": "Uygulama Bilgileri",
+  "profile.developer_info": "Geliştirici Bilgileri",
+  "profile.language": "Dil",
+  "profile.change_language": "Dili Değiştir",
+  "profile.supported_languages": "Desteklenen Diller"
 }

@@ -25,19 +25,23 @@ class HelpRequestsScreen extends StatelessWidget {
                   children: [
                     Icon(Icons.error_outline, color: Colors.red, size: 48),
                     const SizedBox(height: 12),
-                    Text(LocaleKeys.error_occurred.tr(args: [state.error]),
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red),
-                        textAlign: TextAlign.center),
+                    Text(
+                      'help_requests.error'.tr(),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
                     const SizedBox(height: 8),
-                    Text(state.error.toString(),
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        textAlign: TextAlign.center),
+                    Text(
+                      state.error.toString(),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
               );
             } else if (state is HelpRequestLoaded) {
               if (state.helpRequests.isEmpty) {
-                return Center(child: Text(LocaleKeys.help_requests_empty.tr()));
+                return Center(child: Text('help_requests.empty').tr());
               }
               return ListView.builder(
                 itemCount: state.helpRequests.length,
