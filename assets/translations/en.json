@@ -38,5 +38,20 @@
   "profile.developer_info": "Developer Information",
   "profile.language": "Language",
   "profile.change_language": "Change Language",
-  "profile.supported_languages": "Supported Languages"
+  "profile.supported_languages": "Supported Languages",
+  "app_name": "PetSoLive",
+  "developer_name": "BulutSoft",
+  "support_email": "petsolivesoft@gmail.com",
+  "official_website": "www.petsolive.com.tr",
+  "about_app_title": "About the App",
+  "about_app_description": "PetSoLive is a modern platform to help, find, and adopt pets. Developed with love by BulutSoft.",
+  "send_notification": "Send Notification",
+  "notification_sent": "Notification sent!",
+  "privacy_policy": "Privacy Policy",
+  "terms_of_service": "Terms of Service",
+  "coming_soon": "Coming soon!",
+  "rate_us": "Rate Us",
+  "all_rights_reserved": "© BulutSoft. All rights reserved.",
+  "login_title": "Login",
+  "profile_login_prompt": "Please log in to view your profile."
 }
