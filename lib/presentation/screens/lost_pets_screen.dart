@@ -9,8 +9,34 @@ import 'lost_pet_ad_screen.dart';
 import '../../data/providers/user_api_service.dart';
 import '../widgets/lost_pet_ad_card.dart';
 
-class LostPetsScreen extends StatelessWidget {
+class LostPetsScreen extends StatefulWidget {
   const LostPetsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<LostPetsScreen> createState() => _LostPetsScreenState();
+}
+
+class _LostPetsScreenState extends State<LostPetsScreen> {
+  String searchQuery = '';
+  String selectedCity = '';
+  String selectedDistrict = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  List<String> getCities(List<LostPetAdDto> ads) =>
+      ads.map((e) => e.lastSeenCity).where((c) => c.isNotEmpty).toSet().toList();
+  List<String> getDistricts(List<LostPetAdDto> ads, String city) =>
+      ads.where((e) => e.lastSeenCity == city).map((e) => e.lastSeenDistrict).where((d) => d.isNotEmpty).toSet().toList();
+
+  List<LostPetAdDto> filterAds(List<LostPetAdDto> ads) {
+    return ads.where((ad) {
+      final matchesQuery = searchQuery.isEmpty ||
+          (ad.petName.toLowerCase().contains(searchQuery.toLowerCase())) ||
+          (ad.description.toLowerCase().contains(searchQuery.toLowerCase()));
+      final matchesCity = selectedCity.isEmpty || (ad.lastSeenCity == selectedCity);
+      final matchesDistrict = selectedDistrict.isEmpty || (ad.lastSeenDistrict == selectedDistrict);
+      return matchesQuery && matchesCity && matchesDistrict;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,34 +60,92 @@ class LostPetsScreen extends StatelessWidget {
               ),
             );
           } else if (state is LostPetAdLoaded) {
-            if (state.ads.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.search_off, color: Theme.of(context).colorScheme.primary, size: 48),
-                    const SizedBox(height: 12),
-                    Text('lost_pets.empty', style: Theme.of(context).textTheme.titleLarge).tr(),
-                  ],
-                ),
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-              itemCount: state.ads.length,
-              itemBuilder: (context, index) {
-                final ad = state.ads[index];
-                return LostPetAdCard(
-                  ad: ad,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => LostPetAdScreen(ad: ad),
+            final allAds = state.ads;
+            final cities = getCities(allAds);
+            final districts = selectedCity.isNotEmpty ? getDistricts(allAds, selectedCity) : <String>[];
+            final filteredAds = filterAds(allAds);
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                  child: Row(
+                    children: [
+                      // Şehir filtresi
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedCity,
+                          isExpanded: true,
+                          decoration: const InputDecoration(labelText: 'Şehir'),
+                          items: [const DropdownMenuItem(value: '', child: Text('Tümü'))] +
+                              cities.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                          onChanged: (v) => setState(() {
+                            selectedCity = v ?? '';
+                            selectedDistrict = '';
+                          }),
+                        ),
                       ),
-                    );
-                  },
-                );
-              },
+                      const SizedBox(width: 8),
+                      // İlçe filtresi
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedDistrict,
+                          isExpanded: true,
+                          decoration: const InputDecoration(labelText: 'İlçe'),
+                          items: [const DropdownMenuItem(value: '', child: Text('Tümü'))] +
+                              districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+                          onChanged: (v) => setState(() => selectedDistrict = v ?? ''),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: const InputDecoration(
+                      hintText: 'Ara...',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (v) => setState(() => searchQuery = v),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (filteredAds.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.search_off, color: Theme.of(context).colorScheme.primary, size: 48),
+                          const SizedBox(height: 12),
+                          Text('lost_pets.empty', style: Theme.of(context).textTheme.titleLarge).tr(),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      itemCount: filteredAds.length,
+                      itemBuilder: (context, index) {
+                        final ad = filteredAds[index];
+                        return LostPetAdCard(
+                          ad: ad,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => LostPetAdScreen(ad: ad),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
             );
           }
           return const SizedBox.shrink();
@@ -69,4 +153,8 @@ class LostPetsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+extension StringCasingExtension on String {
+  String capitalize() => isEmpty ? this : this[0].toUpperCase() + substring(1);
 } 
