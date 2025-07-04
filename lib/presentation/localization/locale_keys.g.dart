@@ -132,30 +132,5 @@ abstract class  LocaleKeys {
   static const adoption_request_status_approved = 'adoption_request_status_approved';
   static const adoption_request_status_rejected = 'adoption_request_status_rejected';
   static const adoption_requests_loaded_count = 'adoption_requests_loaded_count';
-  static const lost_pets_city = 'lost_pets_city';
-  static const lost_pets_district = 'lost_pets_district';
-  static const lost_pets_all = 'lost_pets_all';
-  static const lost_pets_search_hint = 'lost_pets_search_hint';
-  static const pet_detail_search_comments = 'pet_detail_search_comments';
-  static const lost_pets_detail_title = 'lost_pets_detail_title';
-  static const no_owner_title = 'no_owner_title';
-  static const no_owner_desc = 'no_owner_desc';
-  static const lost_pet_ad_description = 'lost_pet_ad_description';
-  static const lost_pet_ad_details = 'lost_pet_ad_details';
-  static const lost_pet_ad_location = 'lost_pet_ad_location';
-  static const lost_pet_ad_last_seen_date = 'lost_pet_ad_last_seen_date';
-  static const lost_pet_ad_created_at = 'lost_pet_ad_created_at';
-  static const lost_pet_ad_owner_title = 'lost_pet_ad_owner_title';
-  static const lost_pet_ad_owner_error = 'lost_pet_ad_owner_error';
-  static const lost_pet_ad_email = 'lost_pet_ad_email';
-  static const lost_pet_ad_phone = 'lost_pet_ad_phone';
-  static const lost_pet_ad_address = 'lost_pet_ad_address';
-  static const lost_pet_ad_city = 'lost_pet_ad_city';
-  static const lost_pet_ad_district = 'lost_pet_ad_district';
-  static const lost_pet_ad_roles = 'lost_pet_ad_roles';
-  static const lost_pet_ad_verified = 'lost_pet_ad_verified';
-  static const lost_pet_ad = 'lost_pet_ad';
-  static const home_header_subtitle = 'home_header_subtitle';
-  static const common_see_all = 'common_see_all';
 
 }

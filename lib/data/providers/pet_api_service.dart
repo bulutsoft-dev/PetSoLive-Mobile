@@ -8,7 +8,7 @@ class PetApiService {
   final String apiKey = ApiConstants.apiKey;
 
   Future<List<PetDto>> getAll() async {
-    print('API KEY: ${ApiConstants.apiKey}');
+    // print('API KEY: ${ApiConstants.apiKey}');
     final response = await http.get(
       Uri.parse('$baseUrl/api/Pet'),
       headers: {
