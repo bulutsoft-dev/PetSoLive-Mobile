@@ -1,122 +1,288 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'presentation/themes/app_theme.dart';
+import 'presentation/partials/base_app_bar.dart';
+import 'presentation/partials/base_nav_bar.dart';
+import 'presentation/partials/base_drawer.dart';
+import 'presentation/localization/localization_manager.dart';
+import 'presentation/blocs/theme_cubit.dart';
+import 'presentation/screens/lost_pets_screen.dart';
+import 'presentation/screens/help_requests_screen.dart';
+import 'presentation/screens/profile_screen.dart';
+import 'presentation/screens/login_screen.dart';
+import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/pets_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'injection_container.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
+  init();
+  runApp(
+    EasyLocalization(
+      supportedLocales: LocalizationManager.supportedLocales,
+      path: LocalizationManager.path,
+      fallbackLocale: LocalizationManager.fallbackLocale,
+      child: BlocProvider(
+        create: (_) => ThemeCubit(),
+        child: const PetSoLiveApp(),
+      ),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class PetSoLiveApp extends StatelessWidget {
+  const PetSoLiveApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, state) {
+        return MaterialApp(
+          title: 'PetSoLive',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: state.themeMode,
+          home: const MainScaffold(),
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
+        );
+      },
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class MainScaffold extends StatefulWidget {
+  const MainScaffold({Key? key}) : super(key: key);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MainScaffold> createState() => _MainScaffoldState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MainScaffoldState extends State<MainScaffold> {
+  int _currentIndex = 2;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  final List<Widget> _pages = const [
+    PetsScreen(),
+    LostPetsScreen(),
+    HomeScreen(),
+    HelpRequestsScreen(),
+    ProfileScreen(),
+  ];
+
+  void _onDrawerTap(int index) {
+    setState(() => _currentIndex = index);
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final themeCubit = context.read<ThemeCubit>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      appBar: BaseAppBar(
+        title: _getAppBarTitle(_currentIndex),
+        actions: [
+          IconButton(
+            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+            tooltip: 'theme.switch'.tr(),
+            onPressed: () => themeCubit.toggleTheme(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.translate),
+            tooltip: 'drawer.change_language'.tr(),
+            onPressed: () {
+              final currentLocale = context.locale;
+              final newLocale = currentLocale.languageCode == 'tr' ? const Locale('en') : const Locale('tr');
+              context.setLocale(newLocale);
+            },
+          ),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      drawer: BaseDrawer(
+        header: DrawerHeader(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          child: Text('drawer.header'.tr(), style: const TextStyle(color: Colors.white, fontSize: 20)),
+        ),
+        children: [
+          ListTile(
+            leading: const Icon(Icons.pets),
+            title: Text('animals.title').tr(),
+            selected: _currentIndex == 0,
+            onTap: () => _onDrawerTap(0),
+          ),
+          ListTile(
+            leading: const Icon(Icons.search),
+            title: Text('lost_pets.title').tr(),
+            selected: _currentIndex == 1,
+            onTap: () => _onDrawerTap(1),
+          ),
+          ListTile(
+            leading: const Icon(Icons.home),
+            title: Text('home.title').tr(),
+            selected: _currentIndex == 2,
+            onTap: () => _onDrawerTap(2),
+          ),
+          ListTile(
+            leading: const Icon(Icons.volunteer_activism),
+            title: Text('help_requests.title').tr(),
+            selected: _currentIndex == 3,
+            onTap: () => _onDrawerTap(3),
+          ),
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: Text('profile.title').tr(),
+            selected: _currentIndex == 4,
+            onTap: () => _onDrawerTap(4),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text('drawer.website').tr(),
+            onTap: () async {
+              final url = Uri.parse('https://www.petsolive.com.tr/');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              }
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.translate),
+            title: Text('drawer.change_language').tr(),
+            onTap: () {
+              final currentLocale = context.locale;
+              final newLocale = currentLocale.languageCode == 'tr' ? const Locale('en') : const Locale('tr');
+              context.setLocale(newLocale);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.login),
+            title: Text('login.title').tr(),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+            title: Text('theme.switch').tr(),
+            onTap: () => themeCubit.toggleTheme(),
+          ),
+        ],
+      ),
+      body: _pages[_currentIndex],
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        height: _currentIndex == 2 ? 54 : 48,
+        width: _currentIndex == 2 ? 54 : 48,
+        child: FloatingActionButton(
+          onPressed: () => setState(() => _currentIndex = 2),
+          backgroundColor: _currentIndex == 2 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondary,
+          elevation: 5,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: AnimatedScale(
+            scale: _currentIndex == 2 ? 1.08 : 1.0,
+            duration: const Duration(milliseconds: 180),
+            child: Icon(Icons.home, size: 26, color: Colors.white),
+          ),
+          tooltip: 'home.title'.tr(),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.07),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
             ),
           ],
         ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 58,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildNavBarItem(Icons.pets, 'pets.title', 0),
+                _buildNavBarItem(Icons.search, 'lost_pets.title', 1),
+                const SizedBox(width: 44), // Home tuşu için boşluk
+                _buildNavBarItem(Icons.volunteer_activism, 'help_requests.title', 3),
+                _buildNavBarItem(Icons.person, 'profile.title', 4),
+              ],
+            ),
+          ),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  Widget _buildNavBarItem(IconData icon, String labelKey, int index) {
+    final isSelected = _currentIndex == index;
+    final color = isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _currentIndex = index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          decoration: BoxDecoration(
+            color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.09) : Colors.transparent,
+            borderRadius: BorderRadius.zero,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedScale(
+                scale: isSelected ? 1.08 : 1.0,
+                duration: const Duration(milliseconds: 180),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                labelKey.tr(),
+                style: TextStyle(
+                  color: color,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 11,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getAppBarTitle(int index) {
+    switch (index) {
+      case 0:
+        return 'animals.title'.tr();
+      case 1:
+        return 'lost_pets.title'.tr();
+      case 2:
+        return 'home.title'.tr();
+      case 3:
+        return 'help_requests.title'.tr();
+      case 4:
+        return 'profile.title'.tr();
+      default:
+        return 'appbar.title'.tr();
+    }
   }
 }

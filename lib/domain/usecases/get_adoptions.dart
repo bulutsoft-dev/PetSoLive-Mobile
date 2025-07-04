@@ -1,0 +1,1 @@
+// Get adoptions usecase burada olacak 

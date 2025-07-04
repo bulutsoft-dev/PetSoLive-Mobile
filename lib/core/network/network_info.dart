@@ -1,0 +1,1 @@
+// Ağ durumu kontrolü burada olacak 

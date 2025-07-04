@@ -1,0 +1,4 @@
+enum HelpRequestStatus {
+  Active,
+  Passive
+} 
