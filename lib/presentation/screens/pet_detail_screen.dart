@@ -16,7 +16,6 @@ import '../widgets/adoption_request_comment_widget.dart';
 import '../blocs/adoption_request_cubit.dart';
 import '../../data/repositories/adoption_request_repository_impl.dart';
 import '../../data/providers/adoption_request_api_service.dart';
-import '../partials/base_app_bar.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final int petId;
@@ -658,7 +657,6 @@ class _AdoptionRequestsTabSectionState extends State<_AdoptionRequestsTabSection
                   fontSize: 14.5,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'pet_detail_search_comments'.tr(),
                   prefixIcon: Icon(Icons.search, color: isDark ? AppColors.bsWhite : AppColors.primary),
                   filled: true,
                   fillColor: isDark ? AppColors.darkBackground : AppColors.bsWhite,
