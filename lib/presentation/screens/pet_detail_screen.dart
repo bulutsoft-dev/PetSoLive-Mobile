@@ -16,6 +16,7 @@ import '../widgets/adoption_request_comment_widget.dart';
 import '../blocs/adoption_request_cubit.dart';
 import '../../data/repositories/adoption_request_repository_impl.dart';
 import '../../data/providers/adoption_request_api_service.dart';
+import '../partials/base_app_bar.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final int petId;
@@ -75,27 +76,13 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
           future: _bundleFuture,
           builder: (context, snap) {
             final petName = snap.hasData ? snap.data!.pet.name : '';
-            return AppBar(
+            return BaseAppBar(
+              title: petName.isNotEmpty ? petName : 'pet_detail.title'.tr(),
               centerTitle: true,
-              backgroundColor: isDark ? AppColors.darkSurface : AppColors.petsoliveBg,
-              iconTheme: IconThemeData(
-                color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
-              ),
-              titleTextStyle: TextStyle(
-                color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.of(context).pop(),
                 tooltip: 'Geri',
-              ),
-              title: Text(
-                petName.isNotEmpty ? petName : 'pet_detail.title'.tr(),
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 22),
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
               ),
               actions: [
                 IconButton(
@@ -126,7 +113,8 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                     onPressed: null,
                   ),
               ],
-              elevation: 0,
+              backgroundColor: isDark ? AppColors.darkSurface : AppColors.petsoliveBg,
+              showLogo: false,
             );
           },
         ),
