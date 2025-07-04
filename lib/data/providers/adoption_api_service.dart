@@ -7,6 +7,9 @@ import 'package:flutter/foundation.dart';
 class AdoptionApiService {
   final String baseUrl = ApiConstants.baseUrl;
 
+  // In-memory cache: petId -> AdoptionDto?
+  static final Map<int, AdoptionDto?> _cache = {};
+
   Future<AdoptionDto?> getByPetId(int petId) async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/Adoption/$petId'),
@@ -36,6 +39,24 @@ class AdoptionApiService {
   }
 
   Future<AdoptionDto?> fetchAdoptionByPetId(int petId) async {
-    return await getByPetId(petId);
+    if (_cache.containsKey(petId)) {
+      debugPrint('AdoptionApiService.fetchAdoptionByPetId: cache hit for petId=$petId');
+      return _cache[petId]!;
+    }
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/Adoption/pet/$petId'),
+      headers: {
+        'x-api-key': ApiConstants.apiKey,
+      },
+    );
+    debugPrint('AdoptionApiService.fetchAdoptionByPetId: petId=$petId statusCode=${response.statusCode} body=${response.body}');
+    if (response.statusCode == 200) {
+      final adoption = response.body.isNotEmpty ? AdoptionDto.fromJson(jsonDecode(response.body)) : null;
+      _cache[petId] = adoption;
+      return adoption;
+    } else {
+      debugPrint('AdoptionApiService.fetchAdoptionByPetId: ERROR statusCode=${response.statusCode} body=${response.body}');
+      return null;
+    }
   }
 }
