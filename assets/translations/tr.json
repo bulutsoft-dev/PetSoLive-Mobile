@@ -7,6 +7,9 @@
   "home.animals_desc": "Yeni yuvasını bekleyen hayvanları keşfet.",
   "home.lost_pets_desc": "Kayıp hayvanları aileleriyle buluşturmaya yardım et.",
   "home.help_requests_desc": "Yardıma ihtiyacı olan hayvanlar için destek ol veya yardım iste.",
+  "home.animals_title": "Hayvanları Keşfet",
+  "home.lost_pets_title": "Kayıp İlanları",
+  "home.help_requests_title": "Yardım Talepleri",
   "explore.title": "Keşfet",
   "explore.coming_soon": "Keşfet yakında!",
   "profile.title": "Profil",
@@ -151,5 +154,8 @@
     "district": "İlçe",
     "roles": "Roller",
     "verified": "Doğrulandı"
-  }
+  },
+  "home.header_subtitle": "Evcil dostlarınızı buluşturun, kayıpları bulun, yardımlaşın!",
+  "common.see_all": "Tümünü Gör"
+
 }

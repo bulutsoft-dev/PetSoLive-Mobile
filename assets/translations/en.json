@@ -2,11 +2,14 @@
   "appbar.title": "PetSoLive",
   "drawer.header": "Menu",
   "home.title": "Home",
-  "home.welcome": "Welcome to PetSoLive!",
+  "home.welcome": "Home",
   "home.description": "Find, adopt, and help pets easily.",
   "home.animals_desc": "Discover pets waiting for a loving home.",
   "home.lost_pets_desc": "Help reunite lost pets with their families.",
   "home.help_requests_desc": "Support or request help for pets in need.",
+  "home.animals_title": "Explore Pets",
+  "home.lost_pets_title": "Lost Pet Ads",
+  "home.help_requests_title": "Help Requests",
   "explore.title": "Explore",
   "explore.coming_soon": "Explore coming soon!",
   "profile.title": "Profile",
@@ -151,5 +154,7 @@
     "district": "District",
     "roles": "Roles",
     "verified": "Verified"
-  }
+  },
+  "home.header_subtitle": "Connect with pets, find the lost, and help each other!",
+  "common.see_all": "See All"
 }

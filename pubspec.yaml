@@ -45,6 +45,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   http: ^1.2.1
   flutter_launcher_icons: ^0.13.1
+  flutter_svg:
 
 dev_dependencies:
   flutter_test:
