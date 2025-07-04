@@ -9,6 +9,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../localization/locale_keys.g.dart';
 import '../../injection_container.dart';
 import '../blocs/comment_cubit.dart';
+import '../blocs/theme_cubit.dart';
 
 class HelpRequestScreen extends StatelessWidget {
   final int requestId;
@@ -24,6 +25,36 @@ class HelpRequestScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text('help_requests.detail_title'.tr()),
+          centerTitle: true,
+          actions: [
+            Builder(
+              builder: (context) => IconButton(
+                icon: BlocBuilder<ThemeCubit, ThemeState>(
+                  builder: (context, state) {
+                    return Icon(state.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode);
+                  },
+                ),
+                tooltip: 'Change Theme',
+                onPressed: () {
+                  context.read<ThemeCubit>().toggleTheme();
+                },
+              ),
+            ),
+            
+            // Dil değiştirme butonu
+            Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.translate),
+                tooltip: 'help_requests.change_language'.tr(),
+                onPressed: () {
+                  final current = context.locale.languageCode;
+                  final newLocale = current == 'tr' ? const Locale('en') : const Locale('tr');
+                  context.setLocale(newLocale);
+                },
+              ),
+            ),
+            // Tema değiştirme butonu
+          ],
         ),
         body: BlocBuilder<HelpRequestCubit, HelpRequestState>(
           builder: (context, state) {
@@ -60,35 +91,9 @@ class HelpRequestScreen extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                Chip(
-                                  label: Text(req.emergencyLevel),
-                                  backgroundColor: emergencyColor.withOpacity(0.13),
-                                  labelStyle: theme.textTheme.labelMedium?.copyWith(
-                                    color: emergencyColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  side: BorderSide(color: emergencyColor.withOpacity(0.45)),
-                                  visualDensity: VisualDensity.compact,
-                                ),
+                                _emergencyChip(context, req.emergencyLevel),
                                 const SizedBox(width: 8),
-                                Chip(
-                                  label: Text(req.status),
-                                  backgroundColor: req.status.toLowerCase() == 'open'
-                                      ? AppColors.petsoliveSuccess.withOpacity(0.13)
-                                      : AppColors.bsGray300.withOpacity(0.18),
-                                  labelStyle: theme.textTheme.labelMedium?.copyWith(
-                                    color: req.status.toLowerCase() == 'open'
-                                        ? AppColors.petsoliveSuccess
-                                        : AppColors.bsGray700,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  side: BorderSide(
-                                    color: (req.status.toLowerCase() == 'open'
-                                        ? AppColors.petsoliveSuccess
-                                        : AppColors.bsGray400).withOpacity(0.45),
-                                  ),
-                                  visualDensity: VisualDensity.compact,
-                                ),
+                                _statusChip(context, req.status),
                               ],
                             ),
                             const SizedBox(height: 4),
@@ -111,14 +116,74 @@ class HelpRequestScreen extends StatelessWidget {
                   const SizedBox(height: 18),
                   // Görsel
                   if (req.imageUrl != null && req.imageUrl!.isNotEmpty)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: Image.network(
-                        req.imageUrl!,
-                        height: 220,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
+                    Stack(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => Dialog(
+                                backgroundColor: Colors.transparent,
+                                insetPadding: const EdgeInsets.all(12),
+                                child: InteractiveViewer(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(18),
+                                    child: Image.network(
+                                      req.imageUrl!,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: Image.network(
+                              req.imageUrl!,
+                              height: 220,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 10,
+                          right: 10,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    backgroundColor: Colors.transparent,
+                                    insetPadding: const EdgeInsets.all(12),
+                                    child: InteractiveViewer(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(18),
+                                        child: Image.network(
+                                          req.imageUrl!,
+                                          fit: BoxFit.contain,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black45,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(Icons.zoom_out_map, color: Colors.white, size: 24),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   if (req.imageUrl != null && req.imageUrl!.isNotEmpty)
                     const SizedBox(height: 18),
@@ -202,6 +267,32 @@ class HelpRequestScreen extends StatelessWidget {
     );
   }
 
+  String _localizedEmergencyLevel(BuildContext context, String level) {
+    switch (level.toLowerCase()) {
+      case 'high':
+        return 'help_requests.emergency_high'.tr();
+      case 'medium':
+        return 'help_requests.emergency_medium'.tr();
+      case 'low':
+        return 'help_requests.emergency_low'.tr();
+      default:
+        return level;
+    }
+  }
+
+  String _localizedStatus(BuildContext context, String status) {
+    switch (status.toLowerCase()) {
+      case 'open':
+        return 'help_requests.status_open'.tr();
+      case 'closed':
+        return 'help_requests.status_closed'.tr();
+      case 'active':
+        return 'help_requests.status_active'.tr();
+      default:
+        return status;
+    }
+  }
+
   Color _emergencyColor(String level, BuildContext context) {
     switch (level.toLowerCase()) {
       case 'high':
@@ -219,6 +310,53 @@ class HelpRequestScreen extends StatelessWidget {
       default:
         return Theme.of(context).colorScheme.primary.withOpacity(0.7);
     }
+  }
+
+  Widget _emergencyChip(BuildContext context, String level) {
+    final color = _emergencyColor(level, context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Chip(
+      label: Text(_localizedEmergencyLevel(context, level),
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: isDark ? color.withOpacity(0.95) : color,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      backgroundColor: isDark ? color.withOpacity(0.18) : color.withOpacity(0.13),
+      side: BorderSide(color: color.withOpacity(0.45), width: 1.2),
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      labelPadding: const EdgeInsets.only(left: 2, right: 4),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+
+  Widget _statusChip(BuildContext context, String status) {
+    final s = status.toLowerCase();
+    final isOpen = s == 'open' || s == 'active';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isOpen
+        ? (isDark ? Colors.greenAccent.shade200 : AppColors.petsoliveSuccess)
+        : (isDark ? AppColors.bsGray400 : AppColors.bsGray700);
+    final bgColor = isOpen
+        ? (isDark ? Colors.greenAccent.withOpacity(0.22) : AppColors.petsoliveSuccess.withOpacity(0.18))
+        : (isDark ? AppColors.bsGray700.withOpacity(0.22) : AppColors.bsGray300.withOpacity(0.22));
+    return Chip(
+      label: Text(_localizedStatus(context, status),
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      backgroundColor: bgColor,
+      side: BorderSide(color: color.withOpacity(0.45), width: 1.1),
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      labelPadding: const EdgeInsets.only(left: 2, right: 4),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
   }
 }
 

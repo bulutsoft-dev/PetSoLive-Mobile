@@ -178,5 +178,7 @@
   "help_requests.status_closed": "Kapalı",
   "help_requests.emergency_low": "Düşük",
   "help_requests.emergency_medium": "Orta",
-  "help_requests.emergency_high": "Yüksek"
+  "help_requests.emergency_high": "Yüksek",
+  "help_requests.status_active": "Aktif",
+  "help_requests.change_language": "Dili Değiştir"
 }

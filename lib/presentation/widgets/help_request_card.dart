@@ -48,9 +48,58 @@ class HelpRequestCard extends StatelessWidget {
         return 'help_requests.status_open'.tr();
       case 'closed':
         return 'help_requests.status_closed'.tr();
+      case 'active':
+        return 'help_requests.status_active'.tr();
       default:
         return request.status;
     }
+  }
+
+  Widget _emergencyChip(BuildContext context) {
+    final color = _emergencyColor(request.emergencyLevel, context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Chip(
+      label: Text(_localizedEmergencyLevel(context),
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: isDark ? color.withOpacity(0.95) : color,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      backgroundColor: isDark ? color.withOpacity(0.18) : color.withOpacity(0.13),
+      side: BorderSide(color: color.withOpacity(0.45), width: 1.2),
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      labelPadding: const EdgeInsets.only(left: 2, right: 4),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+
+  Widget _statusChip(BuildContext context) {
+    final status = request.status.toLowerCase();
+    final isOpen = status == 'open';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isOpen
+        ? (isDark ? Colors.greenAccent.shade200 : AppColors.petsoliveSuccess)
+        : (isDark ? AppColors.bsGray400 : AppColors.bsGray700);
+    final bgColor = isOpen
+        ? (isDark ? Colors.greenAccent.withOpacity(0.22) : AppColors.petsoliveSuccess.withOpacity(0.18))
+        : (isDark ? AppColors.bsGray700.withOpacity(0.22) : AppColors.bsGray300.withOpacity(0.22));
+    return Chip(
+      label: Text(_localizedStatus(context),
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      backgroundColor: bgColor,
+      side: BorderSide(color: color.withOpacity(0.45), width: 1.1),
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      labelPadding: const EdgeInsets.only(left: 2, right: 4),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
   }
 
   @override
@@ -84,6 +133,19 @@ class HelpRequestCard extends StatelessWidget {
                 ),
               ),
             ),
+            // Sağ üstte chipler
+            Positioned(
+              top: 10,
+              right: 14,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _emergencyChip(context),
+                  const SizedBox(width: 6),
+                  _statusChip(context),
+                ],
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
               child: Row(
@@ -106,43 +168,6 @@ class HelpRequestCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Chip(
-                                label: Text(_localizedEmergencyLevel(context), overflow: TextOverflow.ellipsis),
-                                backgroundColor: emergencyColor.withOpacity(0.13),
-                                labelStyle: theme.textTheme.labelMedium?.copyWith(
-                                  color: emergencyColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                side: BorderSide(color: emergencyColor.withOpacity(0.45)),
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Chip(
-                                label: Text(_localizedStatus(context), overflow: TextOverflow.ellipsis),
-                                backgroundColor: request.status.toLowerCase() == 'open'
-                                    ? AppColors.petsoliveSuccess.withOpacity(0.13)
-                                    : AppColors.bsGray300.withOpacity(0.18),
-                                labelStyle: theme.textTheme.labelMedium?.copyWith(
-                                  color: request.status.toLowerCase() == 'open'
-                                      ? AppColors.petsoliveSuccess
-                                      : AppColors.bsGray700,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                side: BorderSide(
-                                  color: (request.status.toLowerCase() == 'open'
-                                      ? AppColors.petsoliveSuccess
-                                      : AppColors.bsGray400).withOpacity(0.45),
-                                ),
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            ),
-                          ],
-                        ),
                         const SizedBox(height: 2),
                         Text(
                           request.title,
