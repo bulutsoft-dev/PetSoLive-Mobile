@@ -378,182 +378,11 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 22),
-                      Card(
-                        color: isDark ? Colors.grey[900] : Colors.grey[100],
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.assignment_turned_in, size: 20),
-                                  const SizedBox(width: 8),
-                                  Text('pet_detail.adoption_requests_title'.tr(), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text('pet_detail.adoption_requests_desc'.tr(), style: theme.textTheme.bodyMedium),
-                              const SizedBox(height: 8),
-                              BlocProvider(
-                                create: (_) => AdoptionRequestCubit(
-                                  AdoptionRequestRepositoryImpl(AdoptionRequestApiService()),
-                                )..getById(widget.petId),
-                                child: BlocBuilder<AdoptionRequestCubit, AdoptionRequestState>(
-                                  builder: (context, state) {
-                                    if (state is AdoptionRequestLoading) {
-                                      return const Center(child: CircularProgressIndicator());
-                                    } else if (state is AdoptionRequestLoaded) {
-                                      if (state.request == null) {
-                                        return Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.info_outline, color: Colors.grey, size: 40),
-                                            const SizedBox(height: 8),
-                                            Text('pet_detail.no_adoption_request'.tr(), style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey)),
-                                          ],
-                                        );
-                                      }
-                                      return AdoptionRequestCommentWidget(request: state.request!);
-                                    } else if (state is AdoptionRequestError) {
-                                      return Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.error_outline, color: Colors.red, size: 40),
-                                          const SizedBox(height: 8),
-                                          Text('pet_detail.adoption_request_error'.tr(args: [state.error]), style: theme.textTheme.bodySmall?.copyWith(color: Colors.red)),
-                                          const SizedBox(height: 8),
-                                          ElevatedButton(
-                                            onPressed: () => context.read<AdoptionRequestCubit>().getById(widget.petId),
-                                            child: Text('common.retry'.tr()),
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      // AdoptionRequest'ları listele
-                      FutureBuilder<List<AdoptionRequestDto>>(
-                        future: _adoptionRequestsFuture,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState != ConnectionState.done) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-                          if (snapshot.hasError) {
-                            return Text('Başvurular yüklenirken hata oluştu.');
-                          }
-                          final requests = snapshot.data ?? [];
-                          if (requests.isEmpty) {
-                            return Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Text('Bu pet için henüz sahiplenme başvurusu yok.', style: TextStyle(color: Colors.grey)),
-                            );
-                          }
-                          return Card(
-                            elevation: 4,
-                            margin: const EdgeInsets.only(top: 24),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.lightBlue[100],
-                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                                  child: Text(
-                                    'Sahiplenme Başvuruları',
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      color: Colors.blue[900],
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                ...requests.map((req) => Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[50],
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: req.status?.toLowerCase() == 'approved'
-                                          ? Colors.green
-                                          : req.status?.toLowerCase() == 'pending'
-                                              ? Colors.amber
-                                              : Colors.red,
-                                      width: 1.1,
-                                    ),
-                                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 2)],
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Icon(Icons.person, color: Colors.blue[700]),
-                                          const SizedBox(width: 8),
-                                          Text(req.userName ?? '-', style: TextStyle(fontWeight: FontWeight.bold)),
-                                          const Spacer(),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: req.status?.toLowerCase() == 'approved'
-                                                  ? Colors.green[100]
-                                                  : req.status?.toLowerCase() == 'pending'
-                                                      ? Colors.amber[100]
-                                                      : Colors.red[100],
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              req.status?.toLowerCase() == 'approved'
-                                                  ? 'Kabul Edildi'
-                                                  : req.status?.toLowerCase() == 'pending'
-                                                      ? 'Beklemede'
-                                                      : 'Reddedildi',
-                                              style: TextStyle(
-                                                color: req.status?.toLowerCase() == 'approved'
-                                                    ? Colors.green[800]
-                                                    : req.status?.toLowerCase() == 'pending'
-                                                        ? Colors.amber[900]
-                                                        : Colors.red[800],
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(req.message ?? '-', style: TextStyle(color: Colors.black87)),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            req.requestDate != null
-                                                ? DateFormat('dd.MM.yyyy').format(req.requestDate!)
-                                                : '-',
-                                            style: TextStyle(color: Colors.grey[700], fontSize: 13),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                )),
-                              ],
-                            ),
-                          );
-                        },
+                      // SAHİPLENME İSTEKLERİ BÖLÜMÜ (Başlık + sayaç + TabBar)
+                      _AdoptionRequestsTabSection(
+                        requestsFuture: _adoptionRequestsFuture,
+                        isDark: isDark,
+                        theme: theme,
                       ),
                       // Sahiplen butonu sadece giriş yapan kullanıcı sahibi değilse ve başvuru yapmadıysa göster
                       FutureBuilder<PetOwnerDto?>(
@@ -644,6 +473,205 @@ class _GroupTitle extends StatelessWidget {
         const SizedBox(width: 8),
         Text(text, style: TextStyle(fontWeight: FontWeight.bold, color: color)),
       ],
+    );
+  }
+}
+
+// Dosya sonuna TabBar'lı filtreli widget
+class _AdoptionRequestsTabSection extends StatefulWidget {
+  final Future<List<AdoptionRequestDto>> requestsFuture;
+  final bool isDark;
+  final ThemeData theme;
+  const _AdoptionRequestsTabSection({required this.requestsFuture, required this.isDark, required this.theme});
+  @override
+  State<_AdoptionRequestsTabSection> createState() => _AdoptionRequestsTabSectionState();
+}
+
+class _AdoptionRequestsTabSectionState extends State<_AdoptionRequestsTabSection> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  static const _filters = [
+    'adoption_requests_tab_all',
+    'adoption_requests_tab_approved',
+    'adoption_requests_tab_pending',
+    'adoption_requests_tab_rejected',
+  ];
+  static const _statuses = [null, 'approved', 'pending', 'rejected'];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: _filters.length, vsync: this);
+    _tabController.addListener(() => setState(() {}));
+  }
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    final indicatorColor = isDark ? AppColors.bsWhite : AppColors.primary;
+    final headerAndTabBarBg = isDark
+        ? AppColors.darkPrimaryVariant.withOpacity(0.92)
+        : AppColors.petsolivePrimary.withOpacity(0.10);
+    final tabBarUnselected = isDark ? AppColors.bsWhite.withOpacity(0.7) : AppColors.primary.withOpacity(0.7);
+    final listBgColor = isDark ? AppColors.darkBackground : AppColors.surface;
+    final borderColor = isDark
+        ? AppColors.bsWhite.withOpacity(0.10)
+        : AppColors.primary.withOpacity(0.25);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      decoration: BoxDecoration(
+        color: headerAndTabBarBg,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black26 : Colors.grey.withOpacity(0.07),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(
+          color: borderColor,
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Başlık ve sayaç
+          Container(
+            decoration: BoxDecoration(
+              color: headerAndTabBarBg,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
+              child: FutureBuilder<List<AdoptionRequestDto>>(
+                future: widget.requestsFuture,
+                builder: (context, snapshot) {
+                  final all = snapshot.data ?? [];
+                  final filtered = _statuses[_tabController.index] == null
+                      ? all
+                      : all.where((r) => r.status.toLowerCase() == _statuses[_tabController.index]).toList();
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(Icons.group, color: isDark ? AppColors.bsWhite : AppColors.primary, size: 22),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'adoption_requests_title'.tr(),
+                          style: widget.theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppColors.bsWhite : AppColors.primary,
+                            fontSize: 18,
+                            letterSpacing: 0.1,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (snapshot.connectionState == ConnectionState.done)
+                        Text(
+                          '${filtered.length} ' + 'adoption_requests_loaded_count'.tr(),
+                          style: widget.theme.textTheme.bodySmall?.copyWith(
+                            color: tabBarUnselected,
+                            fontSize: 13.5,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+          // TabBar
+          Container(
+            decoration: BoxDecoration(
+              color: headerAndTabBarBg,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(0)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10, left: 8, right: 8, bottom: 0),
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: indicatorColor,
+                indicatorWeight: 3.2,
+                labelColor: AppColors.bsWhite,
+                unselectedLabelColor: tabBarUnselected,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.2),
+                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13.2),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
+                tabs: [
+                  for (final f in _filters) Tab(text: f.tr()),
+                ],
+              ),
+            ),
+          ),
+          // Başvuruların arka planı farklı
+          Container(
+            decoration: BoxDecoration(
+              color: listBgColor,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 12, 10, 16),
+              child: FutureBuilder<List<AdoptionRequestDto>>(
+                future: widget.requestsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text('adoption_requests_error'.tr(), style: widget.theme.textTheme.bodyMedium?.copyWith(color: widget.theme.colorScheme.error), overflow: TextOverflow.ellipsis, maxLines: 2),
+                    );
+                  }
+                  final all = snapshot.data ?? [];
+                  final filtered = _statuses[_tabController.index] == null
+                      ? all
+                      : all.where((r) => r.status.toLowerCase() == _statuses[_tabController.index]).toList();
+                  if (filtered.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.all(18.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(Icons.info_outline, color: indicatorColor, size: 22),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              'adoption_requests_empty'.tr(),
+                              style: widget.theme.textTheme.bodyMedium?.copyWith(
+                                color: tabBarUnselected,
+                                fontSize: 15.5,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: [
+                      ...filtered.map((req) => AdoptionRequestCommentWidget(request: req)),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 } 

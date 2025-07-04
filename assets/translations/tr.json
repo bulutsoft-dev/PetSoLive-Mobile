@@ -116,6 +116,16 @@
     "waiting_explanation": "Bu hayvan sahiplendirilmeyi bekliyor.",
     "adopted_explanation": "Bu hayvan sahiplendirildi."
   },
-  "adoption_requests_title": "Adoption Requestler",
-  "adoption_requests_desc": "Bu bölümde hayvana yapılan sahiplenme başvurularını görebilirsiniz."
+  "adoption_requests_title": "Sahiplenme İstekleri",
+  "adoption_requests_desc": "Bu bölümde hayvana yapılan sahiplenme başvurularını görebilirsiniz.",
+  "adoption_requests_empty": "Bu hayvan için henüz sahiplenme başvurusu yok.",
+  "adoption_requests_error": "Sahiplenme başvuruları yüklenirken hata oluştu.",
+  "adoption_requests_tab_all": "Tümü",
+  "adoption_requests_tab_approved": "Kabul Edilenler",
+  "adoption_requests_tab_pending": "Bekleyenler",
+  "adoption_requests_tab_rejected": "Reddedilenler",
+  "adoption_request_status_pending": "Beklemede",
+  "adoption_request_status_approved": "Kabul Edildi",
+  "adoption_request_status_rejected": "Reddedildi",
+  "adoption_requests_loaded_count": "başvuru listelendi"
 }
