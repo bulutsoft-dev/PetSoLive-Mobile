@@ -287,10 +287,7 @@ class HomeScreen extends StatelessWidget {
                       child: SizedBox(
                         width: cardWidth,
                         child: HelpRequestCard(
-                          title: req.title,
-                          description: req.description,
-                          location: req.location,
-                          status: req.status,
+                          request: req,
                           onTap: () {
                             Navigator.of(context).pushNamed('/help_request', arguments: req.id);
                           },

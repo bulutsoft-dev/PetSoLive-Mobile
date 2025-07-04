@@ -163,5 +163,22 @@
   },
   "common": {
     "see_all": "Tümünü Gör"
-  }
+  },
+  "help_requests.comments": "Yorumlar",
+  "help_requests.add_comment": "Yorum Ekle",
+  "help_requests.no_comments": "Henüz yorum yok.",
+  "help_requests.comments_failed": "Yorumlar yüklenemedi.",
+  "help_requests.write_comment": "Yorumunuzu buraya yazın...",
+  "help_requests.detail_title": "Yardım Talebi Detayı",
+  "help_requests.tab_all": "Tümü",
+  "help_requests.tab_low": "Düşük",
+  "help_requests.tab_medium": "Orta",
+  "help_requests.tab_high": "Yüksek",
+  "help_requests.status_open": "Açık",
+  "help_requests.status_closed": "Kapalı",
+  "help_requests.emergency_low": "Düşük",
+  "help_requests.emergency_medium": "Orta",
+  "help_requests.emergency_high": "Yüksek",
+  "help_requests.status_active": "Aktif",
+  "help_requests.change_language": "Dili Değiştir"
 }

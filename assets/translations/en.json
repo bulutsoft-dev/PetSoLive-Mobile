@@ -163,5 +163,22 @@
   },
   "common": {
     "see_all": "See All"
-  }
+  },
+  "help_requests.comments": "Comments",
+  "help_requests.add_comment": "Add Comment",
+  "help_requests.no_comments": "No comments yet.",
+  "help_requests.comments_failed": "Comments failed to load.",
+  "help_requests.write_comment": "Write your comment here...",
+  "help_requests.detail_title": "Help Request Details",
+  "help_requests.tab_all": "All",
+  "help_requests.tab_low": "Low",
+  "help_requests.tab_medium": "Medium",
+  "help_requests.tab_high": "High",
+  "help_requests.status_open": "Open",
+  "help_requests.status_closed": "Closed",
+  "help_requests.emergency_low": "Low",
+  "help_requests.emergency_medium": "Medium",
+  "help_requests.emergency_high": "High",
+  "help_requests.status_active": "Active",
+  "help_requests.change_language": "Change Language"
 }
