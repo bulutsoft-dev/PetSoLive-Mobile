@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:petsolive/presentation/partials/base_app_bar.dart';
 import '../blocs/theme_cubit.dart';
 import '../themes/colors.dart';
 import '../../data/models/pet_dto.dart';
