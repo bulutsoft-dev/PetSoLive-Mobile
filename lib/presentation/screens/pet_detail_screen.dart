@@ -497,6 +497,9 @@ class _AdoptionRequestsTabSectionState extends State<_AdoptionRequestsTabSection
   ];
   static const _statuses = [null, 'approved', 'pending', 'rejected'];
 
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -506,6 +509,7 @@ class _AdoptionRequestsTabSectionState extends State<_AdoptionRequestsTabSection
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -600,7 +604,7 @@ class _AdoptionRequestsTabSectionState extends State<_AdoptionRequestsTabSection
                 controller: _tabController,
                 indicatorColor: indicatorColor,
                 indicatorWeight: 3.2,
-                labelColor: AppColors.bsWhite,
+                labelColor: isDark ? AppColors.bsWhite : AppColors.primary,
                 unselectedLabelColor: tabBarUnselected,
                 labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.2),
                 unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13.2),
@@ -608,6 +612,36 @@ class _AdoptionRequestsTabSectionState extends State<_AdoptionRequestsTabSection
                 tabs: [
                   for (final f in _filters) Tab(text: f.tr()),
                 ],
+              ),
+            ),
+          ),
+          // Search bar (TabBar'dan ayrık, alt arka planla aynı)
+          Container(
+            color: listBgColor, // açık temada beyaz, koyuda koyu renk
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (val) => setState(() => _searchQuery = val),
+                style: TextStyle(
+                  color: isDark ? AppColors.bsWhite : AppColors.primary,
+                  fontSize: 14.5,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Yorumlarda ara...'.tr(),
+                  prefixIcon: Icon(Icons.search, color: isDark ? AppColors.bsWhite : AppColors.primary),
+                  filled: true,
+                  fillColor: isDark ? AppColors.darkBackground : AppColors.bsWhite,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  hintStyle: TextStyle(
+                    color: isDark ? AppColors.bsGray300 : AppColors.bsGray500,
+                    fontSize: 14.5,
+                  ),
+                ),
               ),
             ),
           ),
@@ -635,9 +669,15 @@ class _AdoptionRequestsTabSectionState extends State<_AdoptionRequestsTabSection
                     );
                   }
                   final all = snapshot.data ?? [];
-                  final filtered = _statuses[_tabController.index] == null
+                  final filteredTab = _statuses[_tabController.index] == null
                       ? all
                       : all.where((r) => r.status.toLowerCase() == _statuses[_tabController.index]).toList();
+                  final filtered = _searchQuery.isEmpty
+                      ? filteredTab
+                      : filteredTab.where((r) =>
+                          (r.userName?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
+                          (r.message?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)
+                        ).toList();
                   if (filtered.isEmpty) {
                     return Padding(
                       padding: const EdgeInsets.all(18.0),
