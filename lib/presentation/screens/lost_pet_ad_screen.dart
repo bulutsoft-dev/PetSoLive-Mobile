@@ -1,33 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:petsolive/presentation/themes/colors.dart';
 import '../../data/models/lost_pet_ad_dto.dart';
 import '../partials/base_app_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/theme_cubit.dart';
+import 'package:petsolive/data/providers/lost_pet_ad_api_service.dart';
 
 class LostPetAdScreen extends StatefulWidget {
-  final LostPetAdDto ad;
-  const LostPetAdScreen({Key? key, required this.ad}) : super(key: key);
+  final int adId;
+  const LostPetAdScreen({Key? key, required this.adId}) : super(key: key);
 
   @override
   State<LostPetAdScreen> createState() => _LostPetAdScreenState();
 }
 
 class _LostPetAdScreenState extends State<LostPetAdScreen> {
+  late Future<LostPetAdDto> _adFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _adFuture = fetchLostPetAd(widget.adId);
+  }
+
+  Future<LostPetAdDto> fetchLostPetAd(int id) async {
+    final ad = await LostPetAdApiService().getById(id);
+    if (ad == null) throw Exception('Lost pet ad not found');
+    return ad;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final ad = widget.ad;
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: BaseAppBar(
-          title: ad.petName.isNotEmpty ? ad.petName : 'lost_pets.detail_title'.tr(),
+          title: 'lost_pets.detail_title'.tr(),
           centerTitle: true,
           showLogo: false,
-          backgroundColor: isDark ? Colors.grey[900] : Colors.white,
+          backgroundColor: isDark ? AppColors.darkSurface : AppColors.petsoliveBg,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.of(context).pop(),
@@ -43,12 +58,12 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                 await context.setLocale(newLocale);
                 setState(() {});
               },
-              color: isDark ? Colors.white : Colors.black,
+              color: isDark ? AppColors.darkPrimary : Colors.black,
             ),
             IconButton(
               icon: Icon(
                 isDark ? Icons.light_mode : Icons.dark_mode,
-                color: isDark ? Colors.white : Colors.black,
+                color: isDark ? AppColors.darkPrimary  : Colors.black,
               ),
               tooltip: isDark ? 'Aydınlık Tema' : 'Karanlık Tema',
               onPressed: () {
@@ -58,17 +73,26 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
           ],
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Stack(
+      body: FutureBuilder<LostPetAdDto>(
+        future: _adFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('lost_pets.error'.tr()));
+          }
+          final ad = snapshot.data!;
+          return ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Görsel
                     ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                       child: ad.imageUrl.isNotEmpty
@@ -89,82 +113,46 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                               child: const Icon(Icons.pets, size: 60),
                             ),
                     ),
-                    Positioned(
-                      top: 16,
-                      left: 16,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text('lost_pets.status_open'.tr(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _infoRow(Icons.pets, 'Hayvan Adı', ad.petName),
+                          const SizedBox(height: 10),
+                          _infoRow(Icons.description, 'Açıklama', ad.description),
+                          const SizedBox(height: 10),
+                          _infoRow(Icons.location_on, 'Konum', ad.lastSeenLocation.isNotEmpty ? ad.lastSeenLocation : '${ad.lastSeenCity}, ${ad.lastSeenDistrict}'),
+                          const SizedBox(height: 10),
+                          _infoRow(Icons.calendar_today, 'Son Görülme Tarihi', DateFormat('dd.MM.yyyy').format(ad.lastSeenDate)),
+                          const SizedBox(height: 10),
+                          _infoRow(Icons.calendar_today, 'İlan Tarihi', DateFormat('dd.MM.yyyy').format(ad.createdAt)),
+                          const SizedBox(height: 10),
+                          _infoRow(Icons.person, 'İlan Sahibi', ad.userName ?? '-'),
+                          const SizedBox(height: 10),
+                          _infoRow(Icons.badge, 'Kullanıcı ID', ad.userId.toString()),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Hayvan Adı:', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      Text(ad.petName, style: theme.textTheme.bodyLarge),
-                      const SizedBox(height: 12),
-                      Text('Açıklama:', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      Text(ad.description, style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 18),
-                      Text('Konum:', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: theme.colorScheme.primary, width: 1.2),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.location_on, size: 24, color: theme.colorScheme.primary),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                (ad.lastSeenLocation.isNotEmpty ? ad.lastSeenLocation : '${ad.lastSeenCity}, ${ad.lastSeenDistrict}'),
-                                style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text('Son Görülme Tarihi:', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      Text(DateFormat('dd.MM.yyyy').format(ad.lastSeenDate), style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 8),
-                      Text('Yayınlanma Tarihi:', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      Text(DateFormat('dd.MM.yyyy').format(ad.createdAt), style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 18),
-                      Divider(),
-                      Text('Sahip Bilgileri', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 10),
-                      Text('Kullanıcı Adı:', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      Text(ad.userName ?? '-', style: theme.textTheme.bodyLarge),
-                      const SizedBox(height: 6),
-                      Text('Kullanıcı ID:', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      Text(ad.userId.toString(), style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 6),
-                      Text('Şehir:', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      Text(ad.lastSeenCity, style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 6),
-                      Text('İlçe:', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      Text(ad.lastSeenDistrict, style: theme.textTheme.bodyMedium),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
+    );
+  }
+
+  Widget _infoRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 8),
+        Text('$label: ', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+        Expanded(child: Text(value, style: Theme.of(context).textTheme.bodyMedium)),
+      ],
     );
   }
 } 

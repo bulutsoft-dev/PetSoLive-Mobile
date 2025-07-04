@@ -150,7 +150,7 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => LostPetAdScreen(ad: ad),
+                                builder: (_) => LostPetAdScreen(adId: ad.id),
                               ),
                             );
                           },

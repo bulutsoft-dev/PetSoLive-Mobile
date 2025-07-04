@@ -33,9 +33,9 @@ class PetCubit extends Cubit<PetState> {
     try {
       final list = await repository.getAll();
       _allPets = list;
-      emit(PetLoaded(list));
+      if (!isClosed) emit(PetLoaded(list));
     } catch (e) {
-      emit(PetError(e.toString()));
+      if (!isClosed) emit(PetError(e.toString()));
     }
   }
 
@@ -47,7 +47,7 @@ class PetCubit extends Cubit<PetState> {
                pet.species.toLowerCase().contains(lower) ||
                (pet.breed?.toLowerCase().contains(lower) ?? false);
       }).toList();
-      emit(PetFiltered(filtered));
+      if (!isClosed) emit(PetFiltered(filtered));
     }
   }
 
@@ -55,9 +55,9 @@ class PetCubit extends Cubit<PetState> {
     emit(PetLoading());
     try {
       final pet = await repository.getById(id);
-      emit(PetDetailLoaded(pet));
+      if (!isClosed) emit(PetDetailLoaded(pet));
     } catch (e) {
-      emit(PetError(e.toString()));
+      if (!isClosed) emit(PetError(e.toString()));
     }
   }
 
@@ -65,9 +65,9 @@ class PetCubit extends Cubit<PetState> {
     emit(PetLoading());
     try {
       await repository.create(dto, token);
-      emit(PetInitial());
+      if (!isClosed) emit(PetInitial());
     } catch (e) {
-      emit(PetError(e.toString()));
+      if (!isClosed) emit(PetError(e.toString()));
     }
   }
 
@@ -75,9 +75,9 @@ class PetCubit extends Cubit<PetState> {
     emit(PetLoading());
     try {
       await repository.update(id, dto, token);
-      emit(PetInitial());
+      if (!isClosed) emit(PetInitial());
     } catch (e) {
-      emit(PetError(e.toString()));
+      if (!isClosed) emit(PetError(e.toString()));
     }
   }
 
@@ -85,9 +85,9 @@ class PetCubit extends Cubit<PetState> {
     emit(PetLoading());
     try {
       await repository.delete(id, token);
-      emit(PetInitial());
+      if (!isClosed) emit(PetInitial());
     } catch (e) {
-      emit(PetError(e.toString()));
+      if (!isClosed) emit(PetError(e.toString()));
     }
   }
 } 
