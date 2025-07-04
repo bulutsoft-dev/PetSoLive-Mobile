@@ -133,5 +133,23 @@
   "lost_pets_all": "Tümü",
   "lost_pets_search_hint": "Ara...",
   "pet_detail_search_comments": "Yorumlarda ara...",
-  "lost_pets.detail_title": "Kayıp İlanı Detayı"
+  "lost_pets.detail_title": "Kayıp İlanı Detayı",
+  "no_owner_title": "Sahibi Yok",
+  "no_owner_desc": "Bu petin henüz bir sahibi yok. İlk sahiplenmek isteyen sen olabilirsin!",
+  "lost_pet_ad": {
+    "description": "Açıklama",
+    "details": "Detaylar",
+    "location": "Konum",
+    "last_seen_date": "Son Görülme Tarihi",
+    "created_at": "İlan Tarihi",
+    "owner_title": "İlanı Oluşturan Kişi",
+    "owner_error": "Kullanıcı bilgisi yüklenemedi",
+    "email": "E-posta",
+    "phone": "Telefon",
+    "address": "Adres",
+    "city": "Şehir",
+    "district": "İlçe",
+    "roles": "Roller",
+    "verified": "Doğrulandı"
+  }
 }

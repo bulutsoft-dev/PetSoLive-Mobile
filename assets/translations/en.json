@@ -133,5 +133,23 @@
   "lost_pets_all": "All",
   "lost_pets_search_hint": "Search...",
   "pet_detail_search_comments": "Search in comments...",
-  "lost_pets.detail_title": "Lost Pet Details"
+  "lost_pets.detail_title": "Lost Pet Details",
+  "no_owner_title": "No Owner Yet",
+  "no_owner_desc": "This pet does not have an owner yet. You can be the first to adopt!",
+  "lost_pet_ad": {
+    "description": "Description",
+    "details": "Details",
+    "location": "Location",
+    "last_seen_date": "Last Seen Date",
+    "created_at": "Ad Created At",
+    "owner_title": "Ad Owner",
+    "owner_error": "Failed to load user info",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "city": "City",
+    "district": "District",
+    "roles": "Roles",
+    "verified": "Verified"
+  }
 }
