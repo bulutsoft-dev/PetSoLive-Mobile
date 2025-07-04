@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class PetCard extends StatelessWidget {
   final String name;
@@ -65,15 +66,15 @@ class PetCard extends StatelessWidget {
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: imageUrl.isNotEmpty
-                        ? Image.network(
-                            imageUrl,
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
+                            errorWidget: (_, __, ___) => Container(
                               color: colorScheme.background,
-                              child: Icon(Icons.pets, size: 36, color: subTextColor),
+                              child: const Icon(Icons.pets, size: 36, color: Colors.grey),
                             ),
                           )
-                        : Center(child: Icon(Icons.pets, size: 36, color: subTextColor)),
+                        : const Center(child: Icon(Icons.pets, size: 36, color: Colors.grey)),
                   ),
                   Expanded(
                     child: Padding(
