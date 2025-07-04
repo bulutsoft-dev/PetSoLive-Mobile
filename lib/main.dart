@@ -15,6 +15,7 @@ import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/pets_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'injection_container.dart';
+import 'routes/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,6 +51,7 @@ class PetSoLiveApp extends StatelessWidget {
           localizationsDelegates: context.localizationDelegates,
           supportedLocales: context.supportedLocales,
           locale: context.locale,
+          onGenerateRoute: AppRouter.generateRoute,
         );
       },
     );
@@ -66,23 +68,21 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   int _currentIndex = 2;
 
-  final List<Widget> _pages = const [
-    PetsScreen(),
-    LostPetsScreen(),
-    HomeScreen(),
-    HelpRequestsScreen(),
-    ProfileScreen(),
-  ];
-
-  void _onDrawerTap(int index) {
-    setState(() => _currentIndex = index);
-    Navigator.of(context).pop();
-  }
-
   @override
   Widget build(BuildContext context) {
     final themeCubit = context.read<ThemeCubit>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final List<Widget> pages = [
+      const PetsScreen(),
+      const LostPetsScreen(),
+      HomeScreen(onTabChange: (int index) {
+        setState(() {
+          _currentIndex = index;
+        });
+      }),
+      const HelpRequestsScreen(),
+      const ProfileScreen(),
+    ];
     return Scaffold(
       appBar: BaseAppBar(
         title: _getAppBarTitle(_currentIndex),
@@ -177,7 +177,7 @@ class _MainScaffoldState extends State<MainScaffold> {
           ),
         ],
       ),
-      body: _pages[_currentIndex],
+      body: pages[_currentIndex],
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
@@ -284,5 +284,10 @@ class _MainScaffoldState extends State<MainScaffold> {
       default:
         return 'appbar.title'.tr();
     }
+  }
+
+  void _onDrawerTap(int index) {
+    setState(() => _currentIndex = index);
+    Navigator.of(context).pop();
   }
 }

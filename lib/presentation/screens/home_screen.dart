@@ -12,8 +12,8 @@ import '../../injection_container.dart';
 import '../localization/locale_keys.g.dart';
 
 class HomeScreen extends StatelessWidget {
-  final void Function(int)? onTabChange;
-  const HomeScreen({Key? key, this.onTabChange}) : super(key: key);
+  final void Function(int) onTabChange;
+  const HomeScreen({Key? key, required this.onTabChange}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -139,11 +139,12 @@ class HomeScreen extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: () => onTabChange?.call(0),
-                    icon: const Icon(Icons.arrow_forward, size: 18),
-                    label: Text('common.see_all'.tr()),
-                    style: TextButton.styleFrom(minimumSize: Size(0, 36), padding: const EdgeInsets.symmetric(horizontal: 8)),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward),
+                    tooltip: 'common.see_all'.tr(),
+                    onPressed: () {
+                      onTabChange(0);
+                    },
                   ),
                 ],
               ),
@@ -205,11 +206,12 @@ class HomeScreen extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: () => onTabChange?.call(1),
-                    icon: const Icon(Icons.arrow_forward, size: 18),
-                    label: Text('common.see_all'.tr()),
-                    style: TextButton.styleFrom(minimumSize: Size(0, 36), padding: const EdgeInsets.symmetric(horizontal: 8)),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward),
+                    tooltip: 'common.see_all'.tr(),
+                    onPressed: () {
+                      onTabChange(1);
+                    },
                   ),
                 ],
               ),
@@ -258,11 +260,12 @@ class HomeScreen extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: () => onTabChange?.call(3),
-                    icon: const Icon(Icons.arrow_forward, size: 18),
-                    label: Text('common.see_all'.tr()),
-                    style: TextButton.styleFrom(minimumSize: Size(0, 36), padding: const EdgeInsets.symmetric(horizontal: 8)),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward),
+                    tooltip: 'common.see_all'.tr(),
+                    onPressed: () {
+                      onTabChange(3);
+                    },
                   ),
                 ],
               ),
