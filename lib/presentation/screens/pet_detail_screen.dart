@@ -38,7 +38,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
 
   Future<_PetDetailBundle> _fetchAll(int petId) async {
     final pet = await PetApiService().fetchPet(petId);
-    final owner = await PetOwnerApiService().fetchPetOwner(petId);
+    final owner = await PetOwnerApiService().getByPetId(petId);
     final adoption = await AdoptionApiService().fetchAdoptionByPetId(petId);
     final adoptionRequests = await AdoptionRequestApiService().getAllByPetId(petId);
     return _PetDetailBundle(
@@ -319,27 +319,69 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (adoption != null)
-                      OwnershipIdCard(
-                        icon: Icons.person,
-                        color: Colors.lightBlueAccent,
-                        title: 'pet_detail.adopted_by_info'.tr(),
-                        username: owner?.userName ?? '-',
-                        dateLabel: 'ownership_card.adoption_date'.tr(),
-                        date: owner?.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(adoption.adoptionDate!),
-                        explanation: 'ownership_card.adopted_explanation'.tr(),
-                        explanationColor: Colors.green[800],
-                      )
+                    if (owner != null)
+                      adoption != null
+                        ? OwnershipIdCard(
+                            icon: Icons.person,
+                            color: Colors.lightBlueAccent,
+                            title: 'pet_detail.adopted_by_info'.tr(),
+                            username: owner.userName ?? '-',
+                            dateLabel: 'ownership_card.adoption_date'.tr(),
+                            date: owner.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(adoption.adoptionDate!),
+                            explanation: 'ownership_card.adopted_explanation'.tr(),
+                            explanationColor: Colors.green[800],
+                          )
+                        : OwnershipIdCard(
+                            icon: Icons.person,
+                            color: Colors.lightBlueAccent,
+                            title: 'pet_detail.owner_info_waiting'.tr(),
+                            username: owner.userName ?? '-',
+                            dateLabel: 'ownership_card.ownership_date'.tr(),
+                            date: owner.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(owner.ownershipDate!),
+                            explanation: 'ownership_card.waiting_explanation'.tr(),
+                            explanationColor: Colors.amber[500],
+                          )
                     else
-                      OwnershipIdCard(
-                        icon: Icons.person,
-                        color: Colors.lightBlueAccent,
-                        title: 'pet_detail.owner_info_waiting'.tr(),
-                        username: owner?.userName ?? '-',
-                        dateLabel: 'ownership_card.ownership_date'.tr(),
-                        date: owner?.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(owner!.ownershipDate!),
-                        explanation: 'ownership_card.waiting_explanation'.tr(),
-                        explanationColor: Colors.amber[500],
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.grey[900] : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: colorScheme.primary.withOpacity(0.13)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline, color: Colors.amber[800], size: 28),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('pet_detail.no_owner_title'.tr(), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.amber[900])),
+                                  const SizedBox(height: 4),
+                                  Text('pet_detail.no_owner_desc'.tr(), style: theme.textTheme.bodyMedium),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.amber[100],
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.amber, width: 1.2),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.hourglass_bottom, color: Colors.amber[800], size: 18),
+                                  const SizedBox(width: 5),
+                                  Text('pet_detail.status_waiting'.tr(), style: TextStyle(color: Colors.amber[900], fontWeight: FontWeight.w600, fontSize: 14)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                   ],
                 ),
