@@ -7,6 +7,7 @@ import '../themes/colors.dart';
 import '../../data/models/pet_dto.dart';
 import '../../data/models/pet_owner_dto.dart';
 import '../../data/models/adoption_dto.dart';
+import '../../data/models/adoption_request_dto.dart';
 import '../../data/providers/pet_api_service.dart';
 import '../../data/providers/pet_owner_api_service.dart';
 import '../../data/providers/adoption_api_service.dart';
@@ -28,6 +29,10 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
   late Future<PetDto> _petFuture;
   late Future<PetOwnerDto?> _ownerFuture;
   late Future<AdoptionDto?> _adoptionFuture;
+  late Future<List<AdoptionRequestDto>> _adoptionRequestsFuture;
+
+  // Şimdilik örnek kullanıcı id'si (giriş yapan kullanıcı)
+  final int _currentUserId = 1;
 
   @override
   void initState() {
@@ -35,6 +40,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
     _petFuture = PetApiService().fetchPet(widget.petId);
     _ownerFuture = PetOwnerApiService().fetchPetOwner(widget.petId);
     _adoptionFuture = AdoptionApiService().fetchAdoptionByPetId(widget.petId);
+    _adoptionRequestsFuture = AdoptionRequestApiService().getAllByPetId(widget.petId);
   }
 
   Color? _getColor(String? colorName) {
@@ -50,36 +56,6 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
     if (c.contains('mavi') || c.contains('blue')) return Colors.blue;
     if (c.contains('yeşil') || c.contains('green')) return Colors.green;
     return null;
-  }
-
-  void _showOwnerDialog(BuildContext context, PetOwnerDto owner) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 8),
-            Text('pet_detail.owner_info'.tr()),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('pet_detail.owner_name'.tr() + ': ' + '${owner.userName ?? '-'}'),
-            const SizedBox(height: 8),
-            Text('pet_detail.ownership_date'.tr() + ': ' + '${owner.ownershipDate == null ? '-' : DateFormat('dd.MM.yyyy').format(owner.ownershipDate!)}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('common.ok'.tr()),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -465,14 +441,149 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.favorite_border),
-                        label: Text('pet_detail.adopt').tr(),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(48),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
+                      // AdoptionRequest'ları listele
+                      FutureBuilder<List<AdoptionRequestDto>>(
+                        future: _adoptionRequestsFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState != ConnectionState.done) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (snapshot.hasError) {
+                            return Text('Başvurular yüklenirken hata oluştu.');
+                          }
+                          final requests = snapshot.data ?? [];
+                          if (requests.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Text('Bu pet için henüz sahiplenme başvurusu yok.', style: TextStyle(color: Colors.grey)),
+                            );
+                          }
+                          return Card(
+                            elevation: 4,
+                            margin: const EdgeInsets.only(top: 24),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.lightBlue[100],
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                                  child: Text(
+                                    'Sahiplenme Başvuruları',
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      color: Colors.blue[900],
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                ...requests.map((req) => Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[50],
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: req.status?.toLowerCase() == 'approved'
+                                          ? Colors.green
+                                          : req.status?.toLowerCase() == 'pending'
+                                              ? Colors.amber
+                                              : Colors.red,
+                                      width: 1.1,
+                                    ),
+                                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 2)],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(Icons.person, color: Colors.blue[700]),
+                                          const SizedBox(width: 8),
+                                          Text(req.userName ?? '-', style: TextStyle(fontWeight: FontWeight.bold)),
+                                          const Spacer(),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: req.status?.toLowerCase() == 'approved'
+                                                  ? Colors.green[100]
+                                                  : req.status?.toLowerCase() == 'pending'
+                                                      ? Colors.amber[100]
+                                                      : Colors.red[100],
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              req.status?.toLowerCase() == 'approved'
+                                                  ? 'Kabul Edildi'
+                                                  : req.status?.toLowerCase() == 'pending'
+                                                      ? 'Beklemede'
+                                                      : 'Reddedildi',
+                                              style: TextStyle(
+                                                color: req.status?.toLowerCase() == 'approved'
+                                                    ? Colors.green[800]
+                                                    : req.status?.toLowerCase() == 'pending'
+                                                        ? Colors.amber[900]
+                                                        : Colors.red[800],
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(req.message ?? '-', style: TextStyle(color: Colors.black87)),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            req.requestDate != null
+                                                ? DateFormat('dd.MM.yyyy').format(req.requestDate!)
+                                                : '-',
+                                            style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                )),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      // Sahiplen butonu sadece giriş yapan kullanıcı sahibi değilse ve başvuru yapmadıysa göster
+                      FutureBuilder<PetOwnerDto?>(
+                        future: _ownerFuture,
+                        builder: (context, ownerSnap) {
+                          final owner = ownerSnap.data;
+                          return FutureBuilder<List<AdoptionRequestDto>>(
+                            future: _adoptionRequestsFuture,
+                            builder: (context, reqSnap) {
+                              final requests = reqSnap.data ?? [];
+                              final isOwner = owner?.userId == _currentUserId;
+                              final hasRequest = requests.any((r) => r.userId == _currentUserId);
+                              if (isOwner) {
+                                return Text('Bu petin sahibisiniz.');
+                              }
+                              if (hasRequest) {
+                                return Text('Daha önce bu pet için başvuru yaptınız.');
+                              }
+                              return ElevatedButton.icon(
+                                onPressed: () {},
+                                icon: const Icon(Icons.favorite_border),
+                                label: Text('pet_detail.adopt').tr(),
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(48),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              );
+                            },
+                          );
+                        },
                       ),
                     ],
                   );

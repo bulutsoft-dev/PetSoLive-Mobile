@@ -24,12 +24,12 @@ class AdoptionRequestApiService {
 
   Future<List<AdoptionRequestDto>> getAllByPetId(int petId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/api/AdoptionRequest?petId=$petId'),
+      Uri.parse('$baseUrl/api/AdoptionRequest/pet/$petId'),
       headers: {
         'x-api-key': ApiConstants.apiKey,
       },
     );
-    debugPrint('AdoptionRequestApiService.getAllByPetId: petId=$petId statusCode=[33m[1m[4m[7m[5m${response.statusCode}[0m body=${response.body}');
+    debugPrint('AdoptionRequestApiService.getAllByPetId: petId=$petId statusCode=${response.statusCode} body=${response.body}');
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       final requests = data.map((e) => AdoptionRequestDto.fromJson(e)).toList();
