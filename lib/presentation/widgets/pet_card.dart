@@ -100,12 +100,16 @@ class PetCard extends StatelessWidget {
                             children: [
                               Icon(Icons.pets, size: 15, color: subTextColor),
                               const SizedBox(width: 4),
-                              Text(species, style: TextStyle(fontSize: 13, color: subTextColor)),
+                              Flexible(
+                                child: Text(species, style: TextStyle(fontSize: 13, color: subTextColor), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              ),
                               if (breed != null && breed!.isNotEmpty) ...[
                                 const SizedBox(width: 8),
                                 Icon(Icons.label_important_outline, size: 15, color: subTextColor),
                                 const SizedBox(width: 2),
-                                Text(breed!, style: TextStyle(fontSize: 13, color: subTextColor)),
+                                Flexible(
+                                  child: Text(breed!, style: TextStyle(fontSize: 13, color: subTextColor), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                ),
                               ],
                             ],
                           ),
@@ -115,19 +119,19 @@ class PetCard extends StatelessWidget {
                               if (age != null) ...[
                                 Icon(Icons.cake, size: 15, color: subTextColor),
                                 const SizedBox(width: 2),
-                                Text('Yaş: $age', style: TextStyle(fontSize: 12, color: subTextColor)),
+                                Flexible(child: Text('Yaş: $age', style: TextStyle(fontSize: 12, color: subTextColor), maxLines: 1, overflow: TextOverflow.ellipsis)),
                                 const SizedBox(width: 8),
                               ],
                               if (gender != null && gender!.isNotEmpty) ...[
                                 Icon(Icons.wc, size: 15, color: subTextColor),
                                 const SizedBox(width: 2),
-                                Text(gender!, style: TextStyle(fontSize: 12, color: subTextColor)),
+                                Flexible(child: Text(gender!, style: TextStyle(fontSize: 12, color: subTextColor), maxLines: 1, overflow: TextOverflow.ellipsis)),
                                 const SizedBox(width: 8),
                               ],
                               if (color != null && color!.isNotEmpty) ...[
                                 Icon(Icons.color_lens, size: 15, color: subTextColor),
                                 const SizedBox(width: 2),
-                                Text(color!, style: TextStyle(fontSize: 12, color: subTextColor)),
+                                Flexible(child: Text(color!, style: TextStyle(fontSize: 12, color: subTextColor), maxLines: 1, overflow: TextOverflow.ellipsis)),
                               ],
                             ],
                           ),
@@ -137,13 +141,13 @@ class PetCard extends StatelessWidget {
                               if (vaccinationStatus != null && vaccinationStatus!.isNotEmpty) ...[
                                 Icon(Icons.vaccines, size: 15, color: subTextColor),
                                 const SizedBox(width: 2),
-                                Text(vaccinationStatus!, style: TextStyle(fontSize: 12, color: subTextColor)),
+                                Flexible(child: Text(vaccinationStatus!, style: TextStyle(fontSize: 12, color: subTextColor), maxLines: 1, overflow: TextOverflow.ellipsis)),
                                 const SizedBox(width: 8),
                               ],
                               if (microchipId != null && microchipId!.isNotEmpty) ...[
                                 Icon(Icons.qr_code, size: 15, color: subTextColor),
                                 const SizedBox(width: 2),
-                                Text(microchipId!, style: TextStyle(fontSize: 12, color: subTextColor)),
+                                Flexible(child: Text(microchipId!, style: TextStyle(fontSize: 12, color: subTextColor), maxLines: 1, overflow: TextOverflow.ellipsis)),
                               ],
                             ],
                           ),

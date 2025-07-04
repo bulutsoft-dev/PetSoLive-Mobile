@@ -11,6 +11,9 @@ abstract class  LocaleKeys {
   static const home_animals_desc = 'home_animals_desc';
   static const home_lost_pets_desc = 'home_lost_pets_desc';
   static const home_help_requests_desc = 'home_help_requests_desc';
+  static const home_animals_title = 'home_animals_title';
+  static const home_lost_pets_title = 'home_lost_pets_title';
+  static const home_help_requests_title = 'home_help_requests_title';
   static const explore_title = 'explore_title';
   static const explore_coming_soon = 'explore_coming_soon';
   static const profile_title = 'profile_title';

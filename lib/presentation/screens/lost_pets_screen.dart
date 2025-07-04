@@ -4,9 +4,52 @@ import 'package:easy_localization/easy_localization.dart';
 import '../blocs/lost_pet_ad_cubit.dart';
 import '../../data/models/lost_pet_ad_dto.dart';
 import '../../injection_container.dart';
+import 'package:intl/intl.dart';
+import 'lost_pet_ad_screen.dart';
+import '../../data/providers/user_api_service.dart';
+import '../widgets/lost_pet_ad_card.dart';
+import '../localization/locale_keys.g.dart';
 
-class LostPetsScreen extends StatelessWidget {
+class LostPetsScreen extends StatefulWidget {
   const LostPetsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<LostPetsScreen> createState() => _LostPetsScreenState();
+}
+
+class _LostPetsScreenState extends State<LostPetsScreen> {
+  String searchQuery = '';
+  String selectedCity = '';
+  String selectedDistrict = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  Locale? _lastLocale;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final currentLocale = context.locale;
+    if (_lastLocale != currentLocale) {
+      _lastLocale = currentLocale;
+      setState(() {}); // Dil değiştiyse rebuild
+    }
+  }
+
+  List<String> getCities(List<LostPetAdDto> ads) =>
+      ads.map((e) => e.lastSeenCity).where((c) => c.isNotEmpty).toSet().toList();
+  List<String> getDistricts(List<LostPetAdDto> ads, String city) =>
+      ads.where((e) => e.lastSeenCity == city).map((e) => e.lastSeenDistrict).where((d) => d.isNotEmpty).toSet().toList();
+
+  List<LostPetAdDto> filterAds(List<LostPetAdDto> ads) {
+    return ads.where((ad) {
+      final matchesQuery = searchQuery.isEmpty ||
+          (ad.petName.toLowerCase().contains(searchQuery.toLowerCase())) ||
+          (ad.description.toLowerCase().contains(searchQuery.toLowerCase()));
+      final matchesCity = selectedCity.isEmpty || (ad.lastSeenCity == selectedCity);
+      final matchesDistrict = selectedDistrict.isEmpty || (ad.lastSeenDistrict == selectedDistrict);
+      return matchesQuery && matchesCity && matchesDistrict;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,122 +66,99 @@ class LostPetsScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.error_outline, color: Colors.red, size: 48),
                   const SizedBox(height: 12),
-                  Text('lost_pets.error', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)).tr(),
+                  Text('lost_pets.error'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)),
                   const SizedBox(height: 8),
                   Text(state.error, style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
                 ],
               ),
             );
           } else if (state is LostPetAdLoaded) {
-            if (state.ads.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.search_off, color: Theme.of(context).colorScheme.primary, size: 48),
-                    const SizedBox(height: 12),
-                    Text('lost_pets.empty', style: Theme.of(context).textTheme.titleLarge).tr(),
-                  ],
+            final allAds = state.ads;
+            final cities = getCities(allAds);
+            final districts = selectedCity.isNotEmpty ? getDistricts(allAds, selectedCity) : <String>[];
+            final filteredAds = filterAds(allAds);
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                  child: Row(
+                    children: [
+                      // Şehir filtresi
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedCity,
+                          isExpanded: true,
+                          decoration: InputDecoration(labelText: 'lost_pets_city'.tr()),
+                          items: [DropdownMenuItem(value: '', child: Text('lost_pets_all'.tr()))] +
+                              cities.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                          onChanged: (v) => setState(() {
+                            selectedCity = v ?? '';
+                            selectedDistrict = '';
+                          }),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // İlçe filtresi
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedDistrict,
+                          isExpanded: true,
+                          decoration: InputDecoration(labelText: 'lost_pets_district'.tr()),
+                          items: [DropdownMenuItem(value: '', child: Text('lost_pets_all'.tr()))] +
+                              districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+                          onChanged: (v) => setState(() => selectedDistrict = v ?? ''),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-              itemCount: state.ads.length,
-              itemBuilder: (context, index) {
-                final ad = state.ads[index];
-                return Card(
-                  elevation: 2,
-                  margin: const EdgeInsets.only(bottom: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: () {}, // Detay ekranına yönlendirme eklenebilir
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
-                          child: ad.imageUrl.isNotEmpty
-                              ? Image.network(
-                                  ad.imageUrl,
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (c, e, s) => Container(
-                                    width: 100,
-                                    height: 100,
-                                    color: Colors.grey[200],
-                                    child: const Icon(Icons.pets, size: 36, color: Colors.grey),
-                                  ),
-                                )
-                              : Container(
-                                  width: 100,
-                                  height: 100,
-                                  color: Colors.grey[200],
-                                  child: const Icon(Icons.pets, size: 36, color: Colors.grey),
-                                ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        ad.petName,
-                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: Colors.orange,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        'lost_pets.status_open'.tr(),
-                                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  ad.description.length > 60 ? ad.description.substring(0, 60) + '...' : ad.description,
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Icon(Icons.location_on, size: 16, color: Theme.of(context).colorScheme.primary),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        ad.lastSeenLocation,
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'lost_pets_search_hint'.tr(),
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (v) => setState(() => searchQuery = v),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (filteredAds.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.search_off, color: Theme.of(context).colorScheme.primary, size: 48),
+                          const SizedBox(height: 12),
+                          Text('lost_pets.empty'.tr(), style: Theme.of(context).textTheme.titleLarge),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      itemCount: filteredAds.length,
+                      itemBuilder: (context, index) {
+                        final ad = filteredAds[index];
+                        return LostPetAdCard(
+                          ad: ad,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => LostPetAdScreen(adId: ad.id),
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
                   ),
-                );
-              },
+              ],
             );
           }
           return const SizedBox.shrink();
@@ -146,4 +166,8 @@ class LostPetsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+extension StringCasingExtension on String {
+  String capitalize() => isEmpty ? this : this[0].toUpperCase() + substring(1);
 } 

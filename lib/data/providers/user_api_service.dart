@@ -24,7 +24,7 @@ class UserApiService {
     final response = await http.get(
       Uri.parse('$baseUrl/api/User/$id'),
       headers: {
-        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+        'x-api-key': ApiConstants.apiKey,
       },
     );
     if (response.statusCode == 200) {
