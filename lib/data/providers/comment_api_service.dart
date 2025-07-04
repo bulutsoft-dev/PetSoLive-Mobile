@@ -10,7 +10,7 @@ class CommentApiService {
     final response = await http.get(
       Uri.parse('$baseUrl/api/Comment/help-request/$helpRequestId'),
       headers: {
-        'Authorization': 'Bearer ${ApiConstants.apiKey}',
+        'x-api-key': ApiConstants.apiKey,
       },
     );
     if (response.statusCode == 200) {

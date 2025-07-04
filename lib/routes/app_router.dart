@@ -5,6 +5,7 @@ import '../presentation/screens/pets_screen.dart';
 import '../presentation/screens/lost_pets_screen.dart';
 import '../presentation/screens/help_requests_screen.dart';
 import '../presentation/screens/lost_pet_ad_screen.dart';
+import '../presentation/screens/help_request_screen.dart';
 // import '../presentation/screens/help_request_screen.dart';
 
 /// Uygulamanın tüm rotalarını merkezi olarak yöneten sınıf.
@@ -26,6 +27,18 @@ class AppRouter {
           return MaterialPageRoute(
             builder: (_) => Scaffold(
               body: Center(child: Text('404 - Kayıp ilanı bulunamadı')),
+            ),
+          );
+        }
+      }
+      case '/help_request': {
+        final reqId = settings.arguments;
+        if (reqId is int) {
+          return MaterialPageRoute(builder: (_) => HelpRequestScreen(requestId: reqId));
+        } else {
+          return MaterialPageRoute(
+            builder: (_) => Scaffold(
+              body: Center(child: Text('404 - Yardım talebi bulunamadı')),
             ),
           );
         }
