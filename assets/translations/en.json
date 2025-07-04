@@ -127,5 +127,10 @@
   "adoption_request_status_pending": "Pending",
   "adoption_request_status_approved": "Approved",
   "adoption_request_status_rejected": "Rejected",
-  "adoption_requests_loaded_count": "requests loaded"
+  "adoption_requests_loaded_count": "requests loaded",
+  "lost_pets_city": "City",
+  "lost_pets_district": "District",
+  "lost_pets_all": "All",
+  "lost_pets_search_hint": "Search...",
+  "pet_detail_search_comments": "Search in comments..."
 }

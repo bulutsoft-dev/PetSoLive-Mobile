@@ -616,7 +616,7 @@ class _AdoptionRequestsTabSectionState extends State<_AdoptionRequestsTabSection
                   fontSize: 14.5,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Yorumlarda ara...'.tr(),
+                  hintText: 'pet_detail_search_comments'.tr(),
                   prefixIcon: Icon(Icons.search, color: isDark ? AppColors.bsWhite : AppColors.primary),
                   filled: true,
                   fillColor: isDark ? AppColors.darkBackground : AppColors.bsWhite,

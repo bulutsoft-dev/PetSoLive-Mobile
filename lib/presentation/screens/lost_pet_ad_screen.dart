@@ -2,53 +2,60 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../data/models/lost_pet_ad_dto.dart';
+import '../partials/base_app_bar.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/theme_cubit.dart';
 
-class LostPetAdScreen extends StatelessWidget {
+class LostPetAdScreen extends StatefulWidget {
   final LostPetAdDto ad;
   const LostPetAdScreen({Key? key, required this.ad}) : super(key: key);
 
   @override
+  State<LostPetAdScreen> createState() => _LostPetAdScreenState();
+}
+
+class _LostPetAdScreenState extends State<LostPetAdScreen> {
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final ad = widget.ad;
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
-        child: AppBar(
+        child: BaseAppBar(
+          title: ad.petName.isNotEmpty ? ad.petName : 'lost_pets.detail_title'.tr(),
           centerTitle: true,
+          showLogo: false,
           backgroundColor: isDark ? Colors.grey[900] : Colors.white,
-          iconTheme: IconThemeData(
-            color: isDark ? Colors.white : Colors.black,
-          ),
-          titleTextStyle: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.of(context).pop(),
             tooltip: 'Geri',
           ),
-          title: Text(
-            'Kayıp Hayvan Detayları',
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 22),
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.translate),
               tooltip: 'Dili Değiştir',
-              onPressed: () {
+              onPressed: () async {
                 final current = context.locale;
                 final newLocale = current.languageCode == 'tr' ? const Locale('en') : const Locale('tr');
-                context.setLocale(newLocale);
+                await context.setLocale(newLocale);
+                setState(() {});
               },
               color: isDark ? Colors.white : Colors.black,
             ),
+            IconButton(
+              icon: Icon(
+                isDark ? Icons.light_mode : Icons.dark_mode,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+              tooltip: isDark ? 'Aydınlık Tema' : 'Karanlık Tema',
+              onPressed: () {
+                context.read<ThemeCubit>().toggleTheme();
+              },
+            ),
           ],
-          elevation: 0,
         ),
       ),
       body: ListView(

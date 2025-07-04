@@ -33,6 +33,10 @@ abstract class  LocaleKeys {
   static const lost_pets_error = 'lost_pets_error';
   static const lost_pets_empty = 'lost_pets_empty';
   static const lost_pets_status_open = 'lost_pets_status_open';
+  static const lost_pets_city = 'lost_pets_city';
+  static const lost_pets_district = 'lost_pets_district';
+  static const lost_pets_all = 'lost_pets_all';
+  static const lost_pets_search_hint = 'lost_pets_search_hint';
   static const animals_title = 'animals_title';
   static const home_featured_pets = 'home_featured_pets';
   static const home_help_requests = 'home_help_requests';
@@ -63,5 +67,6 @@ abstract class  LocaleKeys {
   static const pets_adopted = 'pets_adopted';
   static const pets_search_hint = 'pets_search_hint';
   static const pets_owned = 'pets_owned';
+  static const pet_detail_search_comments = 'pet_detail_search_comments';
 
 }

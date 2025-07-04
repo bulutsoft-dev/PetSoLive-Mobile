@@ -127,5 +127,10 @@
   "adoption_request_status_pending": "Beklemede",
   "adoption_request_status_approved": "Kabul Edildi",
   "adoption_request_status_rejected": "Reddedildi",
-  "adoption_requests_loaded_count": "başvuru listelendi"
+  "adoption_requests_loaded_count": "başvuru listelendi",
+  "lost_pets_city": "Şehir",
+  "lost_pets_district": "İlçe",
+  "lost_pets_all": "Tümü",
+  "lost_pets_search_hint": "Ara...",
+  "pet_detail_search_comments": "Yorumlarda ara..."
 }

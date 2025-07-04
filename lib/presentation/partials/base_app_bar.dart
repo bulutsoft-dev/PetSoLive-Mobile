@@ -7,6 +7,7 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;
   final bool centerTitle;
   final Color? backgroundColor;
+  final bool showLogo;
 
   const BaseAppBar({
     Key? key,
@@ -15,29 +16,35 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.centerTitle = true,
     this.backgroundColor,
+    this.showLogo = true,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return AppBar(
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(
-            'assets/images/logo.png',
-            height: 32,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(width: 10),
-          Flexible(
-            child: Text(
+      title: showLogo
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 32,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    title,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            )
+          : Text(
               title,
               overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
-      ),
       centerTitle: centerTitle,
       backgroundColor: backgroundColor ?? (isDark ? AppColors.darkSurface : AppColors.petsoliveBg),
       actions: actions,

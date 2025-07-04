@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'lost_pet_ad_screen.dart';
 import '../../data/providers/user_api_service.dart';
 import '../widgets/lost_pet_ad_card.dart';
+import '../localization/locale_keys.g.dart';
 
 class LostPetsScreen extends StatefulWidget {
   const LostPetsScreen({Key? key}) : super(key: key);
@@ -21,6 +22,18 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
   String selectedCity = '';
   String selectedDistrict = '';
   final TextEditingController _searchController = TextEditingController();
+
+  Locale? _lastLocale;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final currentLocale = context.locale;
+    if (_lastLocale != currentLocale) {
+      _lastLocale = currentLocale;
+      setState(() {}); // Dil değiştiyse rebuild
+    }
+  }
 
   List<String> getCities(List<LostPetAdDto> ads) =>
       ads.map((e) => e.lastSeenCity).where((c) => c.isNotEmpty).toSet().toList();
@@ -53,7 +66,7 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
                 children: [
                   Icon(Icons.error_outline, color: Colors.red, size: 48),
                   const SizedBox(height: 12),
-                  Text('lost_pets.error', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)).tr(),
+                  Text('lost_pets.error'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)),
                   const SizedBox(height: 8),
                   Text(state.error, style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
                 ],
@@ -75,8 +88,8 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
                         child: DropdownButtonFormField<String>(
                           value: selectedCity,
                           isExpanded: true,
-                          decoration: const InputDecoration(labelText: 'Şehir'),
-                          items: [const DropdownMenuItem(value: '', child: Text('Tümü'))] +
+                          decoration: InputDecoration(labelText: 'lost_pets_city'.tr()),
+                          items: [DropdownMenuItem(value: '', child: Text('lost_pets_all'.tr()))] +
                               cities.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                           onChanged: (v) => setState(() {
                             selectedCity = v ?? '';
@@ -90,8 +103,8 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
                         child: DropdownButtonFormField<String>(
                           value: selectedDistrict,
                           isExpanded: true,
-                          decoration: const InputDecoration(labelText: 'İlçe'),
-                          items: [const DropdownMenuItem(value: '', child: Text('Tümü'))] +
+                          decoration: InputDecoration(labelText: 'lost_pets_district'.tr()),
+                          items: [DropdownMenuItem(value: '', child: Text('lost_pets_all'.tr()))] +
                               districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
                           onChanged: (v) => setState(() => selectedDistrict = v ?? ''),
                         ),
@@ -103,8 +116,8 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
                   child: TextField(
                     controller: _searchController,
-                    decoration: const InputDecoration(
-                      hintText: 'Ara...',
+                    decoration: InputDecoration(
+                      hintText: 'lost_pets_search_hint'.tr(),
                       prefixIcon: Icon(Icons.search),
                       border: OutlineInputBorder(),
                     ),
@@ -120,7 +133,7 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
                         children: [
                           Icon(Icons.search_off, color: Theme.of(context).colorScheme.primary, size: 48),
                           const SizedBox(height: 12),
-                          Text('lost_pets.empty', style: Theme.of(context).textTheme.titleLarge).tr(),
+                          Text('lost_pets.empty'.tr(), style: Theme.of(context).textTheme.titleLarge),
                         ],
                       ),
                     ),
