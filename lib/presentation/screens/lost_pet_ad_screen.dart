@@ -263,59 +263,85 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                         );
                       }
                       final user = userSnap.data!;
-                      return Row(
+                      return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
-                              ? _ProfileAvatarWithFallback(imageUrl: user.profileImageUrl!, username: user.username)
-                              : CircleAvatar(
-                                  radius: 28,
-                                  backgroundColor: _avatarColor(user.username),
-                                  child: Text(
-                                    user.username.isNotEmpty ? user.username[0].toUpperCase() : '',
-                                    style: const TextStyle(
-                                      fontSize: 28,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
+                                  ? _ProfileAvatarWithFallback(imageUrl: user.profileImageUrl!, username: user.username)
+                                  : CircleAvatar(
+                                      radius: 28,
+                                      backgroundColor: _avatarColor(user.username),
+                                      child: Text(
+                                        user.username.isNotEmpty ? user.username[0].toUpperCase() : '',
+                                        style: const TextStyle(
+                                          fontSize: 28,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                          const SizedBox(width: 18),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                              const SizedBox(width: 18),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(user.username, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                    const SizedBox(width: 8),
-                                    if (user.isActive == true)
-                                      Icon(Icons.verified, color: theme.colorScheme.primary, size: 20, semanticLabel: 'lost_pet_ad.verified'.tr()),
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            user.username,
+                                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 20),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        if (user.isActive == true)
+                                          Icon(Icons.verified, color: theme.colorScheme.primary, size: 20, semanticLabel: 'lost_pet_ad.verified'.tr()),
+                                      ],
+                                    ),
+                                    if (user.roles != null && user.roles!.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 2.0),
+                                        child: Text(
+                                          'lost_pet_ad.roles'.tr() + ': ' + user.roles!.join(', '),
+                                          style: theme.textTheme.labelMedium?.copyWith(
+                                            color: theme.colorScheme.primary,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 13.5,
+                                            letterSpacing: 0.1,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
                                   ],
                                 ),
-                                if (user.roles != null && user.roles!.isNotEmpty)
-                                  Text('lost_pet_ad.roles'.tr() + ': ' + user.roles!.join(', '), style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary)),
-                                const SizedBox(height: 8),
-                                _iconInfoRow(Icons.email, 'lost_pet_ad.email'.tr(), user.email, theme),
-                                if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty) ...[
-                                  const SizedBox(height: 6),
-                                  _iconInfoRow(Icons.phone, 'lost_pet_ad.phone'.tr(), user.phoneNumber!, theme),
-                                ],
-                                if (user.address != null && user.address!.isNotEmpty) ...[
-                                  const SizedBox(height: 6),
-                                  _iconInfoRow(Icons.home, 'lost_pet_ad.address'.tr(), user.address!, theme),
-                                ],
-                                if (user.city != null && user.city!.isNotEmpty) ...[
-                                  const SizedBox(height: 6),
-                                  _iconInfoRow(Icons.location_city, 'lost_pet_ad.city'.tr(), user.city!, theme),
-                                ],
-                                if (user.district != null && user.district!.isNotEmpty) ...[
-                                  const SizedBox(height: 6),
-                                  _iconInfoRow(Icons.map, 'lost_pet_ad.district'.tr(), user.district!, theme),
-                                ],
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 18),
+                          // Diğer bilgiler blok halinde
+                          _iconInfoRow(Icons.email, 'lost_pet_ad.email'.tr(), user.email, theme),
+                          if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            _iconInfoRow(Icons.phone, 'lost_pet_ad.phone'.tr(), user.phoneNumber!, theme),
+                          ],
+                          if (user.address != null && user.address!.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            _iconInfoRow(Icons.home, 'lost_pet_ad.address'.tr(), user.address!, theme),
+                          ],
+                          if (user.city != null && user.city!.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            _iconInfoRow(Icons.location_city, 'lost_pet_ad.city'.tr(), user.city!, theme),
+                          ],
+                          if (user.district != null && user.district!.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            _iconInfoRow(Icons.map, 'lost_pet_ad.district'.tr(), user.district!, theme),
+                          ],
                         ],
                       );
                     },
