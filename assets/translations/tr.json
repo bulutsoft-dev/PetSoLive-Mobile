@@ -156,6 +156,12 @@
     "verified": "Doğrulandı"
   },
   "home.header_subtitle": "Evcil dostlarınızı buluşturun, kayıpları bulun, yardımlaşın!",
-  "common.see_all": "Tümünü Gör"
-
+  "common.see_all": "Tümünü Gör",
+  "home": {
+    "featured_lost_pets": "En son kayıp ilanları",
+    "featured_help_requests": "En son yardım talepleri"
+  },
+  "common": {
+    "see_all": "Tümünü Gör"
+  }
 }

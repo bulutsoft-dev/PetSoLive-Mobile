@@ -33,7 +33,7 @@
   "lost_pets.empty": "No lost pet ads found.",
   "lost_pets.status_open": "Open",
   "animals.title": "Pets",
-  "home.featured_pets": "Last added Pets",
+  "home.featured_pets": "Recently Added Pets",
   "home.help_requests": "Help Requests",
   "profile.login_prompt": "Please log in to view your profile.",
   "profile.logout": "Logout",
@@ -156,5 +156,12 @@
     "verified": "Verified"
   },
   "home.header_subtitle": "Connect with pets, find the lost, and help each other!",
-  "common.see_all": "See All"
+  "common.see_all": "See All",
+  "home": {
+    "featured_lost_pets": "Latest Lost Pet Ads",
+    "featured_help_requests": "Latest Help Requests"
+  },
+  "common": {
+    "see_all": "See All"
+  }
 }

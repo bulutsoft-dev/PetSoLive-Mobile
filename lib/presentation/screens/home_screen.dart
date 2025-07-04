@@ -131,7 +131,20 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.pets, color: colorScheme.primary, size: 22),
                   const SizedBox(width: 8),
-                  Text('home.featured_pets'.tr(), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  Expanded(
+                    child: Text(
+                      'home.featured_pets'.tr(),
+                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => onTabChange?.call(0),
+                    icon: const Icon(Icons.arrow_forward, size: 18),
+                    label: Text('common.see_all'.tr()),
+                    style: TextButton.styleFrom(minimumSize: Size(0, 36), padding: const EdgeInsets.symmetric(horizontal: 8)),
+                  ),
                 ],
               ),
             ),
@@ -181,12 +194,22 @@ class HomeScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(child: Text('home.featured_lost_pets'.tr(), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                  TextButton(
+                  Icon(Icons.search, color: colorScheme.secondary, size: 22),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'home.featured_lost_pets'.tr(),
+                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  TextButton.icon(
                     onPressed: () => onTabChange?.call(1),
-                    child: Text('common.see_all'.tr()),
+                    icon: const Icon(Icons.arrow_forward, size: 18),
+                    label: Text('common.see_all'.tr()),
+                    style: TextButton.styleFrom(minimumSize: Size(0, 36), padding: const EdgeInsets.symmetric(horizontal: 8)),
                   ),
                 ],
               ),
@@ -224,12 +247,22 @@ class HomeScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(child: Text('home.featured_help_requests'.tr(), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                  TextButton(
+                  Icon(Icons.volunteer_activism, color: colorScheme.tertiary ?? colorScheme.primary, size: 22),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'home.featured_help_requests'.tr(),
+                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  TextButton.icon(
                     onPressed: () => onTabChange?.call(3),
-                    child: Text('common.see_all'.tr()),
+                    icon: const Icon(Icons.arrow_forward, size: 18),
+                    label: Text('common.see_all'.tr()),
+                    style: TextButton.styleFrom(minimumSize: Size(0, 36), padding: const EdgeInsets.symmetric(horizontal: 8)),
                   ),
                 ],
               ),
