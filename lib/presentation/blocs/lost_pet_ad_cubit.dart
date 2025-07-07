@@ -23,51 +23,66 @@ class LostPetAdCubit extends Cubit<LostPetAdState> {
   LostPetAdCubit(this.repository) : super(LostPetAdInitial());
 
   Future<void> getAll() async {
+    if (isClosed) return;
     emit(LostPetAdLoading());
     try {
       final list = await repository.getAll();
+      if (isClosed) return;
       emit(LostPetAdLoaded(list));
     } catch (e) {
+      if (isClosed) return;
       emit(LostPetAdError(e.toString()));
     }
   }
 
   Future<void> getById(int id) async {
+    if (isClosed) return;
     emit(LostPetAdLoading());
     try {
       final ad = await repository.getById(id);
+      if (isClosed) return;
       emit(LostPetAdDetailLoaded(ad));
     } catch (e) {
+      if (isClosed) return;
       emit(LostPetAdError(e.toString()));
     }
   }
 
   Future<void> create(LostPetAdDto dto, String token) async {
+    if (isClosed) return;
     emit(LostPetAdLoading());
     try {
       await repository.create(dto, token);
+      if (isClosed) return;
       emit(LostPetAdInitial());
     } catch (e) {
+      if (isClosed) return;
       emit(LostPetAdError(e.toString()));
     }
   }
 
   Future<void> update(int id, LostPetAdDto dto, String token) async {
+    if (isClosed) return;
     emit(LostPetAdLoading());
     try {
       await repository.update(id, dto, token);
+      if (isClosed) return;
       emit(LostPetAdInitial());
     } catch (e) {
+      if (isClosed) return;
       emit(LostPetAdError(e.toString()));
     }
   }
 
   Future<void> delete(int id, String token) async {
+    if (isClosed) return;
     emit(LostPetAdLoading());
     try {
       await repository.delete(id, token);
+      if (isClosed) return;
       emit(LostPetAdInitial());
     } catch (e) {
+      if (isClosed) return;
       emit(LostPetAdError(e.toString()));
     }
   }

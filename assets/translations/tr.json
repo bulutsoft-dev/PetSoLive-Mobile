@@ -180,5 +180,15 @@
   "help_requests.emergency_medium": "Orta",
   "help_requests.emergency_high": "Yüksek",
   "help_requests.status_active": "Aktif",
-  "help_requests.change_language": "Dili Değiştir"
+  "help_requests.change_language": "Dili Değiştir",
+  "profile.account_section": "Hesap",
+  "profile.app_settings": "Uygulama Ayarları",
+  "profile.dark_mode": "Karanlık Mod",
+  "profile.support_section": "Destek",
+  "profile.contact_support": "Destek ile İletişim",
+  "profile.rate_app": "Uygulamayı Değerlendir",
+  "profile.share_app": "Uygulamayı Paylaş",
+  "profile.version": "Sürüm",
+  "profile.privacy_policy": "Gizlilik Politikası",
+  "profile.change_theme": "Temayı Değiştir"
 }

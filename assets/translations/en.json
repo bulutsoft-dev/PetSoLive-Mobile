@@ -180,5 +180,15 @@
   "help_requests.emergency_medium": "Medium",
   "help_requests.emergency_high": "High",
   "help_requests.status_active": "Active",
-  "help_requests.change_language": "Change Language"
+  "help_requests.change_language": "Change Language",
+  "profile.account_section": "Account",
+  "profile.app_settings": "App Settings",
+  "profile.dark_mode": "Dark Mode",
+  "profile.support_section": "Support",
+  "profile.contact_support": "Contact Support",
+  "profile.rate_app": "Rate App",
+  "profile.share_app": "Share App",
+  "profile.version": "Version",
+  "profile.privacy_policy": "Privacy Policy",
+  "profile.change_theme": "Change Theme"
 }

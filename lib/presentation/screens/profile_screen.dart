@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../blocs/account_cubit.dart';
 import '../blocs/user_cubit.dart';
+import '../blocs/theme_cubit.dart';
 import '../../injection_container.dart';
 import 'login_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,10 +15,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
-    final locale = context.locale;
-    final supportedLocales = context.supportedLocales;
     return Scaffold(
-      backgroundColor: colorScheme.background,
       body: SafeArea(
         child: MultiBlocProvider(
           providers: [
@@ -27,17 +25,22 @@ class ProfileScreen extends StatelessWidget {
           child: BlocBuilder<AccountCubit, AccountState>(
             builder: (context, accountState) {
               return ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                padding: const EdgeInsets.all(16),
                 children: [
-                  // User Info or Login Prompt
-                  accountState is AccountSuccess
-                      ? _UserInfoSection(user: accountState.response.user)
-                      : _LoginPromptSection(),
-                  const SizedBox(height: 28),
-                  Divider(thickness: 1, color: colorScheme.surfaceVariant.withOpacity(0.18)),
-                  const SizedBox(height: 28),
-                  _AboutAppSection(),
+                  _buildSectionTitle(context, 'profile.account_section'.tr()),
+                  _buildAccountCard(context),
                   const SizedBox(height: 24),
+
+                  _buildSectionTitle(context, 'profile.app_settings'.tr()),
+                  _buildAppSettingsCard(context),
+                  const SizedBox(height: 24),
+
+                  _buildSectionTitle(context, 'profile.support_section'.tr()),
+                  _buildSupportCard(context),
+                  const SizedBox(height: 24),
+
+                  _buildSectionTitle(context, 'profile.app_info'.tr()),
+                  _buildAppInfoCard(context),
                 ],
               );
             },
@@ -46,91 +49,161 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-class _UserInfoSection extends StatelessWidget {
-  final dynamic user;
-  const _UserInfoSection({required this.user});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        CircleAvatar(
-          radius: 32,
-          backgroundColor: colorScheme.primary.withOpacity(0.13),
-          child: Icon(Icons.person, size: 36, color: colorScheme.primary),
-        ),
-        const SizedBox(height: 12),
-        Text(user.name ?? '', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
-        const SizedBox(height: 4),
-        Text(user.email ?? '', style: theme.textTheme.bodyMedium, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
-        if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.phone, size: 18, color: colorScheme.primary),
-              const SizedBox(width: 6),
-              Text(user.phoneNumber!, style: theme.textTheme.bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
-            ],
-          ),
-        ],
-        if (user.address != null && user.address!.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.location_on, size: 18, color: colorScheme.primary),
-              const SizedBox(width: 6),
-              Expanded(child: Text(user.address!, style: theme.textTheme.bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center)),
-            ],
-          ),
-        ],
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          icon: const Icon(Icons.logout),
-          label: Text('profile_logout').tr(),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(120, 40),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-          onPressed: () {
-            context.read<AccountCubit>().emit(AccountInitial());
-          },
-        ),
-      ],
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, left: 4),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+      ),
     );
   }
-}
 
-class _LoginPromptSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Icon(Icons.account_circle_rounded, size: 64, color: colorScheme.primary),
-        const SizedBox(height: 12),
-        Text('profile_login_prompt', style: theme.textTheme.titleLarge, textAlign: TextAlign.center).tr(),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          icon: const Icon(Icons.login),
-          label: Text('login_title').tr(),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(160, 48),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+  Widget _buildAccountCard(BuildContext context) {
+    return BlocBuilder<AccountCubit, AccountState>(
+      builder: (context, state) {
+        if (state is AccountSuccess) {
+          final user = state.response.user;
+          return Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: ListTile(
+              leading: CircleAvatar(child: Icon(Icons.person)),
+              title: Text(user.username),
+              subtitle: Text(user.email ?? ''),
+              trailing: OutlinedButton.icon(
+                icon: Icon(Icons.logout),
+                label: Text('profile.logout'.tr()),
+                onPressed: () => context.read<AccountCubit>().emit(AccountInitial()),
+              ),
+            ),
+          );
+        } else {
+          return Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: ListTile(
+              leading: Icon(Icons.account_circle_rounded, size: 40),
+              title: Text('profile.login_prompt'.tr()),
+              trailing: OutlinedButton.icon(
+                icon: Icon(Icons.login),
+                label: Text('login_title').tr(),
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LoginScreen()));
+                },
+              ),
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildAppSettingsCard(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        children: [
+          ListTile(
+            leading: Icon(Icons.dark_mode_rounded),
+            title: Text('profile.dark_mode'.tr()),
+            trailing: BlocBuilder<ThemeCubit, ThemeState>(
+              builder: (context, state) {
+                final isDark = state.themeMode == ThemeMode.dark;
+                return Switch(
+                  value: isDark,
+                  onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
+                );
+              },
+            ),
           ),
-          onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LoginScreen()));
-          },
+          Divider(height: 1),
+          ListTile(
+            leading: Icon(Icons.language_rounded),
+            title: Text('profile.language'.tr()),
+            trailing: Text(context.locale.languageCode.toUpperCase()),
+            onTap: () => _showLanguageSelector(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSupportCard(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        children: [
+          ListTile(
+            leading: Icon(Icons.email_outlined),
+            title: Text('profile.contact_support'.tr()),
+            onTap: () {
+              // Mail gönder
+            },
+          ),
+          Divider(height: 1),
+          ListTile(
+            leading: Icon(Icons.star_rounded),
+            title: Text('profile.rate_app'.tr()),
+            onTap: () {
+              // Play Store'a yönlendir
+            },
+          ),
+          Divider(height: 1),
+          ListTile(
+            leading: Icon(Icons.share_rounded),
+            title: Text('profile.share_app'.tr()),
+            onTap: () {
+              // Uygulamayı paylaş
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppInfoCard(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        children: [
+          ListTile(
+            leading: Icon(Icons.info_rounded),
+            title: Text('profile.version'.tr()),
+            subtitle: Text('v1.0.0'), // Dinamik olarak çekebilirsin
+          ),
+          Divider(height: 1),
+          ListTile(
+            leading: Icon(Icons.privacy_tip_rounded),
+            title: Text('profile.privacy_policy'.tr()),
+            onTap: () {
+              // Gizlilik politikası göster
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLanguageSelector(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('profile.select_language'.tr(), style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 16),
+            ...context.supportedLocales.map((locale) => ListTile(
+              title: Text(locale.languageCode.toUpperCase()),
+              onTap: () {
+                context.setLocale(locale);
+                Navigator.pop(context);
+              },
+            )),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
