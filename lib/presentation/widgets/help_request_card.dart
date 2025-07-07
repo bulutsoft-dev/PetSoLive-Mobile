@@ -152,15 +152,11 @@ class HelpRequestCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Avatar or placeholder
-                  CircleAvatar(
+                  _SafeNetworkAvatar(
+                    imageUrl: request.imageUrl,
                     radius: 28,
                     backgroundColor: colorScheme.surface,
-                    backgroundImage: (request.imageUrl != null && request.imageUrl!.isNotEmpty)
-                        ? NetworkImage(request.imageUrl!)
-                        : null,
-                    child: (request.imageUrl == null || request.imageUrl!.isEmpty)
-                        ? Icon(Icons.volunteer_activism, color: emergencyColor, size: 32)
-                        : null,
+                    emergencyColor: emergencyColor,
                   ),
                   const SizedBox(width: 14),
                   // Main info
@@ -229,5 +225,67 @@ class HelpRequestCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _SafeNetworkAvatar extends StatelessWidget {
+  final String? imageUrl;
+  final double radius;
+  final Color backgroundColor;
+  final Color emergencyColor;
+  const _SafeNetworkAvatar({this.imageUrl, required this.radius, required this.backgroundColor, required this.emergencyColor});
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrl == null || imageUrl!.isEmpty) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: backgroundColor,
+        child: Icon(Icons.volunteer_activism, color: emergencyColor, size: 32),
+      );
+    }
+    return FutureBuilder<ImageProvider>(
+      future: _tryLoadImage(imageUrl!, context),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+          return CircleAvatar(
+            radius: radius,
+            backgroundColor: backgroundColor,
+            backgroundImage: snapshot.data,
+          );
+        } else if (snapshot.hasError) {
+          return CircleAvatar(
+            radius: radius,
+            backgroundColor: backgroundColor,
+            child: Image.asset(
+              'assets/images/logo.png',
+              fit: BoxFit.contain,
+              height: radius * 1.2,
+              color: emergencyColor.withOpacity(0.5),
+              colorBlendMode: BlendMode.modulate,
+            ),
+          );
+        } else {
+          // Loading or waiting
+          return CircleAvatar(
+            radius: radius,
+            backgroundColor: backgroundColor,
+            child: Icon(Icons.volunteer_activism, color: emergencyColor.withOpacity(0.5), size: 32),
+          );
+        }
+      },
+    );
+  }
+
+  Future<ImageProvider> _tryLoadImage(String url, BuildContext context) async {
+    try {
+      final image = NetworkImage(url);
+      // Precache to force error if image is not available
+      await precacheImage(image, context);
+      return image;
+    } catch (e) {
+      // Any error, return placeholder
+      throw Exception('Image load failed');
+    }
   }
 } 

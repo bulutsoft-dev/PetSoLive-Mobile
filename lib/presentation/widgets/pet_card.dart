@@ -77,29 +77,16 @@ class PetCard extends StatelessWidget {
                       color: colorScheme.background,
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: imageUrl.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) => Container(
-                              color: colorScheme.background,
-                              child: Center(
-                                child: Icon(Icons.pets, size: 36, color: colorScheme.primary.withOpacity(0.3)),
-                              ),
-                            ),
-                            placeholder: (_, __) => Container(
-                              color: colorScheme.background,
-                              child: Center(
-                                child: Icon(Icons.pets, size: 36, color: colorScheme.primary.withOpacity(0.15)),
-                              ),
-                            ),
-                          )
-                        : Container(
-                            color: colorScheme.background,
-                            child: Center(
-                              child: Icon(Icons.pets, size: 36, color: colorScheme.primary.withOpacity(0.3)),
-                            ),
-                          ),
+                    child: _SafeNetworkImage(
+                      imageUrl: imageUrl,
+                      placeholder: (context) => Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.contain,
+                        height: 48,
+                        color: colorScheme.primary.withOpacity(0.3),
+                        colorBlendMode: BlendMode.modulate,
+                      ),
+                    ),
                   ),
                   Expanded(
                     child: Padding(
@@ -281,4 +268,42 @@ class PetCard extends StatelessWidget {
   String? get breed => null;
   String? get microchipId => null;
   DateTime? get dateOfBirth => null;
+}
+
+class _SafeNetworkImage extends StatelessWidget {
+  final String imageUrl;
+  final WidgetBuilder placeholder;
+  const _SafeNetworkImage({required this.imageUrl, required this.placeholder});
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrl.isEmpty) {
+      return placeholder(context);
+    }
+    return FutureBuilder<Image>(
+      future: _tryLoadImage(imageUrl, context),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+          return snapshot.data!;
+        } else if (snapshot.hasError) {
+          return placeholder(context);
+        } else {
+          // Loading or waiting
+          return placeholder(context);
+        }
+      },
+    );
+  }
+
+  Future<Image> _tryLoadImage(String url, BuildContext context) async {
+    try {
+      final image = Image.network(url, fit: BoxFit.cover);
+      // Precache to force error if image is not available
+      await precacheImage(image.image, context);
+      return image;
+    } catch (e) {
+      // Any error, return placeholder
+      throw Exception('Image load failed');
+    }
+  }
 } 
