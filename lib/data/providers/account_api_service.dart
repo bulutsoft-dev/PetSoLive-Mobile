@@ -11,20 +11,26 @@ class AccountApiService {
   Future<AuthResponseDto> login(AuthDto dto) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/Account/login'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ApiConstants.apiKey,
+      },
       body: jsonEncode(dto.toJson()),
     );
     if (response.statusCode == 200) {
       return AuthResponseDto.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Login failed: ${response.body}');
+      throw Exception('Login failed:  ${response.body}');
     }
   }
 
   Future<void> register(RegisterDto dto) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/Account/register'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ApiConstants.apiKey,
+      },
       body: jsonEncode(dto.toJson()),
     );
     if (response.statusCode != 200) {

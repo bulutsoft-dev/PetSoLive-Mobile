@@ -3,6 +3,7 @@ import '../../data/models/auth_dto.dart';
 import '../../data/models/register_dto.dart';
 import '../../data/models/auth_response_dto.dart';
 import '../../domain/repositories/account_repository.dart';
+import '../../data/local/session_manager.dart';
 
 abstract class AccountState {}
 class AccountInitial extends AccountState {}
@@ -19,12 +20,14 @@ class AccountFailure extends AccountState {
 
 class AccountCubit extends Cubit<AccountState> {
   final AccountRepository repository;
+  final SessionManager sessionManager = SessionManager();
   AccountCubit(this.repository) : super(AccountInitial());
 
   Future<void> login(AuthDto dto) async {
     emit(AccountLoading());
     try {
       final response = await repository.login(dto);
+      await sessionManager.saveSession(response.token, response.user.toJson());
       emit(AccountSuccess(response));
     } catch (e) {
       emit(AccountFailure(e.toString()));
@@ -39,5 +42,10 @@ class AccountCubit extends Cubit<AccountState> {
     } catch (e) {
       emit(AccountFailure(e.toString()));
     }
+  }
+
+  Future<void> logout() async {
+    await sessionManager.clearSession();
+    emit(AccountInitial());
   }
 } 

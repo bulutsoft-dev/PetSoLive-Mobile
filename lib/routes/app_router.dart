@@ -6,6 +6,10 @@ import '../presentation/screens/lost_pets_screen.dart';
 import '../presentation/screens/help_requests_screen.dart';
 import '../presentation/screens/lost_pet_ad_screen.dart';
 import '../presentation/screens/help_request_screen.dart';
+import '../presentation/screens/login_screen.dart';
+import '../presentation/blocs/account_cubit.dart';
+import '../injection_container.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 // import '../presentation/screens/help_request_screen.dart';
 
 /// Uygulamanın tüm rotalarını merkezi olarak yöneten sınıf.
@@ -43,6 +47,13 @@ class AppRouter {
           );
         }
       }
+      case '/login':
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<AccountCubit>(),
+            child: const LoginScreen(),
+          ),
+        );
       // case '/help_request':
       //   final reqId = settings.arguments as int?;
       //   return MaterialPageRoute(builder: (_) => HelpRequestScreen(requestId: reqId));

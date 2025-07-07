@@ -16,6 +16,7 @@ import 'presentation/screens/pets_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'injection_container.dart';
 import 'routes/app_router.dart';
+import 'presentation/blocs/account_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -166,7 +167,12 @@ class _MainScaffoldState extends State<MainScaffold> {
             title: Text('login.title').tr(),
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider(
+                    create: (_) => sl<AccountCubit>(),
+                    child: const LoginScreen(),
+                  ),
+                ),
               );
             },
           ),

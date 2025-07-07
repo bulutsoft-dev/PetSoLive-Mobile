@@ -5,9 +5,9 @@ class RegisterDto {
   final String phoneNumber;
   final String address;
   final DateTime dateOfBirth;
+  final String city;
+  final String district;
   final String? profileImageUrl;
-  final String? city;
-  final String? district;
 
   RegisterDto({
     required this.username,
@@ -16,9 +16,9 @@ class RegisterDto {
     required this.phoneNumber,
     required this.address,
     required this.dateOfBirth,
+    required this.city,
+    required this.district,
     this.profileImageUrl,
-    this.city,
-    this.district,
   });
 
   factory RegisterDto.fromJson(Map<String, dynamic> json) {
@@ -29,9 +29,9 @@ class RegisterDto {
       phoneNumber: json['phoneNumber'],
       address: json['address'],
       dateOfBirth: DateTime.parse(json['dateOfBirth']),
-      profileImageUrl: json['profileImageUrl'],
       city: json['city'],
       district: json['district'],
+      profileImageUrl: json['profileImageUrl'],
     );
   }
 
@@ -42,7 +42,7 @@ class RegisterDto {
     'phoneNumber': phoneNumber,
     'address': address,
     'dateOfBirth': dateOfBirth.toIso8601String(),
-    'profileImageUrl': profileImageUrl,
+    'profileImageUrl': profileImageUrl ?? 'https://www.petsolive.com.tr/',
     'city': city,
     'district': district,
   };

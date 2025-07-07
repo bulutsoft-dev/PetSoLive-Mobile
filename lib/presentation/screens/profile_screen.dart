@@ -144,7 +144,14 @@ class ProfileScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LoginScreen()));
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => BlocProvider(
+                            create: (_) => sl<AccountCubit>(),
+                            child: const LoginScreen(),
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ],
