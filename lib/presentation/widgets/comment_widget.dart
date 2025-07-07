@@ -4,12 +4,14 @@ class CommentWidget extends StatelessWidget {
   final String userName;
   final String date;
   final String comment;
+  final bool isVeterinarian;
 
   const CommentWidget({
     Key? key,
     required this.userName,
     required this.date,
     required this.comment,
+    this.isVeterinarian = false,
   }) : super(key: key);
 
   @override
@@ -42,6 +44,24 @@ class CommentWidget extends StatelessWidget {
                 userName,
                 style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
+              if (isVeterinarian) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: colorScheme.secondary.withOpacity(0.13),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: colorScheme.secondary, width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.medical_services, size: 14, color: colorScheme.secondary),
+                      const SizedBox(width: 3),
+                      Text('Veteriner', style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.secondary, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(width: 10),
               Icon(Icons.calendar_today, size: 15, color: colorScheme.secondary.withOpacity(0.7)),
               const SizedBox(width: 4),

@@ -243,9 +243,10 @@ class HelpRequestScreen extends StatelessWidget {
                         }
                         return Column(
                           children: commentState.comments.map((c) => CommentWidget(
-                            userName: c.userId.toString(),
+                            userName: c.userName ?? c.userId.toString(),
                             date: DateFormat('dd.MM.yyyy HH:mm').format(c.createdAt),
                             comment: c.content,
+                            isVeterinarian: c.veterinarianId != null,
                           )).toList(),
                         );
                       }
