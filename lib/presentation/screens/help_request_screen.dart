@@ -131,6 +131,12 @@ class HelpRequestScreen extends StatelessWidget {
                                     child: Image.network(
                                       req.imageUrl!,
                                       fit: BoxFit.contain,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Image.asset(
+                                          'assets/images/logo.png',
+                                          fit: BoxFit.contain,
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),
@@ -144,6 +150,14 @@ class HelpRequestScreen extends StatelessWidget {
                               height: 220,
                               width: double.infinity,
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/logo.png',
+                                  height: 220,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                );
+                              },
                             ),
                           ),
                         ),
@@ -166,6 +180,12 @@ class HelpRequestScreen extends StatelessWidget {
                                         child: Image.network(
                                           req.imageUrl!,
                                           fit: BoxFit.contain,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Image.asset(
+                                              'assets/images/logo.png',
+                                              fit: BoxFit.contain,
+                                            );
+                                          },
                                         ),
                                       ),
                                     ),

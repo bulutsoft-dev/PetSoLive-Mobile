@@ -3,6 +3,7 @@ import '../../data/models/help_request_dto.dart';
 import 'package:intl/intl.dart';
 import '../themes/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:http/http.dart' as http;
 
 class HelpRequestCard extends StatelessWidget {
   final HelpRequestDto request;
@@ -279,12 +280,18 @@ class _SafeNetworkAvatar extends StatelessWidget {
 
   Future<ImageProvider> _tryLoadImage(String url, BuildContext context) async {
     try {
-      final image = NetworkImage(url);
-      // Precache to force error if image is not available
-      await precacheImage(image, context);
-      return image;
+      // Önce HTTP HEAD isteği ile görselin varlığını kontrol et
+      final response = await http.head(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final image = NetworkImage(url);
+        // Precache (artık hata beklenmiyor)
+        await precacheImage(image, context);
+        return image;
+      } else {
+        throw Exception('Image not found');
+      }
     } catch (e) {
-      // Any error, return placeholder
+      // Herhangi bir hata, placeholder göster
       throw Exception('Image load failed');
     }
   }
