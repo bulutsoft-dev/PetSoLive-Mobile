@@ -38,7 +38,7 @@
   "profile.login_prompt": "Please log in to view your profile.",
   "profile.logout": "Logout",
   "profile.app_info": "App Information",
-  "profile.developer_info": "Developer Information",
+  "profile.developer_info": "Developer Info",
   "profile.language": "Language",
   "profile.change_language": "Change Language",
   "profile.supported_languages": "Supported Languages",
@@ -190,5 +190,12 @@
   "profile.share_app": "Share App",
   "profile.version": "Version",
   "profile.privacy_policy": "Privacy Policy",
-  "profile.change_theme": "Change Theme"
+  "profile.change_theme": "Change Theme",
+  "profile.bulutsoft_desc": "BulutSoft is an independent software company focused on modern, user-friendly apps.",
+  "profile.furkan_desc": "Furkan Bulut is the lead developer of PetSoLive.",
+  "profile.account_desc": "Your account information is shown here. You can log in or out as needed.",
+  "profile.dark_mode_desc": "Switch between light and dark themes for your comfort.",
+  "profile.language_desc": "Change the app language.",
+  "profile.support_desc": "Contact us for support or feedback.",
+  "profile.privacy_policy_desc": "Read our privacy policy for details on data protection."
 }

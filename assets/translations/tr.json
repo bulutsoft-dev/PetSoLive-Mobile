@@ -190,5 +190,12 @@
   "profile.share_app": "Uygulamayı Paylaş",
   "profile.version": "Sürüm",
   "profile.privacy_policy": "Gizlilik Politikası",
-  "profile.change_theme": "Temayı Değiştir"
+  "profile.change_theme": "Temayı Değiştir",
+  "profile.bulutsoft_desc": "BulutSoft, modern ve kullanıcı dostu uygulamalara odaklanan bağımsız bir yazılım şirketidir.",
+  "profile.furkan_desc": "Furkan Bulut, PetSoLive'ın baş geliştiricisidir.",
+  "profile.account_desc": "Hesap bilgileriniz burada görüntülenir. Giriş yapabilir veya çıkış yapabilirsiniz.",
+  "profile.dark_mode_desc": "Göz konforunuz için açık ve koyu tema arasında geçiş yapın.",
+  "profile.language_desc": "Uygulama dilini değiştirin.",
+  "profile.support_desc": "Destek veya geri bildirim için bizimle iletişime geçin.",
+  "profile.privacy_policy_desc": "Veri koruma detayları için gizlilik politikamızı okuyun."
 }

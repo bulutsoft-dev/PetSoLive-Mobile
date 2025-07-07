@@ -14,7 +14,6 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
     return Scaffold(
       body: SafeArea(
         child: MultiBlocProvider(
@@ -28,7 +27,7 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 children: [
                   _buildSectionTitle(context, 'profile.account_section'.tr()),
-                  _buildAccountCard(context),
+                  _buildAccountCard(context, accountState),
                   const SizedBox(height: 24),
 
                   _buildSectionTitle(context, 'profile.app_settings'.tr()),
@@ -37,6 +36,10 @@ class ProfileScreen extends StatelessWidget {
 
                   _buildSectionTitle(context, 'profile.support_section'.tr()),
                   _buildSupportCard(context),
+                  const SizedBox(height: 24),
+
+                  _buildSectionTitle(context, 'profile.developer_info'.tr()),
+                  _buildDeveloperInfoCard(context),
                   const SizedBox(height: 24),
 
                   _buildSectionTitle(context, 'profile.app_info'.tr()),
@@ -51,140 +54,325 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildSectionTitle(BuildContext context, String title) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8, left: 4),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+      padding: const EdgeInsets.only(bottom: 10, left: 2, top: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 22,
+            decoration: BoxDecoration(
+              color: colorScheme.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildAccountCard(BuildContext context) {
-    return BlocBuilder<AccountCubit, AccountState>(
-      builder: (context, state) {
-        if (state is AccountSuccess) {
-          final user = state.response.user;
-          return Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              leading: CircleAvatar(child: Icon(Icons.person)),
-              title: Text(user.username),
-              subtitle: Text(user.email ?? ''),
-              trailing: OutlinedButton.icon(
-                icon: Icon(Icons.logout),
-                label: Text('profile.logout'.tr()),
-                onPressed: () => context.read<AccountCubit>().emit(AccountInitial()),
+  Widget _buildAccountCard(BuildContext context, AccountState state) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      elevation: 2,
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 12),
+        child: state is AccountSuccess
+            ? Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Colors.transparent,
+                    child: _iconWithBg(context, Icons.person, colorScheme.primary, size: 32, radius: 44),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(state.response.user.username, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+                        const SizedBox(height: 2),
+                        Text(state.response.user.email ?? '', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                        const SizedBox(height: 6),
+                        Text('profile.account_desc'.tr(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+                      ],
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    icon: Icon(Icons.logout, color: colorScheme.primary),
+                    label: Text('profile.logout'.tr()),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: colorScheme.primary,
+                      side: BorderSide(color: colorScheme.primary),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: () => context.read<AccountCubit>().emit(AccountInitial()),
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  _iconWithBg(context, Icons.account_circle_rounded, colorScheme.primary, size: 32, radius: 44),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('profile.login_prompt'.tr(), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+                        const SizedBox(height: 6),
+                        Text('profile.account_desc'.tr(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+                      ],
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    icon: Icon(Icons.login, color: colorScheme.primary),
+                    label: Text('login_title').tr(),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: colorScheme.primary,
+                      side: BorderSide(color: colorScheme.primary),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LoginScreen()));
+                    },
+                  ),
+                ],
               ),
-            ),
-          );
-        } else {
-          return Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              leading: Icon(Icons.account_circle_rounded, size: 40),
-              title: Text('profile.login_prompt'.tr()),
-              trailing: OutlinedButton.icon(
-                icon: Icon(Icons.login),
-                label: Text('login_title').tr(),
-                onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LoginScreen()));
-                },
-              ),
-            ),
-          );
-        }
-      },
+      ),
     );
   }
 
   Widget _buildAppSettingsCard(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        children: [
-          ListTile(
-            leading: Icon(Icons.dark_mode_rounded),
-            title: Text('profile.dark_mode'.tr()),
-            trailing: BlocBuilder<ThemeCubit, ThemeState>(
-              builder: (context, state) {
-                final isDark = state.themeMode == ThemeMode.dark;
-                return Switch(
-                  value: isDark,
-                  onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
-                );
-              },
+      elevation: 2,
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        child: Column(
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: _iconWithBg(context, Icons.dark_mode_rounded, colorScheme.primary),
+              title: Text('profile.dark_mode'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+              subtitle: Text('profile.dark_mode_desc'.tr(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+              trailing: BlocBuilder<ThemeCubit, ThemeState>(
+                builder: (context, state) {
+                  final isDark = state.themeMode == ThemeMode.dark;
+                  return Switch(
+                    value: isDark,
+                    onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
+                  );
+                },
+              ),
             ),
-          ),
-          Divider(height: 1),
-          ListTile(
-            leading: Icon(Icons.language_rounded),
-            title: Text('profile.language'.tr()),
-            trailing: Text(context.locale.languageCode.toUpperCase()),
-            onTap: () => _showLanguageSelector(context),
-          ),
-        ],
+            Divider(height: 1),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: _iconWithBg(context, Icons.language_rounded, colorScheme.primary),
+              title: Text('profile.language'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+              subtitle: Text('profile.language_desc'.tr(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(context.locale.languageCode.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary)),
+              ),
+              onTap: () => _showLanguageSelector(context),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSupportCard(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        children: [
-          ListTile(
-            leading: Icon(Icons.email_outlined),
-            title: Text('profile.contact_support'.tr()),
-            onTap: () {
-              // Mail gönder
-            },
-          ),
-          Divider(height: 1),
-          ListTile(
-            leading: Icon(Icons.star_rounded),
-            title: Text('profile.rate_app'.tr()),
-            onTap: () {
-              // Play Store'a yönlendir
-            },
-          ),
-          Divider(height: 1),
-          ListTile(
-            leading: Icon(Icons.share_rounded),
-            title: Text('profile.share_app'.tr()),
-            onTap: () {
-              // Uygulamayı paylaş
-            },
-          ),
-        ],
+      elevation: 2,
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        child: Column(
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: _iconWithBg(context, Icons.email_outlined, colorScheme.primary),
+              title: Text('profile.contact_support'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+              subtitle: Text('profile.support_desc'.tr(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+              onTap: () async {
+                final url = Uri.parse('mailto:petsolivesoft@gmail.com');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url);
+                }
+              },
+              hoverColor: colorScheme.primary.withOpacity(0.06),
+            ),
+            Divider(height: 1),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: _iconWithBg(context, Icons.star_rounded, colorScheme.primary),
+              title: Text('profile.rate_app'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+              onTap: () async {
+                final url = Uri.parse('https://play.google.com/store/apps/details?id=com.petsolive.petsolive');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+              hoverColor: colorScheme.primary.withOpacity(0.06),
+            ),
+            Divider(height: 1),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: _iconWithBg(context, Icons.share_rounded, colorScheme.primary),
+              title: Text('profile.share_app'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+              onTap: () async {
+                final url = Uri.parse('https://play.google.com/store/apps/details?id=com.petsolive.petsolive');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+              hoverColor: colorScheme.primary.withOpacity(0.06),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeveloperInfoCard(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      elevation: 2,
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _iconWithBg(context, Icons.business_rounded, colorScheme.primary),
+                const SizedBox(width: 10),
+                Text('BulutSoft', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(left: 2),
+              child: Text('profile.bulutsoft_desc'.tr(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _iconWithBg(context, Icons.email_outlined, colorScheme.primary, size: 18, radius: 28),
+                const SizedBox(width: 6),
+                InkWell(
+                  borderRadius: BorderRadius.circular(4),
+                  splashColor: colorScheme.primary.withOpacity(0.1),
+                  onTap: () async {
+                    final url = Uri.parse('mailto:bulutsoftdev@gmail.com');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url);
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                    child: Text('bulutsoftdev@gmail.com', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.primary, decoration: TextDecoration.underline)),
+                  ),
+                ),
+              ],
+            ),
+            Divider(height: 18),
+            Row(
+              children: [
+                _iconWithBg(context, Icons.person_rounded, colorScheme.primary),
+                const SizedBox(width: 10),
+                Text('Furkan Bulut', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(left: 2),
+              child: Text('profile.furkan_desc'.tr(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _iconWithBg(context, Icons.email_outlined, colorScheme.primary, size: 18, radius: 28),
+                const SizedBox(width: 6),
+                InkWell(
+                  borderRadius: BorderRadius.circular(4),
+                  splashColor: colorScheme.primary.withOpacity(0.1),
+                  onTap: () async {
+                    final url = Uri.parse('mailto:furkanblt@gmail.com');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url);
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                    child: Text('furkanblt@gmail.com', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.primary, decoration: TextDecoration.underline)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildAppInfoCard(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        children: [
-          ListTile(
-            leading: Icon(Icons.info_rounded),
-            title: Text('profile.version'.tr()),
-            subtitle: Text('v1.0.0'), // Dinamik olarak çekebilirsin
-          ),
-          Divider(height: 1),
-          ListTile(
-            leading: Icon(Icons.privacy_tip_rounded),
-            title: Text('profile.privacy_policy'.tr()),
-            onTap: () {
-              // Gizlilik politikası göster
-            },
-          ),
-        ],
+      elevation: 2,
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        child: Column(
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.info_rounded, color: colorScheme.primary),
+              title: Text('profile.version'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+              subtitle: Text('v1.0.0'),
+            ),
+            Divider(height: 1),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.privacy_tip_rounded, color: colorScheme.primary),
+              title: Text('profile.privacy_policy'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+              subtitle: Text('profile.privacy_policy_desc'.tr(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+              onTap: () {
+                // Gizlilik politikası göster
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void _showLanguageSelector(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -192,10 +380,10 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('profile.select_language'.tr(), style: Theme.of(context).textTheme.titleMedium),
+            Text('profile.select_language'.tr(), style: Theme.of(context).textTheme.titleMedium?.copyWith(color: colorScheme.onSurface)),
             const SizedBox(height: 16),
             ...context.supportedLocales.map((locale) => ListTile(
-              title: Text(locale.languageCode.toUpperCase()),
+              title: Text(locale.languageCode.toUpperCase(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
               onTap: () {
                 context.setLocale(locale);
                 Navigator.pop(context);
@@ -204,6 +392,20 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _iconWithBg(BuildContext context, IconData icon, Color color, {double size = 24, double radius = 22}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: radius,
+      height: radius,
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.08) : Colors.grey.shade100,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Icon(icon, color: color, size: size),
     );
   }
 }

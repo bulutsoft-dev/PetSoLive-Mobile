@@ -91,15 +91,15 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> with SingleTick
                       ? state.helpRequests
                       : state.helpRequests.where((e) => e.emergencyLevel.toLowerCase() == tab.replaceAll('help_requests.tab_', '').toLowerCase()).toList();
                   if (tabFiltered.isEmpty) {
-                    return Center(child: Text('help_requests.empty').tr());
-                  }
-                  return ListView.builder(
+                return Center(child: Text('help_requests.empty').tr());
+              }
+              return ListView.builder(
                     itemCount: tabFiltered.length,
-                    itemBuilder: (context, i) {
+                itemBuilder: (context, i) {
                       final req = tabFiltered[i];
-                      return HelpRequestCard(
+                  return HelpRequestCard(
                         request: req,
-                        onTap: () {
+                    onTap: () {
                           Navigator.of(context).pushNamed('/help_request', arguments: req.id);
                         },
                       );

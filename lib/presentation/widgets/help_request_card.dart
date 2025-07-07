@@ -165,9 +165,9 @@ class HelpRequestCard extends StatelessWidget {
                   const SizedBox(width: 14),
                   // Main info
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
                         const SizedBox(height: 2),
                         Text(
                           request.title,
@@ -182,9 +182,9 @@ class HelpRequestCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
+              const SizedBox(height: 8),
+              Row(
+                children: [
                             Icon(Icons.location_on, size: 16, color: colorScheme.primary.withOpacity(0.7)),
                             const SizedBox(width: 4),
                             Expanded(
@@ -201,7 +201,7 @@ class HelpRequestCard extends StatelessWidget {
                         Row(
                           children: [
                             Icon(Icons.person, size: 15, color: colorScheme.secondary.withOpacity(0.7)),
-                            const SizedBox(width: 4),
+                  const SizedBox(width: 4),
                             Expanded(
                               child: Text(
                                 request.userName,
@@ -216,11 +216,11 @@ class HelpRequestCard extends StatelessWidget {
                             Text(
                               DateFormat('dd.MM.yyyy').format(request.createdAt),
                               style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7)),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
                   ),
                 ],
               ),
