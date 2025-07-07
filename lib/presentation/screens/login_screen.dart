@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/auth_dto.dart';
 import '../blocs/account_cubit.dart';
+import '../../main.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -30,10 +31,21 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Giriş Yap')),
       body: BlocConsumer<AccountCubit, AccountState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is AccountSuccess) {
-            // Başarılı giriş, ana ekrana yönlendir
-            Navigator.pushReplacementNamed(context, '/home');
+            // Başarılı girişte mesaj göster
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Başarıyla giriş yapıldı!')),
+            );
+            // Kısa bir gecikme ile ana ekrana yönlendir
+            await Future.delayed(const Duration(milliseconds: 800));
+            if (context.mounted) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const MainScaffold()),
+                (route) => false,
+              );
+            }
           } else if (state is AccountFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.error)),
