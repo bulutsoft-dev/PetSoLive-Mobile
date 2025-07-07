@@ -42,6 +42,9 @@ class PetCard extends StatelessWidget {
     final Color textColor = colorScheme.onSurface;
     final Color subTextColor = isDark ? Colors.grey[400]! : Colors.grey[700]!;
     final dateFormat = DateFormat('dd.MM.yyyy');
+    final Color stripeColor = adopted
+        ? Color(0xFF43EA7A) // green
+        : Color(0xFFFFB300); // yellow/orange
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Material(
@@ -57,6 +60,15 @@ class PetCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
+                    width: 6,
+                    height: 120,
+                    margin: const EdgeInsets.only(left: 0, top: 12, bottom: 12, right: 0),
+                    decoration: BoxDecoration(
+                      color: stripeColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  Container(
                     width: 80,
                     height: 80,
                     margin: const EdgeInsets.all(12),
@@ -71,10 +83,23 @@ class PetCard extends StatelessWidget {
                             fit: BoxFit.cover,
                             errorWidget: (_, __, ___) => Container(
                               color: colorScheme.background,
-                              child: const Icon(Icons.pets, size: 36, color: Colors.grey),
+                              child: Center(
+                                child: Icon(Icons.pets, size: 36, color: colorScheme.primary.withOpacity(0.3)),
+                              ),
+                            ),
+                            placeholder: (_, __) => Container(
+                              color: colorScheme.background,
+                              child: Center(
+                                child: Icon(Icons.pets, size: 36, color: colorScheme.primary.withOpacity(0.15)),
+                              ),
                             ),
                           )
-                        : const Center(child: Icon(Icons.pets, size: 36, color: Colors.grey)),
+                        : Container(
+                            color: colorScheme.background,
+                            child: Center(
+                              child: Icon(Icons.pets, size: 36, color: colorScheme.primary.withOpacity(0.3)),
+                            ),
+                          ),
                   ),
                   Expanded(
                     child: Padding(
