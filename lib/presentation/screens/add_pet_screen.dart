@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../blocs/pet_cubit.dart';
 import '../../data/models/pet_dto.dart';
+import '../../data/local/session_manager.dart';
 
 class AddPetScreen extends StatefulWidget {
   const AddPetScreen({Key? key}) : super(key: key);
@@ -17,18 +18,24 @@ class _AddPetScreenState extends State<AddPetScreen> {
   final _speciesController = TextEditingController();
   final _breedController = TextEditingController();
   final _ageController = TextEditingController();
-  final _genderController = TextEditingController();
+  String? _selectedGender;
   final _weightController = TextEditingController();
   final _colorController = TextEditingController();
-  final _dateOfBirthController = TextEditingController();
+  DateTime? _selectedDate;
   final _descriptionController = TextEditingController();
   final _vaccinationStatusController = TextEditingController();
   final _microchipIdController = TextEditingController();
   final _imageUrlController = TextEditingController();
   bool? _isNeutered = false;
+  bool _isLoading = false;
+
+  final List<String> _genderOptions = ['Erkek', 'Dişi'];
+  final List<String> _speciesOptions = ['Köpek', 'Kedi', 'Kuş', 'Diğer...'];
+  bool _customSpecies = false;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: Text('pets.add'.tr())),
       body: Padding(
@@ -37,90 +44,255 @@ class _AddPetScreenState extends State<AddPetScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: 'Adı'),
-                validator: (v) => v == null || v.isEmpty ? 'Zorunlu' : null,
+              Column(
+                children: [
+                  Icon(Icons.pets, size: 48, color: colorScheme.primary),
+                  const SizedBox(height: 8),
+                  Text('Hayvan Ekle', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text('Evcil hayvanını topluluğa ekle ve ona yeni bir yuva bul!', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+                ],
               ),
-              TextFormField(
-                controller: _speciesController,
-                decoration: InputDecoration(labelText: 'Türü'),
-                validator: (v) => v == null || v.isEmpty ? 'Zorunlu' : null,
+              const SizedBox(height: 24),
+              // Görsel önizleme
+              if (_imageUrlController.text.isNotEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.network(
+                        _imageUrlController.text,
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                        errorBuilder: (c, e, s) => Container(
+                          width: 120,
+                          height: 120,
+                          color: Colors.grey[200],
+                          child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              // Temel bilgiler
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(labelText: 'Adı'),
+                      validator: (v) => v == null || v.isEmpty ? 'Zorunlu' : null,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        DropdownButtonFormField<String>(
+                          value: !_customSpecies && _speciesController.text.isNotEmpty && _speciesOptions.contains(_speciesController.text)
+                              ? _speciesController.text
+                              : null,
+                          items: _speciesOptions.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                          onChanged: (v) {
+                            if (v == 'Diğer...') {
+                              setState(() {
+                                _customSpecies = true;
+                                _speciesController.text = '';
+                              });
+                            } else {
+                              setState(() {
+                                _customSpecies = false;
+                                _speciesController.text = v ?? '';
+                              });
+                            }
+                          },
+                          decoration: InputDecoration(labelText: 'Türü'),
+                          validator: (v) => (!_customSpecies && (v == null || v.isEmpty)) ? 'Zorunlu' : null,
+                        ),
+                        if (_customSpecies)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: TextFormField(
+                              controller: _speciesController,
+                              decoration: InputDecoration(labelText: 'Türü (yazınız)'),
+                              validator: (v) => (v == null || v.isEmpty) ? 'Zorunlu' : null,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              TextFormField(
-                controller: _breedController,
-                decoration: InputDecoration(labelText: 'Cinsi'),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _breedController,
+                      decoration: InputDecoration(labelText: 'Cinsi'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedGender,
+                      items: _genderOptions.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
+                      onChanged: (v) => setState(() => _selectedGender = v),
+                      decoration: InputDecoration(labelText: 'Cinsiyeti'),
+                      validator: (v) => (v == null || v.isEmpty) ? 'Zorunlu' : null,
+                    ),
+                  ),
+                ],
               ),
-              TextFormField(
-                controller: _ageController,
-                decoration: InputDecoration(labelText: 'Yaşı'),
-                keyboardType: TextInputType.number,
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _ageController,
+                      decoration: InputDecoration(labelText: 'Yaşı'),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _colorController,
+                      decoration: InputDecoration(labelText: 'Rengi'),
+                    ),
+                  ),
+                ],
               ),
-              TextFormField(
-                controller: _genderController,
-                decoration: InputDecoration(labelText: 'Cinsiyeti'),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _weightController,
+                      decoration: InputDecoration(labelText: 'Ağırlığı (kg)'),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: _selectedDate ?? DateTime(2020, 1, 1),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime.now(),
+                        );
+                        if (picked != null) {
+                          setState(() {
+                            _selectedDate = picked;
+                          });
+                        }
+                      },
+                      child: InputDecorator(
+                        decoration: InputDecoration(labelText: 'Doğum Tarihi'),
+                        child: Text(
+                          _selectedDate != null
+                              ? _selectedDate!.toIso8601String().split('T').first
+                              : 'Seçiniz',
+                          style: TextStyle(
+                            color: _selectedDate != null
+                                ? Colors.black
+                                : Theme.of(context).hintColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              TextFormField(
-                controller: _weightController,
-                decoration: InputDecoration(labelText: 'Ağırlığı (kg)'),
-                keyboardType: TextInputType.number,
+              const SizedBox(height: 12),
+              // Sağlık ve açıklama
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _vaccinationStatusController,
+                      decoration: InputDecoration(labelText: 'Aşı Durumu'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SwitchListTile(
+                      title: Text('Kısır mı?'),
+                      value: _isNeutered ?? false,
+                      onChanged: (v) => setState(() => _isNeutered = v),
+                    ),
+                  ),
+                ],
               ),
-              TextFormField(
-                controller: _colorController,
-                decoration: InputDecoration(labelText: 'Rengi'),
-              ),
-              TextFormField(
-                controller: _dateOfBirthController,
-                decoration: InputDecoration(labelText: 'Doğum Tarihi (YYYY-AA-GG)'),
-              ),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Açıklama'),
-              ),
-              TextFormField(
-                controller: _vaccinationStatusController,
-                decoration: InputDecoration(labelText: 'Aşı Durumu'),
-              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _microchipIdController,
                 decoration: InputDecoration(labelText: 'Mikroçip ID'),
               ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: InputDecoration(labelText: 'Açıklama'),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _imageUrlController,
                 decoration: InputDecoration(labelText: 'Görsel URL'),
-              ),
-              SwitchListTile(
-                title: Text('pets.is_neutered'.tr()),
-                value: _isNeutered ?? false,
-                onChanged: (v) => setState(() => _isNeutered = v),
+                onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () async {
+              ElevatedButton.icon(
+                icon: Icon(Icons.save),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: _isLoading ? null : () async {
                   if (_formKey.currentState?.validate() ?? false) {
+                    setState(() => _isLoading = true);
                     final pet = PetDto(
                       id: 0,
                       name: _nameController.text,
                       species: _speciesController.text,
                       breed: _breedController.text,
                       age: int.tryParse(_ageController.text) ?? 0,
-                      gender: _genderController.text,
+                      gender: _selectedGender ?? '',
                       weight: double.tryParse(_weightController.text) ?? 0,
                       color: _colorController.text,
-                      dateOfBirth: DateTime.tryParse(_dateOfBirthController.text) ?? DateTime.now(),
+                      dateOfBirth: _selectedDate?.toUtc() ?? DateTime.now().toUtc(),
                       description: _descriptionController.text,
                       vaccinationStatus: _vaccinationStatusController.text,
                       microchipId: _microchipIdController.text,
                       isNeutered: _isNeutered,
                       imageUrl: _imageUrlController.text,
                     );
-                    // TODO: Token alınmalı
-                    final token = '';
-                    await context.read<PetCubit>().create(pet, token);
-                    Navigator.of(context).pop();
+                    final sessionManager = SessionManager();
+                    final token = await sessionManager.getToken() ?? '';
+                    try {
+                      await context.read<PetCubit>().create(pet, token);
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Hayvan başarıyla eklendi!')),
+                      );
+                      await Future.delayed(const Duration(milliseconds: 800));
+                      Navigator.of(context).pop();
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Hata: ${e.toString()}')),
+                      );
+                    } finally {
+                      if (mounted) setState(() => _isLoading = false);
+                    }
                   }
                 },
-                child: Text('common.save'.tr()),
+                label: _isLoading ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text('Kaydet'),
               ),
             ],
           ),

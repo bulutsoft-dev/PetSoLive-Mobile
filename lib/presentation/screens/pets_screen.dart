@@ -7,6 +7,7 @@ import 'pet_detail_screen.dart';
 import 'add_pet_screen.dart';
 import '../../injection_container.dart';
 import '../../domain/repositories/adoption_repository.dart';
+import '../blocs/account_cubit.dart';
 
 class PetsScreen extends StatelessWidget {
   const PetsScreen({Key? key}) : super(key: key);
@@ -409,15 +410,29 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
             ],
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          heroTag: 'pets_screen_fab',
-          onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => AddPetScreen(),
-            ));
+        floatingActionButton: BlocBuilder<AccountCubit, AccountState>(
+          builder: (context, accountState) {
+            final isLoggedIn = accountState is AccountSuccess;
+            return FloatingActionButton(
+              heroTag: 'pets_screen_fab',
+              onPressed: () {
+                if (isLoggedIn) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider(
+                        create: (_) => PetCubit(sl()),
+                        child: AddPetScreen(),
+                      ),
+                    ),
+                  );
+                } else {
+                  Navigator.of(context).pushNamed('/login');
+                }
+              },
+              child: Icon(Icons.add),
+              tooltip: isLoggedIn ? 'pets.add'.tr() : 'Giriş yapmadan ekleyemezsiniz',
+            );
           },
-          child: Icon(Icons.add),
-          tooltip: 'pets.add'.tr(),
         ),
       ),
     );
