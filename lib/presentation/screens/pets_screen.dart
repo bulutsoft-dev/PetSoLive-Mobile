@@ -84,7 +84,19 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
   }
 
   List filterPets(List pets) {
-    return pets.where((pet) {
+    // Sıralama: Sahiplendirilmemişler en üstte, sahiplendirilmişler en altta, yeni eklenenler en üstte (id'ye göre)
+    final sorted = List.from(pets);
+    sorted.sort((a, b) {
+      final aAdopted = adoptedStatus[a.id] ?? false;
+      final bAdopted = adoptedStatus[b.id] ?? false;
+      if (aAdopted != bAdopted) {
+        // Sahiplendirilmemişler önce gelsin
+        return aAdopted ? 1 : -1;
+      }
+      // id'ye göre yeni eklenenler en üstte
+      return b.id.compareTo(a.id); // id büyük olan önce
+    });
+    return sorted.where((pet) {
       final adopted = adoptedStatus[pet.id] ?? false;
       if (statusFilter == 'owned' && !adopted) return false;
       if (statusFilter == 'waiting' && adopted) return false;
@@ -385,6 +397,9 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                       adoptionLoading: adoptionLoading,
                       filterPets: filterPets,
                       petsCache: petsCache,
+                      onRefresh: () async {
+                        await context.read<PetCubit>().getAll();
+                      },
                     ),
                     // Adopted
                     _PetListView(
@@ -394,6 +409,9 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                       adoptionLoading: adoptionLoading,
                       filterPets: filterPets,
                       petsCache: petsCache,
+                      onRefresh: () async {
+                        await context.read<PetCubit>().getAll();
+                      },
                     ),
                     // Waiting
                     _PetListView(
@@ -403,6 +421,9 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                       adoptionLoading: adoptionLoading,
                       filterPets: filterPets,
                       petsCache: petsCache,
+                      onRefresh: () async {
+                        await context.read<PetCubit>().getAll();
+                      },
                     ),
                   ],
                 ),
@@ -415,9 +436,9 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
             final isLoggedIn = accountState is AccountSuccess;
             return FloatingActionButton(
               heroTag: 'pets_screen_fab',
-              onPressed: () {
+              onPressed: () async {
                 if (isLoggedIn) {
-                  Navigator.of(context).push(
+                  await Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => BlocProvider(
                         create: (_) => PetCubit(sl()),
@@ -425,6 +446,8 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                       ),
                     ),
                   );
+                  // Kayıt sonrası otomatik reload
+                  if (mounted) context.read<PetCubit>().getAll();
                 } else {
                   Navigator.of(context).pushNamed('/login');
                 }
@@ -447,6 +470,7 @@ class _PetListView extends StatelessWidget {
   final bool adoptionLoading;
   final List petsCache;
   final List Function(List) filterPets;
+  final Future<void> Function()? onRefresh;
 
   const _PetListView({
     required this.filter,
@@ -455,35 +479,48 @@ class _PetListView extends StatelessWidget {
     required this.adoptionLoading,
     required this.filterPets,
     required this.petsCache,
+    this.onRefresh,
   });
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PetCubit, PetState>(
+    return RefreshIndicator(
+      onRefresh: onRefresh ?? () async {},
+      child: BlocBuilder<PetCubit, PetState>(
         builder: (context, state) {
           if (state is PetLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is PetError) {
             return Center(child: Text('pets.error'.tr() + '\n' + state.error));
-        } else if (state is PetLoaded || state is PetFiltered) {
-          final pets = state is PetLoaded ? state.pets : (state as PetFiltered).pets;
-          if (pets.isEmpty) {
-            return Center(child: Text('pets.empty'.tr()));
-          }
-          if (adoptedStatus.length != pets.length || adoptionLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final filteredPets = filterPets(pets).where(filter).toList();
-          if (filteredPets.isEmpty) {
-              return Center(child: Text('pets.empty'.tr()));
+          } else if (state is PetLoaded || state is PetFiltered) {
+            final pets = state is PetLoaded ? state.pets : (state as PetFiltered).pets;
+            if (pets.isEmpty) {
+              return ListView(
+                children: [
+                  SizedBox(height: 200),
+                  Center(child: Text('pets.empty'.tr())),
+                ],
+              );
+            }
+            if (adoptedStatus.length != pets.length || adoptionLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final filteredPets = filterPets(pets).where(filter).toList();
+            if (filteredPets.isEmpty) {
+              return ListView(
+                children: [
+                  SizedBox(height: 200),
+                  Center(child: Text('pets.empty'.tr())),
+                ],
+              );
             }
             return ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 16),
-            itemCount: filteredPets.length,
+              itemCount: filteredPets.length,
               itemBuilder: (context, index) {
-              final pet = filteredPets[index];
-              final isAdopted = adoptedStatus[pet.id] ?? false;
-              final ownerName = adoptedOwner[pet.id];
+                final pet = filteredPets[index];
+                final isAdopted = adoptedStatus[pet.id] ?? false;
+                final ownerName = adoptedOwner[pet.id];
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: PetCard(
@@ -491,16 +528,16 @@ class _PetListView extends StatelessWidget {
                     species: pet.species,
                     imageUrl: pet.imageUrl ?? '',
                     description: pet.description ?? '',
-                  age: pet.age,
-                  gender: pet.gender,
-                  color: pet.color,
-                  vaccinationStatus: pet.vaccinationStatus,
-                  isAdopted: isAdopted,
-                  ownerName: ownerName,
+                    age: pet.age,
+                    gender: pet.gender,
+                    color: pet.color,
+                    vaccinationStatus: pet.vaccinationStatus,
+                    isAdopted: isAdopted,
+                    ownerName: ownerName,
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => PetDetailScreen(
-                        petId: pet.id,
+                          petId: pet.id,
                         ),
                       ));
                     },
@@ -511,6 +548,7 @@ class _PetListView extends StatelessWidget {
           }
           return const SizedBox.shrink();
         },
+      ),
     );
   }
 }
