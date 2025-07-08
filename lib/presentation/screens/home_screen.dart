@@ -68,7 +68,31 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
-
+            // BÖLÜM BAŞLIKLARI
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+              child: Row(
+                children: [
+                  Icon(Icons.pets, color: colorScheme.primary, size: 22),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'home.featured_pets'.tr(),
+                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward),
+                    tooltip: 'common.see_all'.tr(),
+                    onPressed: () {
+                      onTabChange(0);
+                    },
+                  ),
+                ],
+              ),
+            ),
             BlocBuilder<PetCubit, PetState>(
               builder: (context, state) {
                 if (state is PetLoading) {

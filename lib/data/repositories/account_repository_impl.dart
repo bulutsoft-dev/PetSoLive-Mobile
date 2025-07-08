@@ -13,5 +13,5 @@ class AccountRepositoryImpl implements AccountRepository {
   Future<AuthResponseDto> login(AuthDto dto) => apiService.login(dto);
 
   @override
-  Future<void> register(RegisterDto dto) => apiService.register(dto);
+  Future<AuthResponseDto?> register(RegisterDto dto) => apiService.register(dto);
 } 

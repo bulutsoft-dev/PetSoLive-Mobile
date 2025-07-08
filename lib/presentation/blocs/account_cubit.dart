@@ -12,7 +12,10 @@ class AccountSuccess extends AccountState {
   final AuthResponseDto response;
   AccountSuccess(this.response);
 }
-class AccountRegisterSuccess extends AccountState {}
+class AccountRegisterSuccess extends AccountState {
+  final String? message;
+  AccountRegisterSuccess([this.message]);
+}
 class AccountFailure extends AccountState {
   final String error;
   AccountFailure(this.error);
@@ -40,7 +43,13 @@ class AccountCubit extends Cubit<AccountState> {
       await repository.register(dto);
       emit(AccountRegisterSuccess());
     } catch (e) {
-      emit(AccountFailure(e.toString()));
+      final msg = e.toString();
+      if (msg.startsWith('Exception: REGISTER_SUCCESS_MESSAGE:')) {
+        final successMsg = msg.replaceFirst('Exception: REGISTER_SUCCESS_MESSAGE:', '');
+        emit(AccountRegisterSuccess(successMsg));
+      } else {
+        emit(AccountFailure(e.toString()));
+      }
     }
   }
 

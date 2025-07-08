@@ -42,8 +42,8 @@ class RegisterDto {
     'phoneNumber': phoneNumber,
     'address': address,
     'dateOfBirth': dateOfBirth.toIso8601String(),
-    'profileImageUrl': profileImageUrl ?? 'https://www.petsolive.com.tr/',
-    'city': city,
-    'district': district,
+    'profileImageUrl': profileImageUrl ?? 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimg.freepik.com%2Ffree-icon%2Fuser_318-804790.jpg&f=1&nofb=1&ipt=5936ab431b7527eb5f5e20fc8c26d918ebeea72414e3fa5b59a57ea07459717f',
+    'city': city.isNotEmpty ? city : '',
+    'district': district.isNotEmpty ? district : '',
   };
 } 
