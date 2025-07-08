@@ -6,6 +6,7 @@ import '../../main.dart';
 import 'package:intl/intl.dart';
 import '../../core/helpers/city_list.dart';
 import 'package:petsolive/presentation/screens/login_screen.dart';
+import '../../injection_container.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -173,7 +174,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         if (!mounted) return;
                         Navigator.pushAndRemoveUntil(
                           context,
-                          MaterialPageRoute(builder: (_) => const MainScaffold()),
+                          MaterialPageRoute(
+                            builder: (_) => const MainScaffold(),
+                          ),
                           (route) => false,
                         );
                       } else if (state is AccountRegisterSuccess) {
@@ -193,9 +196,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         );
                         await Future.delayed(const Duration(milliseconds: 1200));
                         if (!mounted) return;
-                        Navigator.pushAndRemoveUntil(
+                        Navigator.pushNamedAndRemoveUntil(
                           context,
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          '/login',
                           (route) => false,
                         );
                       } else if (state is AccountFailure) {
