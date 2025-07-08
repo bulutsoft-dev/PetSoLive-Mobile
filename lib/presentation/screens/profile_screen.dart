@@ -16,38 +16,32 @@ class ProfileScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: SafeArea(
-        child: MultiBlocProvider(
-          providers: [
-            BlocProvider<AccountCubit>(create: (_) => sl<AccountCubit>()),
-            BlocProvider<UserCubit>(create: (_) => sl<UserCubit>()),
-          ],
-          child: BlocBuilder<AccountCubit, AccountState>(
-            builder: (context, accountState) {
-              return ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _buildSectionTitle(context, 'profile.account_section'.tr()),
-                  _buildAccountCard(context, accountState),
-                  const SizedBox(height: 24),
+        child: BlocBuilder<AccountCubit, AccountState>(
+          builder: (context, accountState) {
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildSectionTitle(context, 'profile.account_section'.tr()),
+                _buildAccountCard(context, accountState),
+                const SizedBox(height: 24),
 
-                  _buildSectionTitle(context, 'profile.app_settings'.tr()),
-                  _buildAppSettingsCard(context),
-                  const SizedBox(height: 24),
+                _buildSectionTitle(context, 'profile.app_settings'.tr()),
+                _buildAppSettingsCard(context),
+                const SizedBox(height: 24),
 
-                  _buildSectionTitle(context, 'profile.support_section'.tr()),
-                  _buildSupportCard(context),
-                  const SizedBox(height: 24),
+                _buildSectionTitle(context, 'profile.support_section'.tr()),
+                _buildSupportCard(context),
+                const SizedBox(height: 24),
 
-                  _buildSectionTitle(context, 'profile.developer_info'.tr()),
-                  _buildDeveloperInfoCard(context),
-                  const SizedBox(height: 24),
+                _buildSectionTitle(context, 'profile.developer_info'.tr()),
+                _buildDeveloperInfoCard(context),
+                const SizedBox(height: 24),
 
-                  _buildSectionTitle(context, 'profile.app_info'.tr()),
-                  _buildAppInfoCard(context),
-                ],
-              );
-            },
-          ),
+                _buildSectionTitle(context, 'profile.app_info'.tr()),
+                _buildAppInfoCard(context),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -87,61 +81,83 @@ class ProfileScreen extends StatelessWidget {
       color: Theme.of(context).cardColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12),
         child: state is AccountSuccess
-            ? Row(
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: Colors.transparent,
-                    child: _iconWithBg(context, Icons.person, colorScheme.primary, size: 32, radius: 44),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundColor: colorScheme.primary.withOpacity(0.10),
+                        child: Icon(Icons.person, size: 28, color: colorScheme.primary),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(state.response.user.username, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary, fontSize: 17)),
+                            const SizedBox(height: 2),
+                            Text(state.response.user.email ?? '-', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface, fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.logout, color: colorScheme.primary, size: 20),
+                        tooltip: 'profile.logout'.tr(),
+                        onPressed: () => context.read<AccountCubit>().logout(),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  if ((state.response.user.address ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Row(
                       children: [
-                        Text(state.response.user.username, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-                        const SizedBox(height: 2),
-                        Text(state.response.user.email ?? '', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
-                        const SizedBox(height: 6),
-                        Text('profile.account_desc'.tr(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+                        Icon(Icons.home, size: 15, color: colorScheme.primary.withOpacity(0.7)),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            state.response.user.address!,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                  OutlinedButton.icon(
-                    icon: Icon(Icons.logout, color: colorScheme.primary),
-                    label: Text('profile.logout'.tr()),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: colorScheme.primary,
-                      side: BorderSide(color: colorScheme.primary),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    onPressed: () => context.read<AccountCubit>().emit(AccountInitial()),
-                  ),
+                  ],
+                  const SizedBox(height: 10),
+                  _buildUserInfoGrid(state, colorScheme),
                 ],
               )
             : Row(
                 children: [
-                  _iconWithBg(context, Icons.account_circle_rounded, colorScheme.primary, size: 32, radius: 44),
-                  const SizedBox(width: 16),
+                  _iconWithBg(context, Icons.account_circle_rounded, colorScheme.primary, size: 28, radius: 36),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('profile.login_prompt'.tr(), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-                        const SizedBox(height: 6),
-                        Text('profile.account_desc'.tr(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+                        Text('profile.login_prompt'.tr(), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 15)),
+                        const SizedBox(height: 4),
+                        Text('profile.account_desc'.tr(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12)),
                       ],
                     ),
                   ),
                   OutlinedButton.icon(
-                    icon: Icon(Icons.login, color: colorScheme.primary),
+                    icon: Icon(Icons.login, color: colorScheme.primary, size: 16),
                     label: Text('login_title').tr(),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: colorScheme.primary,
                       side: BorderSide(color: colorScheme.primary),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      textStyle: const TextStyle(fontSize: 13),
                     ),
                     onPressed: () {
                       Navigator.of(context).push(
@@ -156,6 +172,53 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ],
               ),
+      ),
+    );
+  }
+
+  Widget _buildUserInfoGrid(AccountSuccess state, ColorScheme colorScheme) {
+    final user = state.response.user;
+    final infoList = [
+      _userInfoGridTile(Icons.phone, user.phoneNumber ?? '-', colorScheme),
+      _userInfoGridTile(Icons.location_city, user.city ?? '-', colorScheme),
+      _userInfoGridTile(Icons.map, user.district ?? '-', colorScheme),
+      _userInfoGridTile(Icons.cake, user.dateOfBirth != null ? user.dateOfBirth!.toString().split(' ').first : '-', colorScheme),
+      _userInfoGridTile(Icons.verified_user, (user.roles != null && user.roles!.isNotEmpty) ? user.roles!.first : '-', colorScheme),
+      _userInfoGridTile(Icons.calendar_today, user.createdDate != null ? user.createdDate!.toString().split(' ').first : '-', colorScheme),
+    ];
+    return GridView.count(
+      crossAxisCount: 3,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 8,
+      crossAxisSpacing: 8,
+      childAspectRatio: 2.2,
+      padding: EdgeInsets.zero,
+      children: infoList,
+    );
+  }
+
+  Widget _userInfoGridTile(IconData icon, String value, ColorScheme colorScheme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.primary.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Icon(icon, size: 15, color: colorScheme.primary),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
