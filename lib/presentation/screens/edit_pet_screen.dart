@@ -87,17 +87,27 @@ class _EditPetScreenState extends State<EditPetScreen> {
     final sessionManager = SessionManager();
     final token = await sessionManager.getToken() ?? '';
     try {
-      await PetApiService().update(widget.pet.id, updatedPet, token);
+      final response = await PetApiService().updateWithResponse(widget.pet.id, updatedPet, token);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('edit_pet.success'.tr())),
-      );
-      await Future.delayed(const Duration(milliseconds: 800));
-      Navigator.of(context).pop(true);
+      if (response == 200 || response == 204) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('edit_pet.success'.tr()),
+            backgroundColor: Colors.green,
+          ),
+        );
+        await Future.delayed(const Duration(milliseconds: 800));
+        Navigator.of(context).pop(true);
+      } else {
+        throw Exception('Status: ' + response.toString());
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('form.error'.tr(args: [e.toString()]))),
+        SnackBar(
+          content: Text('form.error'.tr(args: [e.toString()])),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

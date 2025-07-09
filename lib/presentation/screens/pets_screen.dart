@@ -255,7 +255,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
         ..getAllWithOwners(
           userId: currentUserId,
           petOwnerApiService: sl<PetOwnerApiService>(),
-        ),
+                ),
       child: BlocBuilder<PetCubit, PetState>(
         builder: (context, state) {
           if (state is PetLoaded) {
@@ -268,32 +268,32 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
             ];
             final tabViews = <Widget>[
               // All Pets
-              _PetListView(
-                filter: (pet) => true,
-                adoptedStatus: adoptedStatus,
-                adoptedOwner: adoptedOwner,
-                adoptionLoading: adoptionLoading,
-                filterPets: filterPets,
+                    _PetListView(
+                      filter: (pet) => true,
+                      adoptedStatus: adoptedStatus,
+                      adoptedOwner: adoptedOwner,
+                      adoptionLoading: adoptionLoading,
+                      filterPets: filterPets,
                 petsCache: state.allPets,
                 currentUserId: currentUserId,
-              ),
+                    ),
               // Owned (adopted)
-              _PetListView(
-                filter: (pet) => adoptedStatus[pet.id] == true,
-                adoptedStatus: adoptedStatus,
-                adoptedOwner: adoptedOwner,
-                adoptionLoading: adoptionLoading,
-                filterPets: filterPets,
+                    _PetListView(
+                      filter: (pet) => adoptedStatus[pet.id] == true,
+                      adoptedStatus: adoptedStatus,
+                      adoptedOwner: adoptedOwner,
+                      adoptionLoading: adoptionLoading,
+                      filterPets: filterPets,
                 petsCache: state.allPets,
                 currentUserId: currentUserId,
-              ),
+                    ),
               // Waiting (not adopted)
-              _PetListView(
-                filter: (pet) => adoptedStatus[pet.id] == false,
-                adoptedStatus: adoptedStatus,
-                adoptedOwner: adoptedOwner,
-                adoptionLoading: adoptionLoading,
-                filterPets: filterPets,
+                    _PetListView(
+                      filter: (pet) => adoptedStatus[pet.id] == false,
+                      adoptedStatus: adoptedStatus,
+                      adoptedOwner: adoptedOwner,
+                      adoptionLoading: adoptionLoading,
+                      filterPets: filterPets,
                 petsCache: state.allPets,
                 currentUserId: currentUserId,
               ),
@@ -334,7 +334,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
           }
           // ... handle other states ...
           return Center(child: CircularProgressIndicator());
-        },
+          },
       ),
     );
   }

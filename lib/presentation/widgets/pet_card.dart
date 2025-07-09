@@ -47,8 +47,8 @@ class PetCard extends StatelessWidget {
     final Color stripeColor = isMine
         ? Color(0xFF1976D2) // blue for user's own pets
         : adopted
-            ? Color(0xFF43EA7A) // green
-            : Color(0xFFFFB300); // yellow/orange
+        ? Color(0xFF43EA7A) // green
+        : Color(0xFFFFB300); // yellow/orange
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Material(

@@ -55,21 +55,21 @@ class PetDto {
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{
-      'id': id,
-      'name': name,
-      'species': species,
-      'breed': breed,
-      'age': age,
-      'gender': gender,
-      'weight': weight,
-      'color': color,
+    'id': id,
+    'name': name,
+    'species': species,
+    'breed': breed,
+    'age': age,
+    'gender': gender,
+    'weight': weight,
+    'color': color,
       'dateOfBirth': dateOfBirth.toUtc().toIso8601String(),
-      'description': description,
-      'vaccinationStatus': vaccinationStatus,
-      'microchipId': microchipId,
-      'isNeutered': isNeutered,
-      'imageUrl': imageUrl,
-    };
+    'description': description,
+    'vaccinationStatus': vaccinationStatus,
+    'microchipId': microchipId,
+    'isNeutered': isNeutered,
+    'imageUrl': imageUrl,
+  };
     if (ownerId != null) {
       map['ownerId'] = ownerId;
     }

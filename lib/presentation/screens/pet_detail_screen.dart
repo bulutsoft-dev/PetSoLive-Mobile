@@ -419,8 +419,12 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                               icon: Icon(Icons.edit),
                               label: Text('pet_detail.edit').tr(),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
+                                backgroundColor: isDark
+                                    ? colorScheme.primary.withOpacity(0.85)
+                                    : colorScheme.primary,
+                                foregroundColor: isDark
+                                    ? colorScheme.onPrimary
+                                    : colorScheme.onPrimary,
                                 minimumSize: const Size.fromHeight(48),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
@@ -446,8 +450,12 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                               icon: Icon(Icons.delete),
                               label: Text('pet_detail.delete').tr(),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
+                                backgroundColor: isDark
+                                    ? colorScheme.error.withOpacity(0.85)
+                                    : colorScheme.error,
+                                foregroundColor: isDark
+                                    ? colorScheme.onError
+                                    : colorScheme.onError,
                                 minimumSize: const Size.fromHeight(48),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
@@ -465,7 +473,14 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                                       ElevatedButton(
                                         onPressed: () => Navigator.pop(ctx, true),
                                         child: Text('Sil'),
-                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: isDark
+                                              ? colorScheme.error.withOpacity(0.85)
+                                              : colorScheme.error,
+                                          foregroundColor: isDark
+                                              ? colorScheme.onError
+                                              : colorScheme.onError,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -480,15 +495,18 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                                     if (token == null) throw Exception('Oturum bulunamadı!');
                                     await PetApiService().delete(pet.id, token);
                                     if (mounted) {
-                                      Navigator.of(context).pop();
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(content: Text('Pet başarıyla silindi.')),
                                       );
+                                      await Future.delayed(const Duration(milliseconds: 500));
+                                      Navigator.of(context).pop();
                                     }
                                   } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Silme işlemi başarısız: $e')),
-                                    );
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Silme işlemi başarısız: $e')),
+                                      );
+                                    }
                                   }
                                 }
                               },
@@ -501,18 +519,18 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                   // Sadece owner olmayanlar ve pet adopted değilse sahiplen butonu
                   if (!isAdopted && !isOwner) {
                     final hasRequest = currentUserId != null && adoptionRequests.any((r) => r.userId == currentUserId);
-                    if (hasRequest) {
-                      return Text('Daha önce bu pet için başvuru yaptınız.');
-                    }
-                    return ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.favorite_border),
-                      label: Text('pet_detail.adopt').tr(),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    );
+                  if (hasRequest) {
+                    return Text('Daha önce bu pet için başvuru yaptınız.');
+                  }
+                  return ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.favorite_border),
+                    label: Text('pet_detail.adopt').tr(),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
                   }
                   // Diğer durumlarda hiçbir buton gösterme
                   return const SizedBox.shrink();

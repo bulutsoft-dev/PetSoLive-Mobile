@@ -59,6 +59,22 @@ class PetApiService {
     }
   }
 
+  Future<int> updateWithResponse(int id, PetDto dto, String token) async {
+    final url = '$baseUrl/api/Pet/$id';
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'x-api-key': apiKey,
+    };
+    final body = jsonEncode(dto.toJson());
+    final response = await http.put(
+      Uri.parse(url),
+      headers: headers,
+      body: body,
+    );
+    return response.statusCode;
+  }
+
   Future<void> update(int id, PetDto dto, String token) async {
     final url = '$baseUrl/api/Pet/$id';
     final headers = {
