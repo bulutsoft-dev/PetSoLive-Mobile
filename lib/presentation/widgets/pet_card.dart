@@ -44,9 +44,11 @@ class PetCard extends StatelessWidget {
     final Color textColor = colorScheme.onSurface;
     final Color subTextColor = isDark ? Colors.grey[400]! : Colors.grey[700]!;
     final dateFormat = DateFormat('dd.MM.yyyy');
-    final Color stripeColor = adopted
-        ? Color(0xFF43EA7A) // green
-        : Color(0xFFFFB300); // yellow/orange
+    final Color stripeColor = isMine
+        ? Color(0xFF1976D2) // blue for user's own pets
+        : adopted
+            ? Color(0xFF43EA7A) // green
+            : Color(0xFFFFB300); // yellow/orange
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Material(
@@ -207,20 +209,8 @@ class PetCard extends StatelessWidget {
                   ),
                 ],
               ),
-              if (isMine)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.orange,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text('My Pet', style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-              // Uyumlu ve lokalize badge, duruma göre renkli
+              // 'My Pet' badge removed as requested
+              // Always show the waiting/adopted badge below
               Positioned(
                 top: 8,
                 right: 8,
