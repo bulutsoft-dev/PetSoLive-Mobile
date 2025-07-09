@@ -412,6 +412,8 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                 requests: adoptionRequests,
                 isDark: isDark,
                 theme: theme,
+                isOwner: isMine,
+                petId: pet.id,
               ),
               // Butonlar: Sadece pet owner ve pet adopted değilse edit/sil, diğerleri için (adopt edilmediyse) sahiplen
               Builder(
@@ -566,7 +568,25 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                     if (hasRequest) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Text('pet_detail.already_requested'.tr()),
+                        child: Column(
+                          children: [
+                            Text('pet_detail.already_requested'.tr()),
+                            const SizedBox(height: 8),
+                            ElevatedButton.icon(
+                              onPressed: null,
+                              icon: const Icon(Icons.check_circle_outline),
+                              label: Text('adoption_form.success').tr(),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                                disabledBackgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                disabledForegroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                                minimumSize: const Size.fromHeight(48),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ],
+                        ),
                       );
                     }
                     // Normal sahiplen butonu
@@ -687,7 +707,9 @@ class _AdoptionRequestsTabSection extends StatefulWidget {
   final List<AdoptionRequestDto> requests;
   final bool isDark;
   final ThemeData theme;
-  const _AdoptionRequestsTabSection({required this.requests, required this.isDark, required this.theme});
+  final bool isOwner;
+  final int petId;
+  const _AdoptionRequestsTabSection({required this.requests, required this.isDark, required this.theme, required this.isOwner, required this.petId});
   @override
   State<_AdoptionRequestsTabSection> createState() => _AdoptionRequestsTabSectionState();
 }
@@ -920,7 +942,48 @@ class _AdoptionRequestsTabSectionState extends State<_AdoptionRequestsTabSection
                         itemCount: visible.length + (hasMore ? 1 : 0),
                         itemBuilder: (context, idx) {
                           if (idx < visible.length) {
-                            return AdoptionRequestCommentWidget(request: visible[idx]);
+                            return AdoptionRequestCommentWidget(
+                              request: visible[idx],
+                              isOwner: widget.isOwner,
+                              petId: widget.petId,
+                              onAction: (action, request) async {
+                                final accountState = context.read<AccountCubit>().state;
+                                String? token;
+                                if (accountState is AccountSuccess) {
+                                  token = accountState.response.token;
+                                }
+                                if (token == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Oturum bulunamadı!')),
+                                  );
+                                  return;
+                                }
+                                try {
+                                  final adoptionRequestApi = AdoptionRequestApiService();
+                                  bool success = false;
+                                  if (action == 'approve') {
+                                    success = await adoptionRequestApi.approveRequest(request.id, token);
+                                    if (success) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Başvuru onaylandı!')),
+                                      );
+                                    }
+                                  } else if (action == 'reject') {
+                                    success = await adoptionRequestApi.rejectRequest(request.id, token);
+                                    if (success) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Başvuru reddedildi!')),
+                                      );
+                                    }
+                                  }
+                                  if (success && mounted) setState(() {});
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('İşlem başarısız: $e')),
+                                  );
+                                }
+                              },
+                            );
                           } else {
                             // Yükleniyor göstergesi
                             return const Padding(

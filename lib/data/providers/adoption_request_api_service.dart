@@ -75,4 +75,38 @@ class AdoptionRequestApiService {
     debugPrint('-----------------------------------------------');
     return response.statusCode == 200 || response.statusCode == 201;
   }
+
+  Future<bool> approveRequest(int requestId, String token) async {
+    final url = Uri.parse('$baseUrl/api/AdoptionRequest/$requestId/approve');
+    final headers = {
+      'x-api-key': ApiConstants.apiKey,
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+    debugPrint('--- AdoptionRequestApiService.approveRequest ---');
+    debugPrint('URL: ' + url.toString());
+    debugPrint('Headers: ' + headers.toString());
+    final response = await http.put(url, headers: headers);
+    debugPrint('Response status: ${response.statusCode}');
+    debugPrint('Response body: ${response.body}');
+    debugPrint('-----------------------------------------------');
+    return response.statusCode == 200;
+  }
+
+  Future<bool> rejectRequest(int requestId, String token) async {
+    final url = Uri.parse('$baseUrl/api/AdoptionRequest/$requestId/reject');
+    final headers = {
+      'x-api-key': ApiConstants.apiKey,
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+    debugPrint('--- AdoptionRequestApiService.rejectRequest ---');
+    debugPrint('URL: ' + url.toString());
+    debugPrint('Headers: ' + headers.toString());
+    final response = await http.put(url, headers: headers);
+    debugPrint('Response status: ${response.statusCode}');
+    debugPrint('Response body: ${response.body}');
+    debugPrint('-----------------------------------------------');
+    return response.statusCode == 200;
+  }
 }

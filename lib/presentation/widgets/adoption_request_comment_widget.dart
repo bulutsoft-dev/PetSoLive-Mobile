@@ -6,7 +6,10 @@ import 'package:easy_localization/easy_localization.dart';
 
 class AdoptionRequestCommentWidget extends StatelessWidget {
   final AdoptionRequestDto request;
-  const AdoptionRequestCommentWidget({Key? key, required this.request}) : super(key: key);
+  final bool isOwner;
+  final int petId;
+  final void Function(String action, AdoptionRequestDto request)? onAction;
+  const AdoptionRequestCommentWidget({Key? key, required this.request, this.isOwner = false, this.petId = 0, this.onAction}) : super(key: key);
 
   Color _statusColor(String status, BuildContext context) {
     switch (status.toLowerCase()) {
@@ -120,6 +123,40 @@ class AdoptionRequestCommentWidget extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (isOwner && request.status.toLowerCase() == 'pending') ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.check, color: Colors.white),
+                          label: Text('Onayla'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green[700],
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(40),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: () => onAction?.call('approve', request),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          label: Text('Reddet'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red[700],
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(40),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: () => onAction?.call('reject', request),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
