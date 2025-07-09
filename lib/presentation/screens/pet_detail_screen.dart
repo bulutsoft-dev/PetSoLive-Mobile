@@ -21,6 +21,7 @@ import '../blocs/account_cubit.dart';
 import 'add_pet_screen.dart';
 import 'edit_pet_screen.dart';
 import 'package:petsolive/presentation/screens/delete_confirmation_screen.dart';
+import 'adoption_request_form_screen.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final int petId;
@@ -567,7 +568,29 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                     }
                     // Normal sahiplen butonu
                     return ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () async {
+                        final accountState = context.read<AccountCubit>().state;
+                        if (accountState is! AccountSuccess) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Lütfen giriş yapınız.')),
+                          );
+                          return;
+                        }
+                        final user = accountState.response.user;
+                        final result = await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => AdoptionRequestFormScreen(pet: pet, user: user),
+                          ),
+                        );
+                        if (result == true) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Sahiplenme isteğiniz gönderildi!')),
+                          );
+                          setState(() {
+                            _bundleFuture = _fetchAll(widget.petId);
+                          });
+                        }
+                      },
                       icon: const Icon(Icons.favorite_border),
                       label: Text('pet_detail.adopt').tr(),
                       style: ElevatedButton.styleFrom(

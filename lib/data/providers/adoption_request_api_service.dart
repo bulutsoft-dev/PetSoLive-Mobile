@@ -51,4 +51,28 @@ class AdoptionRequestApiService {
       return [];
     }
   }
+
+  // Yeni sahiplenme isteği gönder
+  Future<bool> sendAdoptionRequest(AdoptionRequestDto request, String token) async {
+    final url = Uri.parse('$baseUrl/api/AdoptionRequest');
+    final headers = {
+      'Content-Type': 'application/json',
+      'x-api-key': ApiConstants.apiKey,
+      'Authorization': 'Bearer $token',
+    };
+    final body = jsonEncode(request.toJson());
+    debugPrint('--- AdoptionRequestApiService.sendAdoptionRequest ---');
+    debugPrint('URL: ' + url.toString());
+    debugPrint('Headers: ' + headers.toString());
+    debugPrint('Body: ' + body);
+    final response = await http.post(
+      url,
+      headers: headers,
+      body: body,
+    );
+    debugPrint('Response status: ${response.statusCode}');
+    debugPrint('Response body: ${response.body}');
+    debugPrint('-----------------------------------------------');
+    return response.statusCode == 200 || response.statusCode == 201;
+  }
 }
