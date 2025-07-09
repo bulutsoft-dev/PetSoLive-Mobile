@@ -76,8 +76,9 @@ class PetApiService {
       body: body,
     );
     debugPrint('[PET UPDATE] Status: ${response.statusCode}');
-    debugPrint('[PET UPDATE] Response: ${response.body}');
-    if (response.statusCode != 204) {
+    debugPrint('[PET UPDATE] Response Body: ${response.body}');
+    debugPrint('[PET UPDATE] Response Headers: ${response.headers}');
+    if (response.statusCode != 200) {
       throw Exception('Failed to update pet: \nStatus: ${response.statusCode}\nBody: ${response.body}');
     }
   }
@@ -96,7 +97,7 @@ class PetApiService {
     );
     debugPrint('[PET DELETE] Status: ${response.statusCode}');
     debugPrint('[PET DELETE] Response: ${response.body}');
-    if (response.statusCode != 204) {
+    if (response.statusCode != 200) {
       throw Exception('Failed to delete pet: \nStatus: ${response.statusCode}\nBody: ${response.body}');
     }
   }

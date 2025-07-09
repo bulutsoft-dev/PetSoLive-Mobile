@@ -227,5 +227,11 @@
   "pets.tab_all": "Tüm Hayvanlar",
   "pets.tab_owned": "Sahipli",
   "pets.tab_waiting": "Bekliyor",
-  "pets.tab_my_pets": "Hayvanlarım"
+  "pets.tab_my_pets": "Hayvanlarım",
+  "edit_pet.subtitle": "Evcil hayvan bilgilerini güncelleyin.",
+  "edit_pet.success": "Evcil hayvan başarıyla güncellendi.",
+  "edit_pet.identity": "Kimlik Bilgileri",
+  "edit_pet.physical": "Fiziksel Özellikler",
+  "edit_pet.health": "Sağlık Bilgileri",
+  "form.cancel": "İptal"
 }

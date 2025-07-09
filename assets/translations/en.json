@@ -227,5 +227,11 @@
   "pets.tab_all": "All Pets",
   "pets.tab_owned": "Owned",
   "pets.tab_waiting": "Waiting",
-  "pets.tab_my_pets": "My Pets"
+  "pets.tab_my_pets": "My Pets",
+  "edit_pet.subtitle": "Update pet information.",
+  "edit_pet.success": "Pet updated successfully.",
+  "edit_pet.identity": "Identity Information",
+  "edit_pet.physical": "Physical Features",
+  "edit_pet.health": "Health Information",
+  "form.cancel": "Cancel"
 }

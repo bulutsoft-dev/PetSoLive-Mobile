@@ -53,23 +53,30 @@ class PetDto {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'species': species,
-    'breed': breed,
-    'age': age,
-    'gender': gender,
-    'weight': weight,
-    'color': color,
-    'dateOfBirth': dateOfBirth.toIso8601String(),
-    'description': description,
-    'vaccinationStatus': vaccinationStatus,
-    'microchipId': microchipId,
-    'isNeutered': isNeutered,
-    'imageUrl': imageUrl,
-    'ownerId': ownerId,
-  };
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      'id': id,
+      'name': name,
+      'species': species,
+      'breed': breed,
+      'age': age,
+      'gender': gender,
+      'weight': weight,
+      'color': color,
+      'dateOfBirth': dateOfBirth.toUtc().toIso8601String(),
+      'description': description,
+      'vaccinationStatus': vaccinationStatus,
+      'microchipId': microchipId,
+      'isNeutered': isNeutered,
+      'imageUrl': imageUrl,
+    };
+    if (ownerId != null) {
+      map['ownerId'] = ownerId;
+    }
+    // Remove null values (for any optional fields)
+    map.removeWhere((key, value) => value == null);
+    return map;
+  }
 
   PetDto copyWith({
     int? id,

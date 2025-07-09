@@ -19,6 +19,7 @@ import '../../data/repositories/adoption_request_repository_impl.dart';
 import '../../data/providers/adoption_request_api_service.dart';
 import '../blocs/account_cubit.dart';
 import 'add_pet_screen.dart';
+import 'edit_pet_screen.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final int petId;
@@ -427,10 +428,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                                 // Düzenleme ekranına yönlendir
                                 final result = await Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (_) => AddPetScreen(
-                                      pet: pet,
-                                      isEdit: true,
-                                    ),
+                                    builder: (_) => EditPetScreen(pet: pet),
                                   ),
                                 );
                                 if (result == true) {
