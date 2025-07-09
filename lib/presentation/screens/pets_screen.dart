@@ -261,43 +261,42 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
           if (state is PetLoaded) {
             final showMyPetsTab = currentUserId != null && state.myPets.isNotEmpty;
             final tabs = <Tab>[
-              Tab(text: 'pets.tab_all'.tr()),
-              Tab(text: 'pets.tab_owned'.tr()),
-              Tab(text: 'pets.tab_waiting'.tr()),
-              if (showMyPetsTab) Tab(text: 'pets.tab_my_pets'.tr()),
+              Tab(text: 'pets.tab_all'.tr(context: context)),
+              Tab(text: 'pets.tab_owned'.tr(context: context)),
+              Tab(text: 'pets.tab_waiting'.tr(context: context)),
+              if (showMyPetsTab) Tab(text: 'pets.tab_my_pets'.tr(context: context)),
             ];
             final tabViews = <Widget>[
               // All Pets
-                    _PetListView(
-                      filter: (pet) => true,
-                      adoptedStatus: adoptedStatus,
-                      adoptedOwner: adoptedOwner,
-                      adoptionLoading: adoptionLoading,
-                      filterPets: filterPets,
-                petsCache: state.allPets,
-                currentUserId: currentUserId,
-                    ),
-              // Owned (adopted)
-                    _PetListView(
-                      filter: (pet) => adoptedStatus[pet.id] == true,
-                      adoptedStatus: adoptedStatus,
-                      adoptedOwner: adoptedOwner,
-                      adoptionLoading: adoptionLoading,
-                      filterPets: filterPets,
-                petsCache: state.allPets,
-                currentUserId: currentUserId,
-                    ),
-              // Waiting (not adopted)
-                    _PetListView(
-                      filter: (pet) => adoptedStatus[pet.id] == false,
-                      adoptedStatus: adoptedStatus,
-                      adoptedOwner: adoptedOwner,
-                      adoptionLoading: adoptionLoading,
-                      filterPets: filterPets,
+              _PetListView(
+                filter: (pet) => true,
+                adoptedStatus: adoptedStatus,
+                adoptedOwner: adoptedOwner,
+                adoptionLoading: adoptionLoading,
+                filterPets: filterPets,
                 petsCache: state.allPets,
                 currentUserId: currentUserId,
               ),
-              // My Pets (only if logged in and has pets)
+              // Owned (adopted)
+              _PetListView(
+                filter: (pet) => adoptedStatus[pet.id] == true,
+                adoptedStatus: adoptedStatus,
+                adoptedOwner: adoptedOwner,
+                adoptionLoading: adoptionLoading,
+                filterPets: filterPets,
+                petsCache: state.allPets,
+                currentUserId: currentUserId,
+              ),
+              // Waiting (not adopted)
+              _PetListView(
+                filter: (pet) => adoptedStatus[pet.id] == false,
+                adoptedStatus: adoptedStatus,
+                adoptedOwner: adoptedOwner,
+                adoptionLoading: adoptionLoading,
+                filterPets: filterPets,
+                petsCache: state.allPets,
+                currentUserId: currentUserId,
+              ),
               if (showMyPetsTab)
                 _PetListView(
                   filter: (pet) => pet.ownerId == currentUserId,
@@ -309,32 +308,22 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                   currentUserId: currentUserId,
                 ),
             ];
-            // fetchAdoptionStatuses her zaman en güncel allPets ile çağrılır
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _onPetStateChanged(state);
             });
             return DefaultTabController(
-              length: 3,
+              length: tabs.length,
               child: Scaffold(
-                body: BlocListener<PetCubit, PetState>(
-                  listener: (context, state) => _onPetStateChanged(state),
-                  child: Column(
-                    children: [
-                      TabBar(tabs: [
-                        Tab(text: 'pets.tab_all'.tr(context: context)),
-                        Tab(text: 'pets.tab_owned'.tr(context: context)),
-                        Tab(text: 'pets.tab_waiting'.tr(context: context)),
-                        if (showMyPetsTab) Tab(text: 'pets.tab_my_pets'.tr(context: context)),
-                      ]),
-                      Expanded(
-                        child: TabBarView(children: tabViews),
-                      ),
-                    ],
-                  ),
+                body: Column(
+                  children: [
+                    TabBar(tabs: tabs),
+                    Expanded(child: TabBarView(children: tabViews)),
+                  ],
                 ),
                 floatingActionButton: BlocBuilder<AccountCubit, AccountState>(
                   builder: (context, accountState) {
                     final isLoggedIn = accountState is AccountSuccess;
+                    final colorScheme = Theme.of(context).colorScheme;
                     return FloatingActionButton(
                       heroTag: 'pets_screen_fab',
                       onPressed: () async {
@@ -353,7 +342,12 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                           Navigator.of(context).pushNamed('/login');
                         }
                       },
-                      child: Icon(Icons.add),
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(Icons.add, size: 28),
                       tooltip: isLoggedIn ? 'pets.add'.tr() : 'Giriş yapmadan ekleyemezsiniz',
                     );
                   },

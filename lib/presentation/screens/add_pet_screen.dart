@@ -69,19 +69,67 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.network(
-                        _imageUrlController.text,
-                        width: 120,
-                        height: 120,
-                        fit: BoxFit.cover,
-                        errorBuilder: (c, e, s) => Container(
-                          width: 120,
-                          height: 120,
-                          color: Colors.grey[200],
-                          child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
-                        ),
+                    child: GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => Dialog(
+                            backgroundColor: Colors.transparent,
+                            child: Stack(
+                              alignment: Alignment.topRight,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.network(
+                                    _imageUrlController.text,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (c, e, s) => Container(
+                                      width: 300,
+                                      height: 300,
+                                      color: Colors.grey[200],
+                                      child: Icon(Icons.image_not_supported, size: 64, color: Colors.grey[400]),
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.close, color: Colors.white, size: 28),
+                                  onPressed: () => Navigator.of(ctx).pop(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                      child: Stack(
+                        alignment: Alignment.topRight,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.network(
+                              _imageUrlController.text,
+                              width: 120,
+                              height: 120,
+                              fit: BoxFit.cover,
+                              errorBuilder: (c, e, s) => Container(
+                                width: 120,
+                                height: 120,
+                                color: Colors.grey[200],
+                                child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(Icons.zoom_in, color: Colors.white, size: 22),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
