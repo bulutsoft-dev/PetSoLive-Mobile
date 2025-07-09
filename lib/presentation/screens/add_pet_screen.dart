@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../blocs/pet_cubit.dart';
 import '../../data/models/pet_dto.dart';
 import '../../data/local/session_manager.dart';
+import '../partials/base_app_bar.dart';
 
 class AddPetScreen extends StatefulWidget {
   final PetDto? pet;
@@ -45,9 +46,11 @@ class _AddPetScreenState extends State<AddPetScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text('pets.add'.tr())),
+      appBar: BaseAppBar(
+        title: 'pets.add'.tr(),
+        showLogo: false,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -57,13 +60,13 @@ class _AddPetScreenState extends State<AddPetScreen> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.add, size: 36, color: colorScheme.primary),
+                  Icon(Icons.add, size: 36, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(width: 10),
                   Text('pets.add'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: 4),
-              Text('pets.add_subtitle'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+              Text('pets.add_subtitle'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
               const SizedBox(height: 18),
               if (_imageUrlController.text.isNotEmpty)
                 Center(
@@ -91,11 +94,22 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                     ),
                                   ),
                                 ),
-                                IconButton(
-                                  icon: Icon(Icons.close, color: Colors.white, size: 28),
-                                  onPressed: () {
-                                    Future.microtask(() => Navigator.of(ctx).pop());
-                                  },
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Future.microtask(() => Navigator.of(ctx).pop());
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.black54,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      padding: const EdgeInsets.all(4),
+                                      child: Icon(Icons.close, color: Colors.white, size: 28),
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),

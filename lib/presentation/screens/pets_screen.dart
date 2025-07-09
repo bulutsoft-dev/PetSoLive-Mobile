@@ -312,6 +312,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
               _onPetStateChanged(state);
             });
             return DefaultTabController(
+              key: ValueKey(tabs.length),
               length: tabs.length,
               child: Scaffold(
                 body: Column(
@@ -328,7 +329,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                       heroTag: 'pets_screen_fab',
                       onPressed: () async {
                         if (isLoggedIn) {
-                          await Navigator.of(context).push(
+                          final result = await Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => BlocProvider(
                                 create: (_) => PetCubit(sl()),
@@ -336,8 +337,22 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                               ),
                             ),
                           );
-                          // Kayıt sonrası otomatik reload
-                          if (mounted) context.read<PetCubit>().getAll();
+                          // Kayıt sonrası otomatik reload ve tab güncellemesi
+                          if (mounted) {
+                            // getAllWithOwners ile myPets güncellenir
+                            final accountState = context.read<AccountCubit>().state;
+                            int? userId;
+                            if (accountState is AccountSuccess) {
+                              userId = accountState.response.user.id;
+                            }
+                            final petCubit = context.read<PetCubit>();
+                            final petOwnerApiService = sl<PetOwnerApiService>();
+                            await petCubit.getAllWithOwners(
+                              userId: userId,
+                              petOwnerApiService: petOwnerApiService,
+                            );
+                            setState(() {});
+                          }
                         } else {
                           Navigator.of(context).pushNamed('/login');
                         }
