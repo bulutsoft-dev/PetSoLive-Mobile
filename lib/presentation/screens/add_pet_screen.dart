@@ -93,7 +93,9 @@ class _AddPetScreenState extends State<AddPetScreen> {
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.close, color: Colors.white, size: 28),
-                                  onPressed: () => Navigator.of(ctx).pop(),
+                                  onPressed: () {
+                                    Future.microtask(() => Navigator.of(ctx).pop());
+                                  },
                                 ),
                               ],
                             ),
