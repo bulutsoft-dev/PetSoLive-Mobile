@@ -53,18 +53,18 @@ class _AddPetScreenState extends State<AddPetScreen> {
         child: Form(
           key: _formKey,
           child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
             children: [
-              Column(
+              Row(
                 children: [
-                  Icon(Icons.pets, size: 48, color: colorScheme.primary),
-                  const SizedBox(height: 8),
-                  Text('Hayvan Ekle', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  Text('pets.add_subtitle'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+                  Icon(Icons.add, size: 36, color: colorScheme.primary),
+                  const SizedBox(width: 10),
+                  Text('pets.add'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                 ],
               ),
-              const SizedBox(height: 24),
-              // Görsel önizleme
+              const SizedBox(height: 4),
+              Text('pets.add_subtitle'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+              const SizedBox(height: 18),
               if (_imageUrlController.text.isNotEmpty)
                 Center(
                   child: Padding(
@@ -86,7 +86,15 @@ class _AddPetScreenState extends State<AddPetScreen> {
                     ),
                   ),
                 ),
-              // Temel bilgiler
+              // Kimlik Bilgileri
+              Row(
+                children: [
+                  Icon(Icons.badge, color: Colors.indigo, size: 20),
+                  const SizedBox(width: 8),
+                  Text('edit_pet.identity'.tr(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
+                ],
+              ),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
@@ -98,15 +106,10 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      children: [
-                        // Tür alanı sadece TextField olacak
-                        TextFormField(
-                              controller: _speciesController,
-                          decoration: InputDecoration(labelText: 'pets.species'.tr()),
-                          validator: (v) => v == null || v.isEmpty ? 'form.required'.tr() : null,
-                          ),
-                      ],
+                    child: TextFormField(
+                      controller: _speciesController,
+                      decoration: InputDecoration(labelText: 'pets.species'.tr()),
+                      validator: (v) => v == null || v.isEmpty ? 'form.required'.tr() : null,
                     ),
                   ),
                 ],
@@ -124,7 +127,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: _selectedGender,
-                      items: _genderOptions.map((g) => DropdownMenuItem(value: g, child: Text('pets.gender_$g'.tr()))).toList(),
+                      items: _genderOptions.map((g) => DropdownMenuItem(value: g, child: Text('pets.gender_' + g).tr())).toList(),
                       onChanged: (v) => setState(() => _selectedGender = v),
                       decoration: InputDecoration(labelText: 'pets.gender'.tr()),
                       validator: (v) => (v == null || v.isEmpty) ? 'form.required'.tr() : null,
@@ -132,7 +135,16 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 18),
+              // Fiziksel Özellikler
+              Row(
+                children: [
+                  Icon(Icons.pets, color: Colors.teal, size: 20),
+                  const SizedBox(width: 8),
+                  Text('edit_pet.physical'.tr(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal)),
+                ],
+              ),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
@@ -184,9 +196,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                               ? _selectedDate!.toIso8601String().split('T').first
                               : 'form.select'.tr(),
                           style: TextStyle(
-                            color: _selectedDate != null
-                                ? Colors.black
-                                : Theme.of(context).hintColor,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
                           ),
                         ),
                       ),
@@ -194,8 +204,16 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              // Sağlık ve açıklama
+              const SizedBox(height: 18),
+              // Sağlık Bilgileri
+              Row(
+                children: [
+                  Icon(Icons.health_and_safety, color: Colors.redAccent, size: 20),
+                  const SizedBox(width: 8),
+                  Text('edit_pet.health'.tr(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent)),
+                ],
+              ),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
@@ -215,11 +233,15 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _microchipIdController,
-                decoration: InputDecoration(labelText: 'pets.microchip_id'.tr()),
+              // Açıklama
+              Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                  const SizedBox(width: 8),
+                  Text('pets.description'.tr(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: _descriptionController,
                 decoration: InputDecoration(labelText: 'pets.description'.tr()),
@@ -227,58 +249,69 @@ class _AddPetScreenState extends State<AddPetScreen> {
               ),
               const SizedBox(height: 12),
               TextFormField(
+                controller: _microchipIdController,
+                decoration: InputDecoration(labelText: 'pets.microchip_id'.tr()),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
                 controller: _imageUrlController,
                 decoration: InputDecoration(labelText: 'pets.image_url'.tr()),
                 onChanged: (_) => setState(() {}),
               ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                icon: Icon(Icons.save),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: _isLoading ? null : () async {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    setState(() => _isLoading = true);
-                    final pet = PetDto(
-                      id: 0,
-                      name: _nameController.text,
-                      species: _speciesController.text,
-                      breed: _breedController.text,
-                      age: int.tryParse(_ageController.text) ?? 0,
-                      gender: _selectedGender ?? '',
-                      weight: double.tryParse(_weightController.text) ?? 0,
-                      color: _colorController.text,
-                      dateOfBirth: _selectedDate?.toUtc() ?? DateTime.now().toUtc(),
-                      description: _descriptionController.text,
-                      vaccinationStatus: _vaccinationStatusController.text,
-                      microchipId: _microchipIdController.text,
-                      isNeutered: _isNeutered,
-                      imageUrl: _imageUrlController.text,
-                    );
-                    final sessionManager = SessionManager();
-                    final token = await sessionManager.getToken() ?? '';
-                    try {
-                      await context.read<PetCubit>().create(pet, token);
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('pets.add_success'.tr())),
-                      );
-                      await Future.delayed(const Duration(milliseconds: 800));
-                      Navigator.of(context).pop();
-                    } catch (e) {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('form.error'.tr(args: [e.toString()]))),
-                      );
-                    } finally {
-                      if (mounted) setState(() => _isLoading = false);
-                    }
-                  }
-                },
-                label: _isLoading ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text('form.save'.tr()),
+              const SizedBox(height: 28),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: Icon(Icons.save),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: _isLoading ? null : () async {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          setState(() => _isLoading = true);
+                          final pet = PetDto(
+                            id: 0,
+                            name: _nameController.text,
+                            species: _speciesController.text,
+                            breed: _breedController.text,
+                            age: int.tryParse(_ageController.text) ?? 0,
+                            gender: _selectedGender ?? '',
+                            weight: double.tryParse(_weightController.text) ?? 0,
+                            color: _colorController.text,
+                            dateOfBirth: _selectedDate?.toUtc() ?? DateTime.now().toUtc(),
+                            description: _descriptionController.text,
+                            vaccinationStatus: _vaccinationStatusController.text,
+                            microchipId: _microchipIdController.text,
+                            isNeutered: _isNeutered,
+                            imageUrl: _imageUrlController.text,
+                          );
+                          final sessionManager = SessionManager();
+                          final token = await sessionManager.getToken() ?? '';
+                          try {
+                            await context.read<PetCubit>().create(pet, token);
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('pets.add_success'.tr())),
+                            );
+                            await Future.delayed(const Duration(milliseconds: 800));
+                            Navigator.of(context).pop();
+                          } catch (e) {
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('form.error'.tr(args: [e.toString()]))),
+                            );
+                          } finally {
+                            if (mounted) setState(() => _isLoading = false);
+                          }
+                        }
+                      },
+                      label: _isLoading ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text('form.save'.tr()),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

@@ -314,20 +314,49 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
               _onPetStateChanged(state);
             });
             return DefaultTabController(
-              length: tabs.length,
-              child: Builder(
-                builder: (context) => Column(
-                  children: [
-                    TabBar(tabs: [
-                      Tab(text: 'pets.tab_all'.tr(context: context)),
-                      Tab(text: 'pets.tab_owned'.tr(context: context)),
-                      Tab(text: 'pets.tab_waiting'.tr(context: context)),
-                      if (showMyPetsTab) Tab(text: 'pets.tab_my_pets'.tr(context: context)),
-                    ]),
-                    Expanded(
-                      child: TabBarView(children: tabViews),
-                    ),
-                  ],
+              length: 3,
+              child: Scaffold(
+                body: BlocListener<PetCubit, PetState>(
+                  listener: (context, state) => _onPetStateChanged(state),
+                  child: Column(
+                    children: [
+                      TabBar(tabs: [
+                        Tab(text: 'pets.tab_all'.tr(context: context)),
+                        Tab(text: 'pets.tab_owned'.tr(context: context)),
+                        Tab(text: 'pets.tab_waiting'.tr(context: context)),
+                        if (showMyPetsTab) Tab(text: 'pets.tab_my_pets'.tr(context: context)),
+                      ]),
+                      Expanded(
+                        child: TabBarView(children: tabViews),
+                      ),
+                    ],
+                  ),
+                ),
+                floatingActionButton: BlocBuilder<AccountCubit, AccountState>(
+                  builder: (context, accountState) {
+                    final isLoggedIn = accountState is AccountSuccess;
+                    return FloatingActionButton(
+                      heroTag: 'pets_screen_fab',
+                      onPressed: () async {
+                        if (isLoggedIn) {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => BlocProvider(
+                                create: (_) => PetCubit(sl()),
+                                child: AddPetScreen(),
+                              ),
+                            ),
+                          );
+                          // Kayıt sonrası otomatik reload
+                          if (mounted) context.read<PetCubit>().getAll();
+                        } else {
+                          Navigator.of(context).pushNamed('/login');
+                        }
+                      },
+                      child: Icon(Icons.add),
+                      tooltip: isLoggedIn ? 'pets.add'.tr() : 'Giriş yapmadan ekleyemezsiniz',
+                    );
+                  },
                 ),
               ),
             );
