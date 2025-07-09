@@ -240,5 +240,10 @@
     "title": "Delete Confirmation",
     "description": "This action cannot be undone. Are you sure you want to delete?",
     "confirm": "Delete"
-  }
+  },
+  "pet_detail.already_adopted": "This pet has already been adopted.",
+  "pet_detail.login_to_adopt": "Login to adopt",
+  "pet_detail.already_requested": "You have already requested to adopt this pet.",
+  "pet_detail.already_adopted_action_blocked": "This pet has already been adopted",
+  "pet_detail.already_adopted_action_blocked_desc": "No further actions can be performed on this pet."
 }

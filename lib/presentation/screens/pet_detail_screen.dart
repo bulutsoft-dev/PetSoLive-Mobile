@@ -146,6 +146,9 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
             (pet.ownerId == currentUserId) || (owner != null && owner.userId == currentUserId)
           );
           final bool isAdopted = adoption != null;
+          // Eğer adoption yoksa ama adoptionRequests arasında status 'Approved' olan varsa, isAdopted true gibi davran
+          final bool isAdoptedByRequest = adoptionRequests.any((r) => r.status?.toLowerCase() == 'approved');
+          final bool showAdoptedUI = isAdopted || isAdoptedByRequest;
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
@@ -410,7 +413,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
               Builder(
                 builder: (context) {
                   final isOwner = isMine;
-                  if (!isAdopted && isOwner) {
+                  if (!showAdoptedUI && isOwner) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                       child: Row(
@@ -494,7 +497,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                                     SnackBar(content: Text('pet_detail.delete_success'.tr())),
                                   );
                                   await Future.delayed(const Duration(milliseconds: 500));
-                                  Navigator.of(context).pop(); // Detay ekranından çık
+                                  Future.microtask(() => Navigator.of(context).pop()); // Detay ekranından çık
                                 }
                               },
                             ),
@@ -504,20 +507,74 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                     );
                   }
                   // Sadece owner olmayanlar ve pet adopted değilse sahiplen butonu
-                  if (!isAdopted && !isOwner) {
-                    final hasRequest = currentUserId != null && adoptionRequests.any((r) => r.userId == currentUserId);
-                  if (hasRequest) {
-                    return Text('Daha önce bu pet için başvuru yaptınız.');
+                  if (showAdoptedUI) {
+                    final colorScheme = Theme.of(context).colorScheme;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: null,
+                            icon: Icon(Icons.check_circle_outline, color: colorScheme.onSurfaceVariant),
+                            label: Text('pet_detail.already_adopted_action_blocked').tr(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: colorScheme.surfaceVariant,
+                              foregroundColor: colorScheme.onSurfaceVariant,
+                              disabledBackgroundColor: colorScheme.surfaceVariant,
+                              disabledForegroundColor: colorScheme.onSurfaceVariant,
+                              minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'pet_detail.already_adopted_action_blocked_desc'.tr(),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    );
                   }
-                  return ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.favorite_border),
-                    label: Text('pet_detail.adopt').tr(),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  );
+                  if (!showAdoptedUI && !isOwner) {
+                    final hasRequest = currentUserId != null && adoptionRequests.any((r) => r.userId == currentUserId);
+                    if (currentUserId == null) {
+                      // Kullanıcı login değilse
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Future.microtask(() => Navigator.of(context).pushNamed('/login'));
+                          },
+                          icon: const Icon(Icons.login),
+                          label: Text('pet_detail.login_to_adopt').tr(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      );
+                    }
+                    // Daha önce başvuru yaptıysa bilgi göster
+                    if (hasRequest) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Text('pet_detail.already_requested'.tr()),
+                      );
+                    }
+                    // Normal sahiplen butonu
+                    return ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.favorite_border),
+                      label: Text('pet_detail.adopt').tr(),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
                   }
                   // Diğer durumlarda hiçbir buton gösterme
                   return const SizedBox.shrink();

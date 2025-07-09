@@ -239,5 +239,11 @@
     "title": "Silme Onayı",
     "description": "Bu işlem geri alınamaz. Silmek istediğinize emin misiniz?",
     "confirm": "Sil"
-  }
+  },
+  "pet_detail.delete_success": "Pet başarıyla silindi.",
+  "pet_detail.already_adopted": "Bu hayvan zaten sahiplendirildi.",
+  "pet_detail.login_to_adopt": "Sahiplenmek için giriş yap",
+  "pet_detail.already_requested": "Bu hayvan için zaten başvuru yaptınız.",
+  "pet_detail.already_adopted_action_blocked": "Bu hayvan zaten sahiplendirildi",
+  "pet_detail.already_adopted_action_blocked_desc": "Bu hayvan üzerinde başka bir işlem yapılamaz."
 }
