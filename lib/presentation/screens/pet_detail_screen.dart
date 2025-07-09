@@ -501,7 +501,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                                     SnackBar(content: Text('pet_detail.delete_success'.tr())),
                                   );
                                   await Future.delayed(const Duration(milliseconds: 500));
-                                  Future.microtask(() => Navigator.of(context).pop()); // Detay ekranından çık
+                                  Future.microtask(() => Navigator.of(context).pop(true)); // Detay ekranından çıkarken true dön
                                 }
                               },
                             ),

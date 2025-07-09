@@ -286,6 +286,15 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                 filterPets: filterPets,
                 petsCache: state.allPets,
                 currentUserId: currentUserId,
+                onRefresh: () async {
+                  final petCubit = context.read<PetCubit>();
+                  final petOwnerApiService = sl<PetOwnerApiService>();
+                  await petCubit.getAllWithOwners(
+                    userId: currentUserId,
+                    petOwnerApiService: petOwnerApiService,
+                  );
+                  setState(() {});
+                },
               ),
               // Owned (adopted)
               _PetListView(
@@ -296,6 +305,15 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                 filterPets: filterPets,
                 petsCache: state.allPets,
                 currentUserId: currentUserId,
+                onRefresh: () async {
+                  final petCubit = context.read<PetCubit>();
+                  final petOwnerApiService = sl<PetOwnerApiService>();
+                  await petCubit.getAllWithOwners(
+                    userId: currentUserId,
+                    petOwnerApiService: petOwnerApiService,
+                  );
+                  setState(() {});
+                },
               ),
               // Waiting (not adopted)
               _PetListView(
@@ -306,6 +324,15 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                 filterPets: filterPets,
                 petsCache: state.allPets,
                 currentUserId: currentUserId,
+                onRefresh: () async {
+                  final petCubit = context.read<PetCubit>();
+                  final petOwnerApiService = sl<PetOwnerApiService>();
+                  await petCubit.getAllWithOwners(
+                    userId: currentUserId,
+                    petOwnerApiService: petOwnerApiService,
+                  );
+                  setState(() {});
+                },
               ),
               if (showMyPetsTab)
                 _PetListView(
@@ -316,6 +343,15 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                   filterPets: filterPets,
                   petsCache: state.myPets,
                   currentUserId: currentUserId,
+                  onRefresh: () async {
+                    final petCubit = context.read<PetCubit>();
+                    final petOwnerApiService = sl<PetOwnerApiService>();
+                    await petCubit.getAllWithOwners(
+                      userId: currentUserId,
+                      petOwnerApiService: petOwnerApiService,
+                    );
+                    setState(() {});
+                  },
                 ),
             ];
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -420,63 +456,75 @@ class _PetListView extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           } else if (state is PetError) {
             return Center(child: Text('pets.error'.tr() + '\n' + state.error));
-          } else if (state is PetLoaded || state is PetFiltered) {
-            final pets = state is PetLoaded ? state.allPets : (state as PetFiltered).pets;
-            if (pets.isEmpty) {
-              return ListView(
-                children: [
-                  SizedBox(height: 200),
-                  Center(child: Text('pets.empty'.tr())),
-                ],
-              );
-            }
-            if (adoptedStatus.length != pets.length || adoptionLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            final filteredPets = filterPets(pets).where(filter).toList();
-            if (filteredPets.isEmpty) {
-              return ListView(
-                children: [
-                  SizedBox(height: 200),
-                  Center(child: Text('pets.empty'.tr())),
-                ],
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              itemCount: filteredPets.length,
-              itemBuilder: (context, index) {
-                final pet = filteredPets[index];
-                final isAdopted = adoptedStatus[pet.id] ?? false;
-                final ownerName = adoptedOwner[pet.id];
-                final isMine = currentUserId != null && pet.ownerId == currentUserId;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: PetCard(
-                    name: pet.name,
-                    species: pet.species,
-                    imageUrl: pet.imageUrl ?? '',
-                    description: pet.description ?? '',
-                    age: pet.age,
-                    gender: pet.gender,
-                    color: pet.color,
-                    vaccinationStatus: pet.vaccinationStatus,
-                    isAdopted: isAdopted,
-                    ownerName: ownerName,
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
+          }
+          final pets = state is PetLoaded ? state.allPets : (state as PetFiltered).pets;
+          if (pets.isEmpty) {
+            return ListView(
+              children: [
+                SizedBox(height: 200),
+                Center(child: Text('pets.empty'.tr())),
+              ],
+            );
+          }
+          if (adoptedStatus.length != pets.length || adoptionLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final filteredPets = filterPets(pets).where(filter).toList();
+          if (filteredPets.isEmpty) {
+            return ListView(
+              children: [
+                SizedBox(height: 200),
+                Center(child: Text('pets.empty'.tr())),
+              ],
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            itemCount: filteredPets.length,
+            itemBuilder: (context, index) {
+              final pet = filteredPets[index];
+              final isAdopted = adoptedStatus[pet.id] ?? false;
+              final ownerName = adoptedOwner[pet.id];
+              final isMine = currentUserId != null && pet.ownerId == currentUserId;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: PetCard(
+                  name: pet.name,
+                  species: pet.species,
+                  imageUrl: pet.imageUrl ?? '',
+                  description: pet.description ?? '',
+                  age: pet.age,
+                  gender: pet.gender,
+                  color: pet.color,
+                  vaccinationStatus: pet.vaccinationStatus,
+                  isAdopted: isAdopted,
+                  ownerName: ownerName,
+                  onTap: () async {
+                    final result = await Navigator.of(context).push(
+                      MaterialPageRoute(
                         builder: (_) => PetDetailScreen(
                           petId: pet.id,
                         ),
-                      ));
-                    },
-                    isMine: isMine,
-                  ),
-                );
-              },
-            );
-          }
-          return const SizedBox.shrink();
+                      ),
+                    );
+                    if (result == true) {
+                      // Detaydan silme veya düzenleme sonrası otomatik yenile
+                      final petCubit = context.read<PetCubit>();
+                      final petOwnerApiService = sl<PetOwnerApiService>();
+                      await petCubit.getAllWithOwners(
+                        userId: currentUserId,
+                        petOwnerApiService: petOwnerApiService,
+                      );
+                      if (context.mounted) {
+                        (context as Element).markNeedsBuild();
+                      }
+                    }
+                  },
+                  isMine: isMine,
+                ),
+              );
+            },
+          );
         },
       ),
     );
