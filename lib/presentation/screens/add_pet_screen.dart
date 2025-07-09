@@ -6,7 +6,10 @@ import '../../data/models/pet_dto.dart';
 import '../../data/local/session_manager.dart';
 
 class AddPetScreen extends StatefulWidget {
-  const AddPetScreen({Key? key}) : super(key: key);
+  final PetDto? pet;
+  final bool isEdit;
+
+  const AddPetScreen({Key? key, this.pet, this.isEdit = false}) : super(key: key);
 
   @override
   State<AddPetScreen> createState() => _AddPetScreenState();
