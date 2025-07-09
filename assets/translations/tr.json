@@ -110,6 +110,8 @@
   "pet_detail.waiting_explanation": "Bu hayvan sahiplendirilmeyi bekliyor.",
   "pet_detail.current_owner": "Güncel Sahip",
   "pet_detail.username": "Kullanıcı Adı",
+  "pet_detail.edit": "Düzenle",
+  "pet_detail.delete": "Sil",
   "ownership_card": {
     "app_name": "PETSOLIVE",
     "card_title": "KULLANICI KARTI",

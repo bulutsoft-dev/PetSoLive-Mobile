@@ -416,7 +416,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                           Expanded(
                             child: ElevatedButton.icon(
                               icon: Icon(Icons.edit),
-                              label: Text('Düzenle'),
+                              label: Text('pet_detail.edit').tr(),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
@@ -446,7 +446,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                           Expanded(
                             child: ElevatedButton.icon(
                               icon: Icon(Icons.delete),
-                              label: Text('Sil'),
+                              label: Text('pet_detail.delete').tr(),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
                                 foregroundColor: Colors.white,

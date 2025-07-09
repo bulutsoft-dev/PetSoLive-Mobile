@@ -110,6 +110,8 @@
   "pet_detail.waiting_explanation": "This pet is waiting to be adopted.",
   "pet_detail.current_owner": "Current Owner",
   "pet_detail.username": "Username",
+  "pet_detail.edit": "Edit",
+  "pet_detail.delete": "Delete",
   "ownership_card": {
     "app_name": "PETSOLIVE",
     "card_title": "USER CARD",
