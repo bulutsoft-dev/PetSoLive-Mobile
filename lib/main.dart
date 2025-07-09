@@ -17,6 +17,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'injection_container.dart';
 import 'routes/app_router.dart';
 import 'presentation/blocs/account_cubit.dart';
+import 'presentation/screens/pet_detail_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,6 +57,7 @@ class PetSoLiveApp extends StatelessWidget {
           supportedLocales: context.supportedLocales,
           locale: context.locale,
           onGenerateRoute: AppRouter.generateRoute,
+          navigatorObservers: [routeObserver],
         );
       },
     );

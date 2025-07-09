@@ -22,6 +22,10 @@ import 'add_pet_screen.dart';
 import 'edit_pet_screen.dart';
 import 'package:petsolive/presentation/screens/delete_confirmation_screen.dart';
 import 'adoption_request_form_screen.dart';
+import 'package:flutter/widgets.dart';
+
+// RouteObserver global tanımı (main.dart'ta da olması gerekir)
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
 
 class PetDetailScreen extends StatefulWidget {
   final int petId;
@@ -31,7 +35,7 @@ class PetDetailScreen extends StatefulWidget {
   State<PetDetailScreen> createState() => _PetDetailScreenState();
 }
 
-class _PetDetailScreenState extends State<PetDetailScreen> {
+class _PetDetailScreenState extends State<PetDetailScreen> with RouteAware {
   late Future<_PetDetailBundle> _bundleFuture;
   final GlobalKey _topKey = GlobalKey();
 
@@ -39,6 +43,34 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
   void initState() {
     super.initState();
     _bundleFuture = _fetchAll(widget.petId);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPush() {
+    // Sayfa ilk açıldığında
+    setState(() {
+      _bundleFuture = _fetchAll(widget.petId);
+    });
+  }
+
+  @override
+  void didPopNext() {
+    // Başka bir sayfadan geri dönülünce
+    setState(() {
+      _bundleFuture = _fetchAll(widget.petId);
+    });
   }
 
   Future<_PetDetailBundle> _fetchAll(int petId) async {
@@ -414,6 +446,11 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                 theme: theme,
                 isOwner: isMine,
                 petId: pet.id,
+                onDataChanged: () {
+                  setState(() {
+                    _bundleFuture = _fetchAll(widget.petId);
+                  });
+                },
               ),
               // Butonlar: Sadece pet owner ve pet adopted değilse edit/sil, diğerleri için (adopt edilmediyse) sahiplen
               Builder(
@@ -709,7 +746,8 @@ class _AdoptionRequestsTabSection extends StatefulWidget {
   final ThemeData theme;
   final bool isOwner;
   final int petId;
-  const _AdoptionRequestsTabSection({required this.requests, required this.isDark, required this.theme, required this.isOwner, required this.petId});
+  final VoidCallback? onDataChanged;
+  const _AdoptionRequestsTabSection({required this.requests, required this.isDark, required this.theme, required this.isOwner, required this.petId, this.onDataChanged});
   @override
   State<_AdoptionRequestsTabSection> createState() => _AdoptionRequestsTabSectionState();
 }
@@ -976,7 +1014,16 @@ class _AdoptionRequestsTabSectionState extends State<_AdoptionRequestsTabSection
                                       );
                                     }
                                   }
-                                  if (success && mounted) setState(() {});
+                                  if (success && mounted) {
+                                    setState(() {});
+                                    if (widget.onDataChanged != null) widget.onDataChanged!();
+                                    await Future.delayed(const Duration(milliseconds: 500));
+                                    if (context.mounted) {
+                                      Navigator.of(context).pop(true); // Detay ekranı için result:true
+                                      await Future.delayed(const Duration(milliseconds: 100));
+                                      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                                    }
+                                  }
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text('İşlem başarısız: $e')),

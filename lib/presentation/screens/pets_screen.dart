@@ -295,6 +295,16 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                   );
                   setState(() {});
                 },
+                onAfterDetailReturn: () async {
+                  final petCubit = context.read<PetCubit>();
+                  final petOwnerApiService = sl<PetOwnerApiService>();
+                  await petCubit.getAllWithOwners(
+                    userId: currentUserId,
+                    petOwnerApiService: petOwnerApiService,
+                  );
+                  await fetchAdoptionStatuses(petsCache);
+                  if (mounted) setState(() {});
+                },
               ),
               // Owned (adopted)
               _PetListView(
@@ -313,6 +323,16 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                     petOwnerApiService: petOwnerApiService,
                   );
                   setState(() {});
+                },
+                onAfterDetailReturn: () async {
+                  final petCubit = context.read<PetCubit>();
+                  final petOwnerApiService = sl<PetOwnerApiService>();
+                  await petCubit.getAllWithOwners(
+                    userId: currentUserId,
+                    petOwnerApiService: petOwnerApiService,
+                  );
+                  await fetchAdoptionStatuses(petsCache);
+                  if (mounted) setState(() {});
                 },
               ),
               // Waiting (not adopted)
@@ -333,6 +353,16 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                   );
                   setState(() {});
                 },
+                onAfterDetailReturn: () async {
+                  final petCubit = context.read<PetCubit>();
+                  final petOwnerApiService = sl<PetOwnerApiService>();
+                  await petCubit.getAllWithOwners(
+                    userId: currentUserId,
+                    petOwnerApiService: petOwnerApiService,
+                  );
+                  await fetchAdoptionStatuses(petsCache);
+                  if (mounted) setState(() {});
+                },
               ),
               if (showMyPetsTab)
                 _PetListView(
@@ -351,6 +381,16 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                       petOwnerApiService: petOwnerApiService,
                     );
                     setState(() {});
+                  },
+                  onAfterDetailReturn: () async {
+                    final petCubit = context.read<PetCubit>();
+                    final petOwnerApiService = sl<PetOwnerApiService>();
+                    await petCubit.getAllWithOwners(
+                      userId: currentUserId,
+                      petOwnerApiService: petOwnerApiService,
+                    );
+                    await fetchAdoptionStatuses(petsCache);
+                    if (mounted) setState(() {});
                   },
                 ),
             ];
@@ -434,6 +474,7 @@ class _PetListView extends StatelessWidget {
   final List Function(List) filterPets;
   final Future<void> Function()? onRefresh;
   final int? currentUserId;
+  final Future<void> Function()? onAfterDetailReturn;
 
   const _PetListView({
     required this.filter,
@@ -444,6 +485,7 @@ class _PetListView extends StatelessWidget {
     required this.petsCache,
     this.onRefresh,
     this.currentUserId,
+    this.onAfterDetailReturn,
   });
 
   @override
@@ -508,15 +550,8 @@ class _PetListView extends StatelessWidget {
                       ),
                     );
                     if (result == true) {
-                      // Detaydan silme veya düzenleme sonrası otomatik yenile
-                      final petCubit = context.read<PetCubit>();
-                      final petOwnerApiService = sl<PetOwnerApiService>();
-                      await petCubit.getAllWithOwners(
-                        userId: currentUserId,
-                        petOwnerApiService: petOwnerApiService,
-                      );
-                      if (context.mounted) {
-                        (context as Element).markNeedsBuild();
+                      if (onAfterDetailReturn != null) {
+                        await onAfterDetailReturn!();
                       }
                     }
                   },

@@ -49,10 +49,6 @@ class AdoptionApiService {
   }
 
   Future<AdoptionDto?> fetchAdoptionByPetId(int petId) async {
-    if (_cache.containsKey(petId)) {
-      debugPrint('AdoptionApiService.fetchAdoptionByPetId: cache hit for petId=$petId');
-      return _cache[petId]!;
-    }
     final response = await http.get(
       Uri.parse('$baseUrl/api/Adoption/pet/$petId'),
       headers: {
@@ -62,7 +58,6 @@ class AdoptionApiService {
     debugPrint('AdoptionApiService.fetchAdoptionByPetId: petId=$petId statusCode=${response.statusCode} body=${response.body}');
     if (response.statusCode == 200) {
       final adoption = response.body.isNotEmpty ? AdoptionDto.fromJson(jsonDecode(response.body)) : null;
-      _cache[petId] = adoption;
       return adoption;
     } else {
       debugPrint('AdoptionApiService.fetchAdoptionByPetId: ERROR statusCode=${response.statusCode} body=${response.body}');

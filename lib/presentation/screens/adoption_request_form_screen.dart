@@ -80,7 +80,12 @@ class _AdoptionRequestFormScreenState extends State<AdoptionRequestFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sahiplenme isteğiniz gönderildi!')),
       );
-      Navigator.of(context).pop(true);
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (context.mounted) {
+        Navigator.of(context).pop(true); // Detay ekranı için result:true
+        await Future.delayed(const Duration(milliseconds: 100));
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sahiplenme isteği gönderilemedi!')),

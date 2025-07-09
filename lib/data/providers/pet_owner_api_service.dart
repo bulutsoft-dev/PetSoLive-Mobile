@@ -24,10 +24,6 @@ class PetOwnerApiService {
   }
 
   Future<PetOwnerDto?> fetchPetOwner(int petId) async {
-    if (_cache.containsKey(petId)) {
-      debugPrint('PetOwnerApiService.fetchPetOwner: cache hit for petId=$petId');
-      return _cache[petId]!;
-    }
     final response = await http.get(
       Uri.parse('$baseUrl/api/PetOwner/pet/$petId'),
       headers: {
@@ -37,7 +33,6 @@ class PetOwnerApiService {
     debugPrint('PetOwnerApiService.fetchPetOwner: petId=$petId statusCode=${response.statusCode} body=${response.body}');
     if (response.statusCode == 200) {
       final owner = response.body.isNotEmpty ? PetOwnerDto.fromJson(jsonDecode(response.body)) : null;
-      _cache[petId] = owner;
       return owner;
     } else {
       debugPrint('PetOwnerApiService.fetchPetOwner: ERROR statusCode=${response.statusCode} body=${response.body}');

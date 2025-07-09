@@ -26,11 +26,6 @@ class AdoptionRequestApiService {
   }
 
   Future<List<AdoptionRequestDto>> getAllByPetId(int petId) async {
-    // Önce cache'e bak
-    if (_cache.containsKey(petId)) {
-      debugPrint('AdoptionRequestApiService.getAllByPetId: cache hit for petId=$petId');
-      return _cache[petId]!;
-    }
     final response = await http.get(
       Uri.parse('$baseUrl/api/AdoptionRequest/pet/$petId'),
       headers: {
@@ -44,7 +39,6 @@ class AdoptionRequestApiService {
       for (final req in requests) {
         debugPrint('AdoptionRequest: id=${req.id}, petId=${req.petId}, userId=${req.userId}, userName=${req.userName}, status=${req.status}, date=${req.requestDate}, message=${req.message}');
       }
-      _cache[petId] = requests; // Cache'e yaz
       return requests;
     } else {
       debugPrint('AdoptionRequestApiService.getAllByPetId: ERROR statusCode=${response.statusCode} body=${response.body}');
