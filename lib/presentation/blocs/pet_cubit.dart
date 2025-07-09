@@ -1,13 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/pet_dto.dart';
 import '../../domain/repositories/pet_repository.dart';
+import '../../data/providers/pet_owner_api_service.dart';
 
 abstract class PetState {}
 class PetInitial extends PetState {}
 class PetLoading extends PetState {}
 class PetLoaded extends PetState {
-  final List<PetDto> pets;
-  PetLoaded(this.pets);
+  final List<PetDto> allPets;
+  final List<PetDto> myPets;
+  PetLoaded({required this.allPets, required this.myPets});
 }
 class PetDetailLoaded extends PetState {
   final PetDto? pet;
@@ -25,6 +27,8 @@ class PetFiltered extends PetState {
 class PetCubit extends Cubit<PetState> {
   final PetRepository repository;
   List<PetDto> _allPets = [];
+  PetOwnerApiService? petOwnerApiService;
+  int? currentUserId;
   PetCubit(this.repository) : super(PetInitial());
 
   @override
@@ -33,7 +37,22 @@ class PetCubit extends Cubit<PetState> {
     try {
       final list = await repository.getAll();
       _allPets = list;
-      if (!isClosed) emit(PetLoaded(list));
+      if (!isClosed) emit(PetLoaded(allPets: list, myPets: []));
+    } catch (e) {
+      if (!isClosed) emit(PetError(e.toString()));
+    }
+  }
+
+  Future<void> getAllWithOwners({required int? userId, required PetOwnerApiService petOwnerApiService}) async {
+    emit(PetLoading());
+    try {
+      final list = await repository.getAll();
+      final petsWithOwner = (await Future.wait(list.map((pet) async {
+        final owner = await petOwnerApiService.getByPetId(pet.id);
+        return pet.copyWith(ownerId: owner?.userId);
+      }))).cast<PetDto>();
+      final myPets = userId == null ? <PetDto>[] : petsWithOwner.where((pet) => pet.ownerId == userId).toList();
+      if (!isClosed) emit(PetLoaded(allPets: petsWithOwner, myPets: myPets));
     } catch (e) {
       if (!isClosed) emit(PetError(e.toString()));
     }

@@ -99,10 +99,10 @@ class _AddPetScreenState extends State<AddPetScreen> {
                       children: [
                         // Tür alanı sadece TextField olacak
                         TextFormField(
-                          controller: _speciesController,
+                              controller: _speciesController,
                           decoration: InputDecoration(labelText: 'pets.species'.tr()),
                           validator: (v) => v == null || v.isEmpty ? 'form.required'.tr() : null,
-                        ),
+                          ),
                       ],
                     ),
                   ),

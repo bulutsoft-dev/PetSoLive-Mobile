@@ -219,5 +219,11 @@
   "pets.microchip_id": "Microchip ID",
   "pets.description": "Description",
   "pets.image_url": "Image URL",
-  "pets.add_success": "Pet added successfully!"
+  "pets.add_success": "Pet added successfully!",
+  "pets.mine": "My Pets",
+  "pets.mine_ribbon": "My Pet",
+  "pets.tab_all": "All Pets",
+  "pets.tab_owned": "Owned",
+  "pets.tab_waiting": "Waiting",
+  "pets.tab_my_pets": "My Pets"
 }

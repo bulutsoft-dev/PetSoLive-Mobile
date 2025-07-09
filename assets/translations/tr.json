@@ -219,5 +219,11 @@
   "pets.microchip_id": "Mikroçip ID",
   "pets.description": "Açıklama",
   "pets.image_url": "Görsel URL",
-  "pets.add_success": "Hayvan başarıyla eklendi!"
+  "pets.add_success": "Hayvan başarıyla eklendi!",
+  "pets.mine": "Hayvanlarım",
+  "pets.mine_ribbon": "Benim Hayvanım",
+  "pets.tab_all": "Tüm Hayvanlar",
+  "pets.tab_owned": "Sahipli",
+  "pets.tab_waiting": "Bekliyor",
+  "pets.tab_my_pets": "Hayvanlarım"
 }

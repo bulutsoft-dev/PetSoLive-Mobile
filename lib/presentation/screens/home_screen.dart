@@ -100,7 +100,7 @@ class HomeScreen extends StatelessWidget {
                 } else if (state is PetError) {
                   return Center(child: Text('pets.error'.tr() + '\n' + state.error));
                 } else if (state is PetLoaded || state is PetFiltered) {
-                  final pets = state is PetLoaded ? state.pets : (state as PetFiltered).pets;
+                  final pets = state is PetLoaded ? state.allPets : (state as PetFiltered).pets;
                   if (pets.isEmpty) {
                     return Center(child: Text('pets.empty'.tr()));
                   }

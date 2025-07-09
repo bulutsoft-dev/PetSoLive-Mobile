@@ -15,6 +15,7 @@ class PetCard extends StatelessWidget {
   final bool isAdopted;
   final String? ownerName;
   final VoidCallback? onTap;
+  final bool isMine;
 
   const PetCard({
     Key? key,
@@ -29,6 +30,7 @@ class PetCard extends StatelessWidget {
     this.isAdopted = false,
     this.ownerName,
     this.onTap,
+    this.isMine = false,
   }) : super(key: key);
 
   @override
@@ -205,6 +207,19 @@ class PetCard extends StatelessWidget {
                   ),
                 ],
               ),
+              if (isMine)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text('My Pet', style: TextStyle(color: Colors.white)),
+                  ),
+                ),
               // Uyumlu ve lokalize badge, duruma göre renkli
               Positioned(
                 top: 8,

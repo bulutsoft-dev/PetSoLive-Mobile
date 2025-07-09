@@ -24,11 +24,13 @@ import 'data/providers/comment_api_service.dart';
 import 'data/repositories/comment_repository_impl.dart';
 import 'domain/repositories/comment_repository.dart';
 import 'presentation/blocs/comment_cubit.dart';
+import 'data/providers/pet_owner_api_service.dart';
 
 final sl = GetIt.instance;
 
 void init() {
   sl.registerLazySingleton<PetApiService>(() => PetApiService());
+  sl.registerLazySingleton<PetOwnerApiService>(() => PetOwnerApiService());
   sl.registerLazySingleton<PetRepository>(() => PetRepositoryImpl(sl()));
   sl.registerLazySingleton<LostPetAdApiService>(() => LostPetAdApiService());
   sl.registerLazySingleton<LostPetAdRepository>(() => LostPetAdRepositoryImpl(sl()));
