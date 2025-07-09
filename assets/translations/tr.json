@@ -112,6 +112,7 @@
   "pet_detail.username": "Kullanıcı Adı",
   "pet_detail.edit": "Düzenle",
   "pet_detail.delete": "Sil",
+  "pet_detail.delete_confirm_desc": "Bu işlem geri alınamaz. Bu evcil hayvanı silmek istediğinize emin misiniz?",
   "ownership_card": {
     "app_name": "PETSOLIVE",
     "card_title": "KULLANICI KARTI",
@@ -233,5 +234,10 @@
   "edit_pet.identity": "Kimlik Bilgileri",
   "edit_pet.physical": "Fiziksel Özellikler",
   "edit_pet.health": "Sağlık Bilgileri",
-  "form.cancel": "İptal"
+  "form.cancel": "İptal",
+  "delete_confirm": {
+    "title": "Silme Onayı",
+    "description": "Bu işlem geri alınamaz. Silmek istediğinize emin misiniz?",
+    "confirm": "Sil"
+  }
 }

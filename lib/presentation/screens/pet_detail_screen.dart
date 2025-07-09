@@ -20,6 +20,7 @@ import '../../data/providers/adoption_request_api_service.dart';
 import '../blocs/account_cubit.dart';
 import 'add_pet_screen.dart';
 import 'edit_pet_screen.dart';
+import 'package:petsolive/presentation/screens/delete_confirmation_screen.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final int petId;
@@ -460,54 +461,40 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                               onPressed: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (ctx) => AlertDialog(
-                                    title: Text('Silmek istediğinize emin misiniz?'),
-                                    content: Text('Bu işlem geri alınamaz.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(ctx, false),
-                                        child: Text('Vazgeç'),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () => Navigator.pop(ctx, true),
-                                        child: Text('Sil'),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: isDark
-                                              ? colorScheme.error.withOpacity(0.85)
-                                              : colorScheme.error,
-                                          foregroundColor: isDark
-                                              ? colorScheme.onError
-                                              : colorScheme.onError,
-                                        ),
-                                      ),
-                                    ],
+                                final confirm = await Navigator.of(context).push<bool>(
+                                  MaterialPageRoute(
+                                    builder: (_) => DeleteConfirmationScreen(
+                                      title: 'pet_detail.delete'.tr(),
+                                      description: 'pet_detail.delete_confirm_desc'.tr(),
+                                      onConfirm: () async {
+                                        try {
+                                          final accountState = context.read<AccountCubit>().state;
+                                          String? token;
+                                          if (accountState is AccountSuccess) {
+                                            token = accountState.response.token;
+                                          }
+                                          if (token == null) throw Exception('Oturum bulunamadı!');
+                                          final response = await PetApiService().delete(pet.id, token);
+                                          if (context.mounted) {
+                                            Navigator.of(context).pop(true); // Ekranı kapat, true dön
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Silme işlemi başarısız: $e')),
+                                            );
+                                          }
+                                        }
+                                      },
+                                    ),
                                   ),
                                 );
-                                if (confirm == true) {
-                                  try {
-                                    final accountState = context.read<AccountCubit>().state;
-                                    String? token;
-                                    if (accountState is AccountSuccess) {
-                                      token = accountState.response.token;
-                                    }
-                                    if (token == null) throw Exception('Oturum bulunamadı!');
-                                    await PetApiService().delete(pet.id, token);
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Pet başarıyla silindi.')),
-                                      );
-                                      await Future.delayed(const Duration(milliseconds: 500));
-                                      Navigator.of(context).pop();
-                                    }
-                                  } catch (e) {
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Silme işlemi başarısız: $e')),
-                                      );
-                                    }
-                                  }
+                                if (confirm == true && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('pet_detail.delete_success'.tr())),
+                                  );
+                                  await Future.delayed(const Duration(milliseconds: 500));
+                                  Navigator.of(context).pop(); // Detay ekranından çık
                                 }
                               },
                             ),

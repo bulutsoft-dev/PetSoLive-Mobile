@@ -112,6 +112,8 @@
   "pet_detail.username": "Username",
   "pet_detail.edit": "Edit",
   "pet_detail.delete": "Delete",
+  "pet_detail.delete_confirm_desc": "This action cannot be undone. Are you sure you want to delete this pet?",
+  "pet_detail.delete_success": "Pet deleted successfully.",
   "ownership_card": {
     "app_name": "PETSOLIVE",
     "card_title": "USER CARD",
@@ -233,5 +235,10 @@
   "edit_pet.identity": "Identity Information",
   "edit_pet.physical": "Physical Features",
   "edit_pet.health": "Health Information",
-  "form.cancel": "Cancel"
+  "form.cancel": "Cancel",
+  "delete_confirm": {
+    "title": "Delete Confirmation",
+    "description": "This action cannot be undone. Are you sure you want to delete?",
+    "confirm": "Delete"
+  }
 }
