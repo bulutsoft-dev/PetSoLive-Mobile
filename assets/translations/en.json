@@ -245,5 +245,21 @@
   "pet_detail.login_to_adopt": "Login to adopt",
   "pet_detail.already_requested": "You have already requested to adopt this pet.",
   "pet_detail.already_adopted_action_blocked": "This pet has already been adopted",
-  "pet_detail.already_adopted_action_blocked_desc": "No further actions can be performed on this pet."
+  "pet_detail.already_adopted_action_blocked_desc": "No further actions can be performed on this pet.",
+  "adoption_form.info": "With this form, you apply to adopt the selected pet. Your contact information and message will only be shared with the current owner of the pet. The owner will review your application and may contact you via email or phone. The final decision will be made by the current owner. Please introduce yourself and explain why you want to adopt.",
+  "adoption_form.title": "Adoption application for '{0}'",
+  "adoption_form.subtitle": "Please fill in your information completely. Required fields are marked with *.",
+  "adoption_form.name": "Name",
+  "adoption_form.email": "Email",
+  "adoption_form.phone": "Phone",
+  "adoption_form.address": "Address",
+  "adoption_form.birthdate": "Date of Birth",
+  "adoption_form.message": "Message (optional)",
+  "adoption_form.message_hint": "You can write about yourself and why you want to adopt...",
+  "adoption_form.submit": "Submit Application",
+  "adoption_form.sending": "Sending...",
+  "adoption_form.required_phone": "Phone is required",
+  "adoption_form.required_address": "Address is required",
+  "adoption_form.required_birthdate": "Date of birth is required",
+  "adoption_form.success": "Your adoption request has been submitted successfully! The pet owner may contact you soon."
 }

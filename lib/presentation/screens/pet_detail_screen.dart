@@ -33,6 +33,7 @@ class PetDetailScreen extends StatefulWidget {
 
 class _PetDetailScreenState extends State<PetDetailScreen> {
   late Future<_PetDetailBundle> _bundleFuture;
+  final GlobalKey _topKey = GlobalKey();
 
   @override
   void initState() {
@@ -124,6 +125,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
         ),
       ),
       body: FutureBuilder<_PetDetailBundle>(
+        key: ValueKey(_bundleFuture),
         future: _bundleFuture,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
@@ -153,6 +155,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
+              Container(key: _topKey),
               Card(
                 elevation: 6,
                 margin: EdgeInsets.zero,
@@ -584,11 +587,20 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                         );
                         if (result == true) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Sahiplenme isteğiniz gönderildi!')),
+                            SnackBar(content: Text('adoption_form.success'.tr())),
                           );
                           setState(() {
                             _bundleFuture = _fetchAll(widget.petId);
                           });
+                          // Sayfanın en üstüne kaydır
+                          await Future.delayed(const Duration(milliseconds: 100));
+                          if (_topKey.currentContext != null) {
+                            Scrollable.ensureVisible(
+                              _topKey.currentContext!,
+                              duration: const Duration(milliseconds: 400),
+                              alignment: 0,
+                            );
+                          }
                         }
                       },
                       icon: const Icon(Icons.favorite_border),

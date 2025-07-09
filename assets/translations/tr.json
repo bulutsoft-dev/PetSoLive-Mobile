@@ -245,5 +245,21 @@
   "pet_detail.login_to_adopt": "Sahiplenmek için giriş yap",
   "pet_detail.already_requested": "Bu hayvan için zaten başvuru yaptınız.",
   "pet_detail.already_adopted_action_blocked": "Bu hayvan zaten sahiplendirildi",
-  "pet_detail.already_adopted_action_blocked_desc": "Bu hayvan üzerinde başka bir işlem yapılamaz."
+  "pet_detail.already_adopted_action_blocked_desc": "Bu hayvan üzerinde başka bir işlem yapılamaz.",
+  "adoption_form.info": "Bu form ile seçtiğiniz hayvanı sahiplenmek için başvuruda bulunursunuz. Girdiğiniz iletişim bilgileri ve mesajınız sadece hayvanın mevcut sahibine iletilir. Hayvan sahibi, başvurunuzu ve iletişim bilgilerinizi inceleyerek sizinle e-posta veya telefon yoluyla iletişime geçebilir. Son karar, hayvanın mevcut sahibi tarafından verilecektir. Lütfen kendinizi ve neden sahiplenmek istediğinizi açıklamayı unutmayın.",
+  "adoption_form.title": "'{0}' için sahiplenme başvurusu",
+  "adoption_form.subtitle": "Lütfen bilgilerinizi eksiksiz doldurun. Zorunlu alanlar * ile işaretlidir.",
+  "adoption_form.name": "Adı",
+  "adoption_form.email": "E-posta",
+  "adoption_form.phone": "Telefon",
+  "adoption_form.address": "Adres",
+  "adoption_form.birthdate": "Doğum Tarihi",
+  "adoption_form.message": "Mesaj (isteğe bağlı)",
+  "adoption_form.message_hint": "Kendinizi ve neden sahiplenmek istediğinizi yazabilirsiniz...",
+  "adoption_form.submit": "Başvuruyu Gönder",
+  "adoption_form.sending": "Gönderiliyor...",
+  "adoption_form.required_phone": "Telefon zorunlu",
+  "adoption_form.required_address": "Adres zorunlu",
+  "adoption_form.required_birthdate": "Doğum tarihi zorunlu",
+  "adoption_form.success": "Sahiplenme başvurunuz başarıyla iletildi! Hayvan sahibi sizinle iletişime geçebilir."
 }
