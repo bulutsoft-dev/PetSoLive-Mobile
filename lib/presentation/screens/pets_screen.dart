@@ -9,6 +9,7 @@ import '../../injection_container.dart';
 import '../../domain/repositories/adoption_repository.dart';
 import '../blocs/account_cubit.dart';
 import '../../data/providers/pet_owner_api_service.dart';
+import '../../data/providers/adoption_request_api_service.dart';
 
 class PetsScreen extends StatelessWidget {
   const PetsScreen({Key? key}) : super(key: key);
@@ -46,18 +47,27 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
   Future<void> fetchAdoptionStatuses(List pets) async {
     setState(() { adoptionLoading = true; });
     final adoptionRepo = sl<AdoptionRepository>();
+    final adoptionRequestApi = sl<AdoptionRequestApiService>();
     final Map<int, bool> statusMap = {};
     final Map<int, String?> ownerMap = {};
     final futures = pets.map((pet) async {
       try {
         final adoption = await adoptionRepo.getByPetId(pet.id);
-        debugPrint('PetId: \\${pet.id} - Adoption API response: \\${adoption?.toString()}');
         final adopted = adoption != null;
-        debugPrint('PetId: \\${pet.id} - Adopted: \\${adopted.toString()}');
         statusMap[pet.id] = adopted;
         ownerMap[pet.id] = adopted ? adoption?.userName : null;
+        if (!adopted) {
+          // Adoption yoksa, adoptionRequest'lere bak
+          final requests = await adoptionRequestApi.getAllByPetId(pet.id);
+          final hasApproved = requests.any((r) =>
+          (r.status?.toLowerCase() ?? '') == 'approved'
+          );
+          if (hasApproved) {
+            statusMap[pet.id] = true;
+            // İstersen ownerMap[pet.id] = ... ile kullanıcı adını da ekleyebilirsin
+          }
+        }
       } catch (e) {
-        debugPrint('PetId: \\${pet.id} - Adoption API error: \\${e.toString()}');
         statusMap[pet.id] = false;
         ownerMap[pet.id] = null;
       }

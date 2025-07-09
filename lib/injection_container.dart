@@ -25,6 +25,7 @@ import 'data/repositories/comment_repository_impl.dart';
 import 'domain/repositories/comment_repository.dart';
 import 'presentation/blocs/comment_cubit.dart';
 import 'data/providers/pet_owner_api_service.dart';
+import 'data/providers/adoption_request_api_service.dart';
 
 final sl = GetIt.instance;
 
@@ -47,6 +48,7 @@ void init() {
   sl.registerLazySingleton<AdoptionApiService>(() => AdoptionApiService());
   sl.registerLazySingleton<AdoptionRepository>(() => AdoptionRepositoryImpl(sl()));
   sl.registerFactory(() => AdoptionCubit(sl()));
+  sl.registerLazySingleton<AdoptionRequestApiService>(() => AdoptionRequestApiService());
 
   // Comment
   sl.registerLazySingleton<CommentApiService>(() => CommentApiService());
