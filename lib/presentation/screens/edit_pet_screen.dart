@@ -118,8 +118,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: const BaseAppBar(
-        title: 'pet_detail.edit',
+      appBar: BaseAppBar(
+        title: 'pet_detail.edit'.tr(),
         showLogo: false,
       ),
       body: Padding(
