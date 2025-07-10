@@ -9,6 +9,7 @@ import 'login_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'veterinarian_application_screen.dart';
 import '../../data/providers/veterinarian_api_service.dart';
+import '../../core/constants/admob_banner_widget.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -45,6 +46,7 @@ class ProfileScreen extends StatelessWidget {
 
                 _buildSectionTitle(context, 'profile.app_info'.tr()),
                 _buildAppInfoCard(context),
+                AdmobBannerWidget(),
               ],
             );
           },

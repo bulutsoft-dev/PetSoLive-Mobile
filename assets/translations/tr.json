@@ -299,7 +299,7 @@
   "help_requests.add_success": "Yardım talebi başarıyla oluşturuldu.",
   "help_requests.add_failed": "Yardım talebi oluşturulamadı: {0}",
   "help_requests.save": "Kaydet",
-  "help_requests.title": "Başlık",
+  "help_requests.title": "Yardım Talepleri",
   "help_requests.title_required": "Başlık zorunlu",
   "help_requests.description": "Açıklama",
   "help_requests.description_required": "Açıklama zorunlu",

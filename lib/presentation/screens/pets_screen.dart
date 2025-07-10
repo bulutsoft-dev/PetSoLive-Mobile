@@ -10,6 +10,7 @@ import '../../domain/repositories/adoption_repository.dart';
 import '../blocs/account_cubit.dart';
 import '../../data/providers/pet_owner_api_service.dart';
 import '../../data/providers/adoption_request_api_service.dart';
+import '../../core/constants/admob_banner_widget.dart';
 
 class PetsScreen extends StatelessWidget {
   const PetsScreen({Key? key}) : super(key: key);
@@ -404,6 +405,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                 body: Column(
                   children: [
                     TabBar(tabs: tabs),
+                    AdmobBannerWidget(),
                     Expanded(child: TabBarView(children: tabViews)),
                   ],
                 ),

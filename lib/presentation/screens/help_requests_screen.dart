@@ -7,6 +7,7 @@ import '../widgets/help_request_card.dart';
 import '../../injection_container.dart';
 import '../../core/network/auth_service.dart';
 import 'add_help_request_screen.dart';
+import '../../core/constants/admob_banner_widget.dart';
 
 class HelpRequestsScreen extends StatefulWidget {
   const HelpRequestsScreen({Key? key}) : super(key: key);
@@ -76,6 +77,7 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> {
                   unselectedLabelColor: Colors.grey,
                   indicatorColor: colorScheme.primary,
                 ),
+                AdmobBannerWidget(),
                 Expanded(
                   child: TabBarView(
                     children: tabs.map((selectedTab) {

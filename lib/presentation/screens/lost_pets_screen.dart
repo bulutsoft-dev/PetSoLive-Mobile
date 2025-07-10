@@ -11,6 +11,7 @@ import '../widgets/lost_pet_ad_card.dart';
 import '../localization/locale_keys.g.dart';
 import 'add_lost_pet_ad_screen.dart';
 import '../../core/network/auth_service.dart';
+import '../../core/constants/admob_banner_widget.dart';
 
 class LostPetsScreen extends StatefulWidget {
   const LostPetsScreen({Key? key}) : super(key: key);
@@ -172,6 +173,7 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
                         onChanged: (v) => setState(() => searchQuery = v),
                       ),
                     ),
+                    AdmobBannerWidget(),
                     if (userHasAds)
                       Padding(
                         padding: const EdgeInsets.only(top: 10, bottom: 4),
@@ -231,7 +233,7 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
               return const SizedBox.shrink();
             },
           ),
-      );
+    );
   }
 }
 
