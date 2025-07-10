@@ -8,6 +8,7 @@ import '../../injection_container.dart';
 import 'login_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'veterinarian_application_screen.dart';
+import '../../data/providers/veterinarian_api_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -360,7 +361,25 @@ class ProfileScreen extends StatelessWidget {
                 foregroundColor: colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              onPressed: () {
+              onPressed: () async {
+                final accountState = context.read<AccountCubit>().state;
+                if (accountState is! AccountSuccess) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => LoginScreen(),
+                    ),
+                  );
+                  return;
+                }
+                final user = accountState.response.user;
+                final vets = await VeterinarianApiService().getAll();
+                final alreadyApplied = vets.any((v) => v.userId == user.id);
+                if (alreadyApplied) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('profile.veterinarian_already_applied'.tr()), backgroundColor: Colors.orange),
+                  );
+                  return;
+                }
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => VeterinarianApplicationScreen(),
