@@ -58,14 +58,23 @@ class LostPetAdApiService {
   }
 
   Future<void> update(int id, LostPetAdDto dto, String token) async {
+    final url = Uri.parse('$baseUrl/api/LostPetAd/$id');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'x-api-key': ApiConstants.apiKey,
+    };
+    final body = jsonEncode(dto.toJson());
+    debugPrint('[LOST PET AD UPDATE] URL: $url');
+    debugPrint('[LOST PET AD UPDATE] Headers: ' + headers.toString());
+    debugPrint('[LOST PET AD UPDATE] Body: $body');
     final response = await http.put(
-      Uri.parse('$baseUrl/api/LostPetAd/$id'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(dto.toJson()),
+      url,
+      headers: headers,
+      body: body,
     );
+    debugPrint('[LOST PET AD UPDATE] Status: ${response.statusCode}');
+    debugPrint('[LOST PET AD UPDATE] Response: ${response.body}');
     if (response.statusCode != 204) {
       throw Exception('Failed to update lost pet ad');
     }

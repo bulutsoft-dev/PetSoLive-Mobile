@@ -10,6 +10,7 @@ import 'package:petsolive/data/providers/lost_pet_ad_api_service.dart';
 import 'package:petsolive/data/providers/user_api_service.dart';
 import 'package:petsolive/data/models/user_dto.dart';
 import '../../data/local/session_manager.dart';
+import 'edit_lost_pet_ad_screen.dart';
 
 class LostPetAdScreen extends StatefulWidget {
   final int adId;
@@ -362,8 +363,19 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                                   child: ElevatedButton.icon(
                                     icon: const Icon(Icons.edit),
                                     label: const Text('Düzenle'),
-                                    onPressed: () {
-                                      // TODO: Edit ekranına yönlendir
+                                    onPressed: () async {
+                                      final result = await Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (ctx) => EditLostPetAdScreen(ad: ad),
+                                        ),
+                                      );
+                                      if (result == true) {
+                                        // Düzenleme sonrası ilanı tekrar yükle
+                                        setState(() {
+                                          _adFuture = fetchLostPetAd(widget.adId);
+                                          _userFuture = null;
+                                        });
+                                      }
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Theme.of(context).colorScheme.primary,
