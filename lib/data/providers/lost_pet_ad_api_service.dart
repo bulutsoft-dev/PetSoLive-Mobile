@@ -81,10 +81,19 @@ class LostPetAdApiService {
   }
 
   Future<void> delete(int id, String token) async {
+    final url = Uri.parse('$baseUrl/api/LostPetAd/$id');
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'x-api-key': ApiConstants.apiKey,
+    };
+    debugPrint('[LOST PET AD DELETE] URL: $url');
+    debugPrint('[LOST PET AD DELETE] Headers: ' + headers.toString());
     final response = await http.delete(
-      Uri.parse('$baseUrl/api/LostPetAd/$id'),
-      headers: {'Authorization': 'Bearer $token'},
+      url,
+      headers: headers,
     );
+    debugPrint('[LOST PET AD DELETE] Status: ${response.statusCode}');
+    debugPrint('[LOST PET AD DELETE] Response: ${response.body}');
     if (response.statusCode != 204) {
       throw Exception('Failed to delete lost pet ad');
     }

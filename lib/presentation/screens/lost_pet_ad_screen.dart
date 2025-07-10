@@ -11,6 +11,8 @@ import 'package:petsolive/data/providers/user_api_service.dart';
 import 'package:petsolive/data/models/user_dto.dart';
 import '../../data/local/session_manager.dart';
 import 'edit_lost_pet_ad_screen.dart';
+import 'delete_confirmation_screen.dart';
+import '../blocs/lost_pet_ad_cubit.dart';
 
 class LostPetAdScreen extends StatefulWidget {
   final int adId;
@@ -391,8 +393,41 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                                   child: ElevatedButton.icon(
                                     icon: const Icon(Icons.delete),
                                     label: const Text('Sil'),
-                                    onPressed: () {
-                                      // TODO: Silme işlemi
+                                    onPressed: () async {
+                                      final confirmed = await Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (ctx) => DeleteConfirmationScreen(
+                                            title: 'İlanı Sil',
+                                            description: 'Bu kayıp ilanını silmek istediğine emin misin?',
+                                            confirmText: 'Sil',
+                                            cancelText: 'Vazgeç',
+                                            onConfirm: () {
+                                              Navigator.of(ctx).pop(true);
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                      if (confirmed == true) {
+                                        try {
+                                          final sessionManager = SessionManager();
+                                          final token = await sessionManager.getToken() ?? '';
+                                          await context.read<LostPetAdCubit>().delete(ad.id, token);
+                                          // Silme sonrası listeyi güncelle
+                                          context.read<LostPetAdCubit>().getAll();
+                                          if (mounted) {
+                                            Navigator.of(context).pop();
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('İlan başarıyla silindi.'), backgroundColor: Colors.green),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Silme işlemi başarısız: $e'), backgroundColor: Colors.red),
+                                            );
+                                          }
+                                        }
+                                      }
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Theme.of(context).colorScheme.error,
