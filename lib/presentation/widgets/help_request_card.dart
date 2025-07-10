@@ -3,6 +3,8 @@ import '../../data/models/help_request_dto.dart';
 import 'package:intl/intl.dart';
 import '../themes/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../core/enums/emergency_level.dart';
+import '../../core/enums/help_request_status.dart';
 import 'package:http/http.dart' as http;
 
 class HelpRequestCard extends StatelessWidget {
@@ -11,48 +13,42 @@ class HelpRequestCard extends StatelessWidget {
 
   const HelpRequestCard({required this.request, this.onTap, Key? key}) : super(key: key);
 
-  Color _emergencyColor(String level, BuildContext context) {
-    switch (level.toLowerCase()) {
-      case 'high':
-        return Theme.of(context).brightness == Brightness.dark
-            ? AppColors.petsoliveDanger.withOpacity(0.85)
-            : AppColors.petsoliveDanger;
-      case 'medium':
-        return Theme.of(context).brightness == Brightness.dark
-            ? AppColors.petsoliveWarning.withOpacity(0.85)
-            : AppColors.petsoliveWarning;
-      case 'low':
-        return Theme.of(context).brightness == Brightness.dark
-            ? AppColors.petsoliveSuccess.withOpacity(0.85)
-            : AppColors.petsoliveSuccess;
-      default:
-        return Theme.of(context).colorScheme.primary.withOpacity(0.7);
+  // --- Enum'dan lokalize label alma fonksiyonları ---
+  String _emergencyLabel(EmergencyLevel level) {
+    switch (level) {
+      case EmergencyLevel.low:
+        return 'help_requests.tab_low'.tr();
+      case EmergencyLevel.medium:
+        return 'help_requests.tab_medium'.tr();
+      case EmergencyLevel.high:
+        return 'help_requests.tab_high'.tr();
     }
   }
 
-  String _localizedEmergencyLevel(BuildContext context) {
-    switch (request.emergencyLevel.toLowerCase()) {
-      case 'high':
-        return 'help_requests.emergency_high'.tr();
-      case 'medium':
-        return 'help_requests.emergency_medium'.tr();
-      case 'low':
-        return 'help_requests.emergency_low'.tr();
-      default:
-        return request.emergencyLevel;
-    }
-  }
-
-  String _localizedStatus(BuildContext context) {
-    switch (request.status.toLowerCase()) {
-      case 'open':
-        return 'help_requests.status_open'.tr();
-      case 'closed':
-        return 'help_requests.status_closed'.tr();
-      case 'active':
+  String _statusLabel(HelpRequestStatus status) {
+    switch (status) {
+      case HelpRequestStatus.Active:
         return 'help_requests.status_active'.tr();
-      default:
-        return request.status;
+      case HelpRequestStatus.Passive:
+        return 'help_requests.status_passive'.tr();
+    }
+  }
+
+  // --- Enum'dan renk alma fonksiyonu ---
+  Color _emergencyColor(EmergencyLevel level, BuildContext context) {
+    switch (level) {
+      case EmergencyLevel.high:
+        return Theme.of(context).brightness == Brightness.dark
+            ? Colors.red[700]!
+            : Colors.red;
+      case EmergencyLevel.medium:
+        return Theme.of(context).brightness == Brightness.dark
+            ? Colors.orange[700]!
+            : Colors.orange;
+      case EmergencyLevel.low:
+        return Theme.of(context).brightness == Brightness.dark
+            ? Colors.green[700]!
+            : Colors.green;
     }
   }
 
@@ -60,7 +56,7 @@ class HelpRequestCard extends StatelessWidget {
     final color = _emergencyColor(request.emergencyLevel, context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Chip(
-      label: Text(_localizedEmergencyLevel(context),
+      label: Text(_emergencyLabel(request.emergencyLevel),
         overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
           color: isDark ? color.withOpacity(0.95) : color,
@@ -77,8 +73,8 @@ class HelpRequestCard extends StatelessWidget {
   }
 
   Widget _statusChip(BuildContext context) {
-    final status = request.status.toLowerCase();
-    final isOpen = status == 'open';
+    final status = request.status;
+    final isOpen = status == HelpRequestStatus.Active;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isOpen
         ? (isDark ? Colors.greenAccent.shade200 : AppColors.petsoliveSuccess)
@@ -87,7 +83,7 @@ class HelpRequestCard extends StatelessWidget {
         ? (isDark ? Colors.greenAccent.withOpacity(0.22) : AppColors.petsoliveSuccess.withOpacity(0.18))
         : (isDark ? AppColors.bsGray700.withOpacity(0.22) : AppColors.bsGray300.withOpacity(0.22));
     return Chip(
-      label: Text(_localizedStatus(context),
+      label: Text(_statusLabel(status),
         overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
           color: color,

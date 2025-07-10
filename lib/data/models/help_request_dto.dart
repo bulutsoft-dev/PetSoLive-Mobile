@@ -1,8 +1,11 @@
+import '../../core/enums/emergency_level.dart';
+import '../../core/enums/help_request_status.dart';
+
 class HelpRequestDto {
   final int id;
   final String title;
   final String description;
-  final String emergencyLevel;
+  final EmergencyLevel emergencyLevel;
   final DateTime createdAt;
   final int userId;
   final String userName;
@@ -11,7 +14,7 @@ class HelpRequestDto {
   final String? contactPhone;
   final String? contactEmail;
   final String? imageUrl;
-  final String status;
+  final HelpRequestStatus status;
 
   HelpRequestDto({
     required this.id,
@@ -30,11 +33,33 @@ class HelpRequestDto {
   });
 
   factory HelpRequestDto.fromJson(Map<String, dynamic> json) {
+    EmergencyLevel parseEmergencyLevel(String? value) {
+      switch (value) {
+        case 'Low':
+          return EmergencyLevel.low;
+        case 'Medium':
+          return EmergencyLevel.medium;
+        case 'High':
+          return EmergencyLevel.high;
+        default:
+          return EmergencyLevel.low;
+      }
+    }
+    HelpRequestStatus parseStatus(String? value) {
+      switch (value) {
+        case 'Active':
+          return HelpRequestStatus.Active;
+        case 'Passive':
+          return HelpRequestStatus.Passive;
+        default:
+          return HelpRequestStatus.Active;
+      }
+    }
     return HelpRequestDto(
       id: json['id'],
       userId: json['userId'],
       description: json['description'],
-      emergencyLevel: json['emergencyLevel'],
+      emergencyLevel: parseEmergencyLevel(json['emergencyLevel']),
       createdAt: DateTime.parse(json['createdAt']),
       title: json['title'],
       userName: json['userName'],
@@ -43,15 +68,17 @@ class HelpRequestDto {
       contactPhone: json['contactPhone'],
       contactEmail: json['contactEmail'],
       imageUrl: json['imageUrl'],
-      status: json['status'],
+      status: parseStatus(json['status']),
     );
   }
+
+  String _pascalCase(String s) => s[0].toUpperCase() + s.substring(1).toLowerCase();
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'userId': userId,
     'description': description,
-    'emergencyLevel': emergencyLevel,
+    'emergencyLevel': _pascalCase(emergencyLevel.name),
     'createdAt': createdAt.toIso8601String(),
     'title': title,
     'userName': userName,
@@ -60,6 +87,6 @@ class HelpRequestDto {
     'contactPhone': contactPhone,
     'contactEmail': contactEmail,
     'imageUrl': imageUrl,
-    'status': status,
+    'status': _pascalCase(status.name),
   };
 } 

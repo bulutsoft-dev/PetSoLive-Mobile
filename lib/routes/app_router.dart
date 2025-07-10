@@ -51,10 +51,10 @@ class AppRouter {
       }
       case '/add_help_request':
         return MaterialPageRoute(
-          builder: (_) => MultiBlocProvider(
+          builder: (context) => MultiBlocProvider(
             providers: [
               BlocProvider(create: (_) => sl<HelpRequestCubit>()),
-              BlocProvider(create: (_) => sl<AccountCubit>()),
+              BlocProvider.value(value: BlocProvider.of<AccountCubit>(context)),
             ],
             child: const AddHelpRequestScreen(),
           ),

@@ -6,6 +6,8 @@ import '../blocs/account_cubit.dart';
 import '../../data/models/help_request_dto.dart';
 import '../localization/locale_keys.g.dart';
 import '../partials/base_app_bar.dart';
+import '../../core/enums/emergency_level.dart';
+import '../../core/enums/help_request_status.dart';
 
 class AddHelpRequestScreen extends StatefulWidget {
   const AddHelpRequestScreen({Key? key}) : super(key: key);
@@ -23,7 +25,7 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
   final _contactNameController = TextEditingController();
   final _contactPhoneController = TextEditingController();
   final _contactEmailController = TextEditingController();
-  String _emergencyLevel = 'low';
+  EmergencyLevel _emergencyLevel = EmergencyLevel.low;
   bool _isLoading = false;
 
   void _setLoadingByState(BuildContext context) {
@@ -48,7 +50,9 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
   @override
   void initState() {
     super.initState();
-    final accountState = context.read<AccountCubit>().state;
+    final accountCubit = context.read<AccountCubit>();
+    accountCubit.checkSession();
+    final accountState = accountCubit.state;
     if (accountState is AccountSuccess) {
       final user = accountState.response.user;
       _contactNameController.text = user.username;
@@ -83,9 +87,20 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
       contactPhone: _contactPhoneController.text,
       contactEmail: _contactEmailController.text,
       createdAt: DateTime.now(),
-      status: 'pending',
+      status: HelpRequestStatus.Active,
     );
     context.read<HelpRequestCubit>().create(dto, token);
+  }
+
+  String _emergencyLevelLabel(EmergencyLevel level) {
+    switch (level) {
+      case EmergencyLevel.low:
+        return 'help_requests.tab_low'.tr();
+      case EmergencyLevel.medium:
+        return 'help_requests.tab_medium'.tr();
+      case EmergencyLevel.high:
+        return 'help_requests.tab_high'.tr();
+    }
   }
 
   @override
@@ -231,15 +246,14 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
+                DropdownButtonFormField<EmergencyLevel>(
                   value: _emergencyLevel,
                   decoration: InputDecoration(labelText: 'help_requests.emergency_level'.tr(), prefixIcon: Icon(Icons.priority_high)),
-                  items: [
-                    DropdownMenuItem(value: 'low', child: Text('help_requests.tab_low'.tr())),
-                    DropdownMenuItem(value: 'medium', child: Text('help_requests.tab_medium'.tr())),
-                    DropdownMenuItem(value: 'high', child: Text('help_requests.tab_high'.tr())),
-                  ],
-                  onChanged: (v) => setState(() => _emergencyLevel = v ?? 'low'),
+                  items: EmergencyLevel.values.map((e) => DropdownMenuItem<EmergencyLevel>(
+                    value: e,
+                    child: Text(_emergencyLevelLabel(e)),
+                  )).toList(),
+                  onChanged: (EmergencyLevel? v) => setState(() => _emergencyLevel = v ?? EmergencyLevel.low),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(

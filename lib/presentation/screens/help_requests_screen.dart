@@ -88,7 +88,7 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> with SingleTick
                     final selectedTab = tabs[_tabController.index];
                     final filtered = selectedTab == 'help_requests.tab_all'
                         ? state.helpRequests
-                        : state.helpRequests.where((e) => e.emergencyLevel.toLowerCase() == selectedTab.replaceAll('help_requests.tab_', '').toLowerCase()).toList();
+                        : state.helpRequests.where((e) => e.emergencyLevel.name == selectedTab.replaceAll('help_requests.tab_', '').toLowerCase()).toList();
                     if (filtered.isEmpty) {
                       return Center(child: Text('help_requests.empty').tr());
                     }
