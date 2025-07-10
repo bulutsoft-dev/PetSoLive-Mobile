@@ -10,6 +10,7 @@ import '../localization/locale_keys.g.dart';
 import '../../injection_container.dart';
 import '../blocs/comment_cubit.dart';
 import '../blocs/theme_cubit.dart';
+import '../partials/base_app_bar.dart';
 
 class HelpRequestScreen extends StatelessWidget {
   final int requestId;
@@ -23,9 +24,9 @@ class HelpRequestScreen extends StatelessWidget {
         BlocProvider(create: (_) => CommentCubit(sl())..getByHelpRequestId(requestId)),
       ],
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('help_requests.detail_title'.tr()),
-          centerTitle: true,
+        appBar: BaseAppBar(
+          title: 'help_requests.detail_title'.tr(),
+            showLogo: false,
           actions: [
             Builder(
               builder: (context) => IconButton(
@@ -40,8 +41,6 @@ class HelpRequestScreen extends StatelessWidget {
                 },
               ),
             ),
-            
-            // Dil değiştirme butonu
             Builder(
               builder: (context) => IconButton(
                 icon: const Icon(Icons.translate),
@@ -53,7 +52,6 @@ class HelpRequestScreen extends StatelessWidget {
                 },
               ),
             ),
-            // Tema değiştirme butonu
           ],
         ),
         body: BlocBuilder<HelpRequestCubit, HelpRequestState>(
