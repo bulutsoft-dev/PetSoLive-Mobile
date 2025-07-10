@@ -1,5 +1,6 @@
 class CommentDto {
   final int id;
+  final int helpRequestId;
   final int userId;
   final String? userName;
   final int? veterinarianId;
@@ -9,6 +10,7 @@ class CommentDto {
 
   CommentDto({
     required this.id,
+    required this.helpRequestId,
     required this.userId,
     this.userName,
     this.veterinarianId,
@@ -20,6 +22,7 @@ class CommentDto {
   factory CommentDto.fromJson(Map<String, dynamic> json) {
     return CommentDto(
       id: json['id'],
+      helpRequestId: json['helpRequestId'],
       userId: json['userId'],
       userName: json['userName'],
       veterinarianId: json['veterinarianId'],
@@ -31,6 +34,7 @@ class CommentDto {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'helpRequestId': helpRequestId,
     'userId': userId,
     'userName': userName,
     'veterinarianId': veterinarianId,

@@ -18,6 +18,9 @@ import '../../core/network/auth_service.dart';
 import '../blocs/account_cubit.dart';
 import '../screens/delete_confirmation_screen.dart';
 import '../screens/edit_help_request_screen.dart';
+import '../blocs/comment_cubit.dart';
+import '../blocs/comment_cubit.dart';
+import '../../data/models/comment_dto.dart';
 
 class HelpRequestScreen extends StatefulWidget {
   final int requestId;
@@ -492,13 +495,70 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
   }
 }
 
-class _CommentInput extends StatelessWidget {
+class _CommentInput extends StatefulWidget {
+  @override
+  State<_CommentInput> createState() => _CommentInputState();
+}
+
+class _CommentInputState extends State<_CommentInput> {
+  final _controller = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _submit() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    setState(() => _isLoading = true);
+
+    // Kullanıcı ve token al
+    final accountState = context.read<AccountCubit>().state;
+    if (accountState is! AccountSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('help_requests.login_required'.tr())),
+      );
+      setState(() => _isLoading = false);
+      return;
+    }
+    final token = accountState.response.token;
+    final user = accountState.response.user;
+
+    // Yorum DTO'su oluştur
+    final helpRequestId = context.findAncestorStateOfType<_HelpRequestScreenState>()?.widget.requestId;
+    if (helpRequestId == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+    final dto = CommentDto(
+      id: 0,
+      helpRequestId: helpRequestId,
+      userId: user.id,
+      userName: user.username,
+      content: text,
+      createdAt: DateTime.now(),
+      veterinarianId: null,
+      veterinarianName: null,
+    );
+
+    try {
+      await context.read<CommentCubit>().add(dto, token);
+      // Yorumlar güncellensin
+      await context.read<CommentCubit>().getByHelpRequestId(helpRequestId);
+      _controller.clear();
+      FocusScope.of(context).unfocus();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Yorum eklenemedi: $e')),
+      );
+    }
+    setState(() => _isLoading = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: TextField(
+            controller: _controller,
             decoration: InputDecoration(
               hintText: 'help_requests.write_comment'.tr(),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -510,8 +570,8 @@ class _CommentInput extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         ElevatedButton(
-          onPressed: () {},
-          child: const Icon(Icons.send),
+          onPressed: _isLoading ? null : _submit,
+          child: _isLoading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.send),
           style: ElevatedButton.styleFrom(
             shape: const CircleBorder(),
             padding: const EdgeInsets.all(12),
