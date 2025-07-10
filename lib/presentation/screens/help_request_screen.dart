@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 import '../blocs/help_request_cubit.dart';
 import '../widgets/help_request_card.dart';
 import '../widgets/comment_widget.dart';
@@ -14,6 +15,8 @@ import '../blocs/comment_cubit.dart';
 import '../blocs/theme_cubit.dart';
 import '../partials/base_app_bar.dart';
 import '../../core/network/auth_service.dart';
+import '../blocs/account_cubit.dart';
+import '../screens/delete_confirmation_screen.dart';
 
 class HelpRequestScreen extends StatefulWidget {
   final int requestId;
@@ -292,8 +295,46 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () {
-                              // Sil işlemi
+                            onPressed: () async {
+                              final req = state.helpRequest!;
+                              debugPrint('[DELETE] Silme butonuna tıklandı. ID: ${req.id}');
+                              final confirm = await Navigator.of(context).push<bool>(
+                                MaterialPageRoute(
+                                  builder: (_) => DeleteConfirmationScreen(
+                                    title: 'help_requests.delete'.tr(),
+                                    description: 'help_requests.delete_confirm_desc'.tr(),
+                                    onConfirm: () async {
+                                      try {
+                                        final accountState = context.read<AccountCubit>().state;
+                                        String? token;
+                                        if (accountState is AccountSuccess) {
+                                          token = accountState.response.token;
+                                        }
+                                        debugPrint('[DELETE] Token: ${token}');
+                                        if (token == null) throw Exception('Oturum bulunamadı!');
+                                        debugPrint('[DELETE] Silme isteği gönderiliyor...');
+                                        await context.read<HelpRequestCubit>().delete(req.id, token);
+                                        debugPrint('[DELETE] Silme isteği başarılı.');
+                                        if (context.mounted) {
+                                          Navigator.of(context).pop(true);
+                                        }
+                                      } catch (e) {
+                                        debugPrint('[DELETE] Hata: ${e.toString()}');
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('help_requests.delete_failed'.tr(args: [e.toString()]))),
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ),
+                              );
+                              debugPrint('[DELETE] Onay ekranı kapandı, confirm: ${confirm}');
+                              if (confirm == true && context.mounted) {
+                                debugPrint('[DELETE] Detay ekranı kapatılıyor.');
+                                Navigator.of(context).pop(true);
+                              }
                             },
                             icon: const Icon(Icons.delete, size: 20),
                             label: Text('help_requests.delete'.tr()),

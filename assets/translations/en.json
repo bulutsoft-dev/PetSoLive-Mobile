@@ -322,5 +322,7 @@
   "help_requests.login_required": "You must be logged in to add a help request.",
   "help_requests.tab_my_ads": "My Ads",
   "help_requests.edit": "Edit",
-  "help_requests.delete": "Delete"
+  "help_requests.delete": "Delete",
+  "help_requests.delete_confirm_desc": "Are you sure you want to delete this help request? This action cannot be undone.",
+  "help_requests.delete_failed": "Delete failed: {0}"
 }

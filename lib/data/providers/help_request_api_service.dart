@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../core/constants/api_constants.dart';
 import '../models/help_request_dto.dart';
+import 'package:flutter/foundation.dart';
 
 class HelpRequestApiService {
   final String baseUrl = ApiConstants.baseUrl;
@@ -79,11 +80,19 @@ class HelpRequestApiService {
   }
 
   Future<void> delete(int id, String token) async {
+    debugPrint('[API] DELETE /api/HelpRequest/$id başlatılıyor...');
     final response = await http.delete(
       Uri.parse('$baseUrl/api/HelpRequest/$id'),
-      headers: {'x-api-key': ApiConstants.apiKey},
+      headers: {
+        'x-api-key': ApiConstants.apiKey,
+        'Authorization': 'Bearer $token',
+      },
     );
-    if (response.statusCode != 204) {
+    debugPrint('[API] DELETE URL: $baseUrl/api/HelpRequest/$id');
+    debugPrint('[API] DELETE Headers: x-api-key: ${ApiConstants.apiKey}, Authorization: Bearer $token');
+    debugPrint('[API] DELETE Status: ${response.statusCode}');
+    debugPrint('[API] DELETE Response: ${response.body}');
+    if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to delete help request');
     }
   }

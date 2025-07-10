@@ -317,5 +317,7 @@
   "help_requests.section_image": "Görsel",
   "help_requests.login_required": "Yardım talebi eklemek için giriş yapmalısınız.",
   "help_requests.edit": "Düzenle",
-  "help_requests.delete": "Sil"
+  "help_requests.delete": "Sil",
+  "help_requests.delete_confirm_desc": "Bu ilanı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+  "help_requests.delete_failed": "Silme işlemi başarısız: {0}"
 }

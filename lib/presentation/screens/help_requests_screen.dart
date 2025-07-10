@@ -113,8 +113,12 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> {
                           final req = filtered[i];
                           return HelpRequestCard(
                             request: req,
-                            onTap: () {
-                              Navigator.of(context).pushNamed('/help_request', arguments: req.id);
+                            onTap: () async {
+                              final result = await Navigator.of(context).pushNamed('/help_request', arguments: req.id);
+                              if (result == true && context.mounted) {
+                                await context.read<HelpRequestCubit>().getAll();
+                                setState(() {});
+                              }
                             },
                           );
                         },
