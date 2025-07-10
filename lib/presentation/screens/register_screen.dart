@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import '../../core/helpers/city_list.dart';
 import 'package:petsolive/presentation/screens/login_screen.dart';
 import '../../injection_container.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../localization/locale_keys.g.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -35,13 +37,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       if (_selectedCity == null || _selectedDistrict == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen şehir ve ilçe seçiniz.')),
+          SnackBar(content: Text(LocaleKeys.register_city_district_required.tr())),
         );
         return;
       }
       if (_selectedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen doğum tarihi seçiniz.')),
+          SnackBar(content: Text(LocaleKeys.register_birthdate_required.tr())),
         );
         return;
       }
@@ -64,7 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         debugPrint('Register Hatası: $e');
         debugPrintStack(stackTrace: stack);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Kayıt sırasında hata oluştu: $e')),
+          SnackBar(content: Text(LocaleKeys.register_error.tr(args: [e.toString()]))),
         );
       }
     }
@@ -142,13 +144,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   Text(
-                    'Kayıt Ol',
+                    LocaleKeys.register_title.tr(),
                     style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'PetSoLive’a katıl, topluluğumuza güç ver!',
+                    LocaleKeys.register_subtitle.tr(),
                     style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface.withOpacity(0.7)),
                     textAlign: TextAlign.center,
                   ),
@@ -160,10 +162,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Row(
-                              children: const [
-                                Icon(Icons.check_circle, color: Colors.green),
-                                SizedBox(width: 8),
-                                Text('Kayıt başarılı, giriş yapıldı!'),
+                              children: [
+                                const Icon(Icons.check_circle, color: Colors.green),
+                                const SizedBox(width: 8),
+                                Text(LocaleKeys.register_success.tr()),
                               ],
                             ),
                             backgroundColor: Colors.green.shade50,
@@ -187,7 +189,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               children: [
                                 const Icon(Icons.check_circle, color: Colors.green),
                                 const SizedBox(width: 8),
-                                Expanded(child: Text(state.message ?? 'Kayıt başarılı! Giriş yapabilirsiniz.')),
+                                Expanded(child: Text(state.message ?? LocaleKeys.register_success_message.tr())),
                               ],
                             ),
                             backgroundColor: Colors.green.shade50,
@@ -210,7 +212,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               children: [
                                 const Icon(Icons.error, color: Colors.red),
                                 const SizedBox(width: 8),
-                                Expanded(child: Text(state.error)),
+                                Expanded(child: Text(state.error.tr())),
                               ],
                             ),
                             backgroundColor: Colors.red.shade50,
@@ -235,21 +237,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               children: [
                                 TextFormField(
                                   controller: _usernameController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Kullanıcı Adı',
+                                  decoration: InputDecoration(
+                                    labelText: LocaleKeys.register_username.tr(),
                                     prefixIcon: Icon(Icons.person),
                                   ),
-                                  validator: (value) => value == null || value.isEmpty ? 'Kullanıcı adı zorunlu' : null,
+                                  validator: (value) => value == null || value.isEmpty ? LocaleKeys.register_username_required.tr() : null,
                                   autofillHints: const [AutofillHints.username],
                                 ),
                                 const SizedBox(height: 16),
                                 TextFormField(
                                   controller: _emailController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'E-posta',
+                                  decoration: InputDecoration(
+                                    labelText: LocaleKeys.register_email.tr(),
                                     prefixIcon: Icon(Icons.email),
                                   ),
-                                  validator: (value) => value == null || !value.contains('@') ? 'Geçerli e-posta girin' : null,
+                                  validator: (value) => value == null || !value.contains('@') ? LocaleKeys.register_email_required.tr() : null,
                                   keyboardType: TextInputType.emailAddress,
                                   autofillHints: const [AutofillHints.email],
                                 ),
@@ -257,7 +259,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 TextFormField(
                                   controller: _passwordController,
                                   decoration: InputDecoration(
-                                    labelText: 'Şifre',
+                                    labelText: LocaleKeys.register_password.tr(),
                                     prefixIcon: const Icon(Icons.lock),
                                     suffixIcon: IconButton(
                                       icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
@@ -265,28 +267,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     ),
                                   ),
                                   obscureText: _obscurePassword,
-                                  validator: (value) => value == null || value.length < 6 ? 'En az 6 karakterli şifre girin' : null,
+                                  validator: (value) => value == null || value.length < 6 ? LocaleKeys.register_password_required.tr() : null,
                                   autofillHints: const [AutofillHints.password],
                                 ),
                                 const SizedBox(height: 16),
                                 TextFormField(
                                   controller: _phoneController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Telefon',
+                                  decoration: InputDecoration(
+                                    labelText: LocaleKeys.register_phone.tr(),
                                     prefixIcon: Icon(Icons.phone),
                                   ),
-                                  validator: (value) => value == null || value.length < 10 ? 'Telefon numarası zorunlu' : null,
+                                  validator: (value) => value == null || value.length < 10 ? LocaleKeys.register_phone_required.tr() : null,
                                   keyboardType: TextInputType.phone,
                                   autofillHints: const [AutofillHints.telephoneNumber],
                                 ),
                                 const SizedBox(height: 16),
                                 TextFormField(
                                   controller: _addressController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Adres',
+                                  decoration: InputDecoration(
+                                    labelText: LocaleKeys.register_address.tr(),
                                     prefixIcon: Icon(Icons.home),
                                   ),
-                                  validator: (value) => value == null || value.isEmpty ? 'Adres zorunlu' : null,
+                                  validator: (value) => value == null || value.isEmpty ? LocaleKeys.register_address_required.tr() : null,
                                 ),
                                 const SizedBox(height: 16),
                                 DropdownButtonFormField<String>(
@@ -301,11 +303,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       _selectedDistrict = null;
                                     });
                                   },
-                                  decoration: const InputDecoration(
-                                    labelText: 'Şehir',
+                                  decoration: InputDecoration(
+                                    labelText: LocaleKeys.register_city.tr(),
                                     prefixIcon: Icon(Icons.location_city),
                                   ),
-                                  validator: (value) => value == null || value.isEmpty ? 'Şehir zorunlu' : null,
+                                  validator: (value) => value == null || value.isEmpty ? LocaleKeys.register_city_required.tr() : null,
                                 ),
                                 const SizedBox(height: 16),
                                 DropdownButtonFormField<String>(
@@ -320,31 +322,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       _selectedDistrict = district;
                                     });
                                   },
-                                  decoration: const InputDecoration(
-                                    labelText: 'İlçe',
+                                  decoration: InputDecoration(
+                                    labelText: LocaleKeys.register_district.tr(),
                                     prefixIcon: Icon(Icons.map),
                                   ),
-                                  validator: (value) => value == null || value.isEmpty ? 'İlçe zorunlu' : null,
+                                  validator: (value) => value == null || value.isEmpty ? LocaleKeys.register_district_required.tr() : null,
                                 ),
                                 const SizedBox(height: 16),
                                 TextFormField(
                                   controller: _dateOfBirthController,
                                   readOnly: true,
                                   decoration: InputDecoration(
-                                    labelText: 'Doğum Tarihi',
+                                    labelText: LocaleKeys.register_birthdate.tr(),
                                     prefixIcon: const Icon(Icons.cake),
                                     suffixIcon: IconButton(
                                       icon: const Icon(Icons.calendar_today),
                                       onPressed: _pickDate,
                                     ),
                                   ),
-                                  validator: (value) => value == null || value.isEmpty ? 'Doğum tarihi zorunlu' : null,
+                                  validator: (value) => value == null || value.isEmpty ? LocaleKeys.register_birthdate_required.tr() : null,
                                 ),
                                 const SizedBox(height: 16),
                                 TextFormField(
                                   controller: _profileImageUrlController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Profil Fotoğrafı (opsiyonel)',
+                                  decoration: InputDecoration(
+                                    labelText: LocaleKeys.register_profile_image.tr(),
                                     prefixIcon: Icon(Icons.image),
                                   ),
                                 ),
@@ -364,7 +366,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             height: 28,
                                             child: CircularProgressIndicator(strokeWidth: 2),
                                           )
-                                        : const Text('Kayıt Ol'),
+                                        : Text(LocaleKeys.register_button.tr()),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -376,7 +378,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       padding: const EdgeInsets.symmetric(vertical: 14),
                                       textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                                     ),
-                                    child: const Text('Zaten hesabım var'),
+                                    child: Text(LocaleKeys.register_already_have.tr()),
                                   ),
                                 ),
                               ],
@@ -388,7 +390,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    '© 2025 PetSoLive & Bulutsoft',
+                    LocaleKeys.register_copyright.tr(),
                     style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.4)),
                   ),
                   const SizedBox(height: 12),

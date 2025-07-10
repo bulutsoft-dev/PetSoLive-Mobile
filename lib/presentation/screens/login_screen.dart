@@ -4,6 +4,8 @@ import '../../data/models/auth_dto.dart';
 import '../blocs/account_cubit.dart';
 import '../../main.dart';
 import 'register_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../localization/locale_keys.g.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -104,13 +106,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   Text(
-                    'PetSoLive’a Hoş Geldiniz!',
+                    LocaleKeys.login_title.tr(),
                     style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Evcil dostlarımız için yardımlaşmanın merkezi',
+                    LocaleKeys.login_subtitle.tr(),
                     style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface.withOpacity(0.7)),
                     textAlign: TextAlign.center,
                   ),
@@ -121,10 +123,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Row(
-                              children: const [
-                                Icon(Icons.check_circle, color: Colors.green),
-                                SizedBox(width: 8),
-                                Text('Başarıyla giriş yapıldı!'),
+                              children: [
+                                const Icon(Icons.check_circle, color: Colors.green),
+                                const SizedBox(width: 8),
+                                Text(LocaleKeys.login_success.tr()),
                               ],
                             ),
                             backgroundColor: Colors.green.shade50,
@@ -146,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               children: [
                                 const Icon(Icons.error, color: Colors.red),
                                 const SizedBox(width: 8),
-                                Expanded(child: Text(state.error)),
+                                Expanded(child: Text(state.error.tr())),
                               ],
                             ),
                             backgroundColor: Colors.red.shade50,
@@ -171,19 +173,19 @@ class _LoginScreenState extends State<LoginScreen> {
                               children: [
                                 TextFormField(
                                   controller: _usernameController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Kullanıcı Adı',
+                                  decoration: InputDecoration(
+                                    labelText: LocaleKeys.login_username.tr(),
                                     prefixIcon: Icon(Icons.person),
                                   ),
                                   validator: (value) =>
-                                      value == null || value.isEmpty ? 'Kullanıcı adı zorunlu' : null,
+                                      value == null || value.isEmpty ? LocaleKeys.login_username_required.tr() : null,
                                   autofillHints: const [AutofillHints.username],
                                 ),
                                 const SizedBox(height: 18),
                                 TextFormField(
                                   controller: _passwordController,
                                   decoration: InputDecoration(
-                                    labelText: 'Şifre',
+                                    labelText: LocaleKeys.login_password.tr(),
                                     prefixIcon: const Icon(Icons.lock),
                                     suffixIcon: IconButton(
                                       icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
@@ -192,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   obscureText: _obscurePassword,
                                   validator: (value) =>
-                                      value == null || value.length < 6 ? 'En az 6 karakterli şifre girin' : null,
+                                      value == null || value.length < 6 ? LocaleKeys.login_password_required.tr() : null,
                                   autofillHints: const [AutofillHints.password],
                                 ),
                                 const SizedBox(height: 32),
@@ -211,18 +213,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                             height: 28,
                                             child: CircularProgressIndicator(strokeWidth: 2),
                                           )
-                                        : const Text('Giriş Yap'),
+                                        : Text(LocaleKeys.login_button.tr()),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
                                 Row(
-                                  children: const [
-                                    Expanded(child: Divider()),
+                                  children: [
+                                    const Expanded(child: Divider()),
                                     Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 10.0),
-                                      child: Text('veya'),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                                      child: Text(LocaleKeys.login_or.tr()),
                                     ),
-                                    Expanded(child: Divider()),
+                                    const Expanded(child: Divider()),
                                   ],
                                 ),
                                 const SizedBox(height: 16),
@@ -235,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                     ),
-                                    child: const Text('Kayıt Ol'),
+                                    child: Text(LocaleKeys.login_register.tr()),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -247,7 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       padding: const EdgeInsets.symmetric(vertical: 14),
                                       textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                                     ),
-                                    child: const Text('Giriş yapmadan devam et'),
+                                    child: Text(LocaleKeys.login_continue_without.tr()),
                                   ),
                                 ),
                               ],
@@ -259,7 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    '© 2024 PetSoLive',
+                    LocaleKeys.login_copyright.tr(),
                     style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.4)),
                   ),
                   const SizedBox(height: 12),
