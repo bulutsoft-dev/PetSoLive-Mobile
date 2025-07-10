@@ -45,11 +45,20 @@ class CommentApiService {
   }
 
   Future<void> delete(int id, String token) async {
+    final url = Uri.parse('$baseUrl/api/Comment/$id');
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'x-api-key': ApiConstants.apiKey,
+    };
+    print('[COMMENT DELETE] URL: $url');
+    print('[COMMENT DELETE] Headers: ' + headers.toString());
     final response = await http.delete(
-      Uri.parse('$baseUrl/api/Comment/$id'),
-      headers: {'Authorization': 'Bearer $token'},
+      url,
+      headers: headers,
     );
-    if (response.statusCode != 204) {
+    print('[COMMENT DELETE] Status: ${response.statusCode}');
+    print('[COMMENT DELETE] Response: ${response.body}');
+    if (response.statusCode != 200) {
       throw Exception('Failed to delete comment');
     }
   }
