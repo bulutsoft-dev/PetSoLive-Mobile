@@ -7,6 +7,7 @@ import '../../data/models/lost_pet_ad_dto.dart';
 import '../../core/helpers/city_list.dart';
 import '../partials/base_app_bar.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../core/constants/admob_banner_widget.dart';
 
 class AddLostPetAdScreen extends StatefulWidget {
   const AddLostPetAdScreen({Key? key}) : super(key: key);
@@ -303,6 +304,7 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
                   ),
                 ],
               ),
+              AdmobBannerWidget(),
             ],
           ),
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../partials/base_app_bar.dart';
+import '../../core/constants/admob_banner_widget.dart';
 
 class DeleteConfirmationScreen extends StatelessWidget {
   final String? title;
@@ -74,6 +75,8 @@ class DeleteConfirmationScreen extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+            AdmobBannerWidget(),
           ],
         ),
       ),

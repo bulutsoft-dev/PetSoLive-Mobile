@@ -13,6 +13,9 @@ import '../../data/local/session_manager.dart';
 import 'edit_lost_pet_ad_screen.dart';
 import 'delete_confirmation_screen.dart';
 import '../blocs/lost_pet_ad_cubit.dart';
+import '../../core/constants/admob_banner_widget.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../core/constants/admob_constants.dart';
 
 class LostPetAdScreen extends StatefulWidget {
   final int adId;
@@ -26,6 +29,8 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
   late Future<LostPetAdDto> _adFuture;
   Future<UserDto?>? _userFuture;
   int? _currentUserId;
+  InterstitialAd? _interstitialAd;
+  bool _isInterstitialShown = false;
   bool _isOwner(LostPetAdDto ad) => _currentUserId != null && ad.userId == _currentUserId;
 
   @override
@@ -33,6 +38,44 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
     super.initState();
     _adFuture = fetchLostPetAd(widget.adId);
     _loadCurrentUserId();
+    _loadInterstitialAd();
+  }
+
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: AdMobAdUnitIds.interstitialId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitialAd = ad;
+          _showInterstitialAd();
+        },
+        onAdFailedToLoad: (error) {
+          _interstitialAd = null;
+        },
+      ),
+    );
+  }
+
+  void _showInterstitialAd() {
+    if (_interstitialAd != null && !_isInterstitialShown) {
+      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+        },
+      );
+      _interstitialAd!.show();
+      _isInterstitialShown = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    _interstitialAd?.dispose();
+    super.dispose();
   }
 
   Future<void> _loadCurrentUserId() async {
@@ -442,6 +485,7 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                     },
                   ),
                   const SizedBox(height: 32),
+                  AdmobBannerWidget(),
                 ],
               ),
             ),

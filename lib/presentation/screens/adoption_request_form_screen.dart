@@ -8,6 +8,7 @@ import '../../data/models/user_dto.dart';
 import '../../data/models/adoption_request_dto.dart';
 import '../../data/providers/adoption_request_api_service.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../core/constants/admob_banner_widget.dart';
 
 class AdoptionRequestFormScreen extends StatefulWidget {
   final PetDto pet;
@@ -268,6 +269,7 @@ class _AdoptionRequestFormScreenState extends State<AdoptionRequestFormScreen> {
                   elevation: 2,
                 ),
               ),
+              AdmobBannerWidget(),
             ],
           ),
         ),

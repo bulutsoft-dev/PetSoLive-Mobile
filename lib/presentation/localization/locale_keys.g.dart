@@ -239,7 +239,7 @@ abstract class  LocaleKeys {
   static const pets_breed = 'pets_breed';
   static const pets_gender = 'pets_gender';
   static const pets_gender_Erkek = 'pets_gender_Erkek';
-  static const pets_gender_Dii = 'pets_gender_Dişi';
+  static const pets_gender_Disi = 'pets_gender_Dişi';
   static const pets_age = 'pets_age';
   static const pets_color = 'pets_color';
   static const pets_weight = 'pets_weight';

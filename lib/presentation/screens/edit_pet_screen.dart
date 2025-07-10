@@ -4,6 +4,7 @@ import '../../data/models/pet_dto.dart';
 import '../../data/providers/pet_api_service.dart';
 import '../../data/local/session_manager.dart';
 import '../partials/base_app_bar.dart';
+import '../../core/constants/admob_banner_widget.dart';
 
 class EditPetScreen extends StatefulWidget {
   final PetDto pet;
@@ -362,6 +363,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   ),
                 ],
               ),
+              AdmobBannerWidget(),
             ],
           ),
         ),

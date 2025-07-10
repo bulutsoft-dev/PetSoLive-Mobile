@@ -5,6 +5,7 @@ import '../blocs/pet_cubit.dart';
 import '../../data/models/pet_dto.dart';
 import '../../data/local/session_manager.dart';
 import '../partials/base_app_bar.dart';
+import '../../core/constants/admob_banner_widget.dart';
 
 class AddPetScreen extends StatefulWidget {
   final PetDto? pet;
@@ -377,6 +378,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   ),
                 ],
               ),
+              AdmobBannerWidget(),
             ],
           ),
         ),

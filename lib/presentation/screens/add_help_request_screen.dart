@@ -8,6 +8,7 @@ import '../localization/locale_keys.g.dart';
 import '../partials/base_app_bar.dart';
 import '../../core/enums/emergency_level.dart';
 import '../../core/enums/help_request_status.dart';
+import '../../core/constants/admob_banner_widget.dart';
 
 class AddHelpRequestScreen extends StatefulWidget {
   const AddHelpRequestScreen({Key? key}) : super(key: key);
@@ -311,6 +312,7 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
                   label: Text('help_requests.save'.tr()),
                   style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                 ),
+                AdmobBannerWidget(),
               ],
             ),
           ),
