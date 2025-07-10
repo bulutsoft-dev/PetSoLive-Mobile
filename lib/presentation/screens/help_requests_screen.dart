@@ -69,43 +69,50 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> with SingleTick
             Expanded(
               child: BlocBuilder<HelpRequestCubit, HelpRequestState>(
                 builder: (context, state) {
-                  if (state is HelpRequestLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (state is HelpRequestError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.error_outline, color: Colors.red, size: 48),
-                          const SizedBox(height: 12),
-                          Text('help_requests.error'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)),
-                          const SizedBox(height: 8),
-                          Text(state.error.toString(), style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
-                        ],
-                      ),
-                    );
-                  } else if (state is HelpRequestLoaded) {
-                    final selectedTab = tabs[_tabController.index];
-                    final filtered = selectedTab == 'help_requests.tab_all'
-                        ? state.helpRequests
-                        : state.helpRequests.where((e) => e.emergencyLevel.name == selectedTab.replaceAll('help_requests.tab_', '').toLowerCase()).toList();
-                    if (filtered.isEmpty) {
-                      return Center(child: Text('help_requests.empty').tr());
-                    }
-                    return ListView.builder(
-                      itemCount: filtered.length,
-                      itemBuilder: (context, i) {
-                        final req = filtered[i];
-                        return HelpRequestCard(
-                          request: req,
-                          onTap: () {
-                            Navigator.of(context).pushNamed('/help_request', arguments: req.id);
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      await context.read<HelpRequestCubit>().getAll();
+                    },
+                    child: () {
+                      if (state is HelpRequestLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (state is HelpRequestError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.error_outline, color: Colors.red, size: 48),
+                              const SizedBox(height: 12),
+                              Text('help_requests.error'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)),
+                              const SizedBox(height: 8),
+                              Text(state.error.toString(), style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+                            ],
+                          ),
+                        );
+                      } else if (state is HelpRequestLoaded) {
+                        final selectedTab = tabs[_tabController.index];
+                        final filtered = selectedTab == 'help_requests.tab_all'
+                            ? state.helpRequests
+                            : state.helpRequests.where((e) => e.emergencyLevel.name == selectedTab.replaceAll('help_requests.tab_', '').toLowerCase()).toList();
+                        if (filtered.isEmpty) {
+                          return Center(child: Text('help_requests.empty').tr());
+                        }
+                        return ListView.builder(
+                          itemCount: filtered.length,
+                          itemBuilder: (context, i) {
+                            final req = filtered[i];
+                            return HelpRequestCard(
+                              request: req,
+                              onTap: () {
+                                Navigator.of(context).pushNamed('/help_request', arguments: req.id);
+                              },
+                            );
                           },
                         );
-                      },
-                    );
-                  }
-                  return const SizedBox.shrink();
+                      }
+                      return const SizedBox.shrink();
+                    }(),
+                  );
                 },
               ),
             ),
@@ -114,8 +121,11 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> with SingleTick
         floatingActionButton: _showFab
             ? FloatingActionButton(
                 heroTag: 'help_requests_fab',
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/add_help_request');
+                onPressed: () async {
+                  final result = await Navigator.of(context).pushNamed('/add_help_request');
+                  if (result == true && context.mounted) {
+                    context.read<HelpRequestCubit>().getAll();
+                  }
                 },
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
