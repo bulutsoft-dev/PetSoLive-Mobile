@@ -20,10 +20,12 @@ import 'presentation/blocs/account_cubit.dart';
 import 'presentation/screens/pet_detail_screen.dart';
 import 'presentation/blocs/lost_pet_ad_cubit.dart';
 import 'presentation/blocs/help_request_cubit.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+  await MobileAds.instance.initialize();
   init();
   runApp(
     EasyLocalization(

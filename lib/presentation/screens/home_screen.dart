@@ -10,6 +10,8 @@ import '../blocs/lost_pet_ad_cubit.dart';
 import '../blocs/help_request_cubit.dart';
 import '../../injection_container.dart';
 import '../localization/locale_keys.g.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../core/constants/admob_constants.dart';
 
 class HomeScreen extends StatelessWidget {
   final void Function(int) onTabChange;
@@ -243,9 +245,55 @@ class HomeScreen extends StatelessWidget {
                 return const SizedBox.shrink();
               },
             ),
+            // Banner Ad
+            _HomeBannerAd(),
             const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _HomeBannerAd extends StatefulWidget {
+  @override
+  State<_HomeBannerAd> createState() => _HomeBannerAdState();
+}
+
+class _HomeBannerAdState extends State<_HomeBannerAd> {
+  BannerAd? _bannerAd;
+  bool _isLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _bannerAd = BannerAd(
+      adUnitId: AdMobAdUnitIds.bannerId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) => setState(() => _isLoaded = true),
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isLoaded) return const SizedBox(height: 0);
+    return Center(
+      child: SizedBox(
+        width: _bannerAd!.size.width.toDouble(),
+        height: _bannerAd!.size.height.toDouble(),
+        child: AdWidget(ad: _bannerAd!),
       ),
     );
   }
