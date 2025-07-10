@@ -289,5 +289,7 @@
   "adoption_form.required_phone": "Telefon zorunlu",
   "adoption_form.required_address": "Adres zorunlu",
   "adoption_form.required_birthdate": "Doğum tarihi zorunlu",
-  "adoption_form.success": "Sahiplenme başvurunuz başarıyla iletildi! Hayvan sahibi sizinle iletişime geçebilir."
+  "adoption_form.success": "Sahiplenme başvurunuz başarıyla iletildi! Hayvan sahibi sizinle iletişime geçebilir.",
+  "lost_pets_my_ads_only": "İlanlarım",
+  "lost_pets.my_ads_only": "İlanlarım"
 }

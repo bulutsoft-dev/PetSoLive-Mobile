@@ -24,6 +24,22 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
   String selectedCity = '';
   String selectedDistrict = '';
   final TextEditingController _searchController = TextEditingController();
+  bool myAdsOnly = false;
+  int? currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUserId();
+  }
+
+  Future<void> _loadCurrentUserId() async {
+    final authService = AuthService();
+    final user = await authService.getUser();
+    setState(() {
+      currentUserId = user != null ? user['id'] as int? : null;
+    });
+  }
 
   Locale? _lastLocale;
 
@@ -49,7 +65,8 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
           (ad.description.toLowerCase().contains(searchQuery.toLowerCase()));
       final matchesCity = selectedCity.isEmpty || (ad.lastSeenCity == selectedCity);
       final matchesDistrict = selectedDistrict.isEmpty || (ad.lastSeenDistrict == selectedDistrict);
-      return matchesQuery && matchesCity && matchesDistrict;
+      final matchesOwner = !myAdsOnly || (currentUserId != null && ad.userId == currentUserId);
+      return matchesQuery && matchesCity && matchesDistrict && matchesOwner;
     }).toList();
   }
 
@@ -106,11 +123,13 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
                 final cities = getCities(allAds);
                 final districts = selectedCity.isNotEmpty ? getDistricts(allAds, selectedCity) : <String>[];
                 final filteredAds = filterAds(allAds);
+                final userHasAds = currentUserId != null && allAds.any((ad) => ad.userId == currentUserId);
                 return Column(
                   children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           // Şehir filtresi
                           Expanded(
@@ -153,6 +172,25 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
                         onChanged: (v) => setState(() => searchQuery = v),
                       ),
                     ),
+                    if (userHasAds)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10, bottom: 4),
+                        child: Center(
+                          child: FilterChip(
+                            label: Text(
+                              'lost_pets.my_ads_only'.tr(),
+                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                            ),
+                            avatar: const Icon(Icons.person, size: 18),
+                            selected: myAdsOnly,
+                            selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                            checkmarkColor: Theme.of(context).colorScheme.primary,
+                            backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                            shape: StadiumBorder(side: BorderSide(color: Theme.of(context).colorScheme.primary)),
+                            onSelected: (v) => setState(() => myAdsOnly = v),
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 8),
                     if (filteredAds.isEmpty)
                       Expanded(
