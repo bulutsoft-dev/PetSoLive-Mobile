@@ -304,6 +304,7 @@
   "help_requests.save": "Save",
   "help_requests.title": "Help Request",
   "help_requests.title_required": "Title is required.",
+  "profile.select_language": "Change language",
   "help_requests.description": "Description",
   "help_requests.description_required": "Description is required.",
   "help_requests.emergency_level": "Emergency Level",
