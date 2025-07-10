@@ -9,6 +9,7 @@ import '../blocs/theme_cubit.dart';
 import 'package:petsolive/data/providers/lost_pet_ad_api_service.dart';
 import 'package:petsolive/data/providers/user_api_service.dart';
 import 'package:petsolive/data/models/user_dto.dart';
+import '../../data/local/session_manager.dart';
 
 class LostPetAdScreen extends StatefulWidget {
   final int adId;
@@ -21,11 +22,21 @@ class LostPetAdScreen extends StatefulWidget {
 class _LostPetAdScreenState extends State<LostPetAdScreen> {
   late Future<LostPetAdDto> _adFuture;
   Future<UserDto?>? _userFuture;
+  int? _currentUserId;
+  bool _isOwner(LostPetAdDto ad) => _currentUserId != null && ad.userId == _currentUserId;
 
   @override
   void initState() {
     super.initState();
     _adFuture = fetchLostPetAd(widget.adId);
+    _loadCurrentUserId();
+  }
+
+  Future<void> _loadCurrentUserId() async {
+    final user = await SessionManager().getUser();
+    setState(() {
+      _currentUserId = user != null ? user['id'] as int? : null;
+    });
   }
 
   Future<LostPetAdDto> fetchLostPetAd(int id) async {
@@ -87,6 +98,7 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
           }
           final ad = snapshot.data!;
           _userFuture ??= UserApiService().getById(ad.userId);
+          final isOwner = _isOwner(ad);
           return SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -247,7 +259,7 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                   ),
                   const SizedBox(height: 18),
                   // --- KULLANICI BİLGİLERİ ---
-                  FutureBuilder<UserDto?>(
+                  FutureBuilder<UserDto?> (
                     future: _userFuture,
                     builder: (context, userSnap) {
                       if (userSnap.connectionState != ConnectionState.done) {
@@ -323,7 +335,6 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 18),
                           // Diğer bilgiler blok halinde
                           _iconInfoRow(Icons.email, 'lost_pet_ad.email'.tr(), user.email, theme),
                           if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty) ...[
@@ -342,6 +353,48 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                             const SizedBox(height: 6),
                             _iconInfoRow(Icons.map, 'lost_pet_ad.district'.tr(), user.district!, theme),
                           ],
+                          // BUTONLAR: sadece ilan sahibi ise
+                          if (isOwner) ...[
+                            const SizedBox(height: 18),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.edit),
+                                    label: const Text('Düzenle'),
+                                    onPressed: () {
+                                      // TODO: Edit ekranına yönlendir
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Theme.of(context).colorScheme.primary,
+                                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.delete),
+                                    label: const Text('Sil'),
+                                    onPressed: () {
+                                      // TODO: Silme işlemi
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Theme.of(context).colorScheme.error,
+                                      foregroundColor: Theme.of(context).colorScheme.onError,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 18),
                         ],
                       );
                     },
