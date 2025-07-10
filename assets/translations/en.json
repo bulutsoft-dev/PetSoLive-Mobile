@@ -324,5 +324,8 @@
   "help_requests.edit": "Edit",
   "help_requests.delete": "Delete",
   "help_requests.delete_confirm_desc": "Are you sure you want to delete this help request? This action cannot be undone.",
-  "help_requests.delete_failed": "Delete failed: {0}"
+  "help_requests.delete_failed": "Delete failed: {0}",
+  "help_requests.edit_title": "Edit Help Request",
+  "help_requests.edit_success": "Help request updated successfully.",
+  "help_requests.edit_failed": "Edit failed: {0}"
 }

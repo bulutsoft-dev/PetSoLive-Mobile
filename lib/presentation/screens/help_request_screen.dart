@@ -17,6 +17,7 @@ import '../partials/base_app_bar.dart';
 import '../../core/network/auth_service.dart';
 import '../blocs/account_cubit.dart';
 import '../screens/delete_confirmation_screen.dart';
+import '../screens/edit_help_request_screen.dart';
 
 class HelpRequestScreen extends StatefulWidget {
   final int requestId;
@@ -279,8 +280,23 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () {
-                              // Düzenle işlemi
+                            onPressed: () async {
+                              final req = state.helpRequest!;
+                              final result = await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => MultiBlocProvider(
+                                    providers: [
+                                      BlocProvider.value(value: context.read<HelpRequestCubit>()),
+                                      BlocProvider.value(value: context.read<AccountCubit>()),
+                                    ],
+                                    child: EditHelpRequestScreen(helpRequest: req),
+                                  ),
+                                ),
+                              );
+                              if (result == true && context.mounted) {
+                                await context.read<HelpRequestCubit>().getById(req.id);
+                                setState(() {});
+                              }
                             },
                             icon: const Icon(Icons.edit, size: 20),
                             label: Text('help_requests.edit'.tr()),

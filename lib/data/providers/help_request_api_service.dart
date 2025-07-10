@@ -66,14 +66,24 @@ class HelpRequestApiService {
   }
 
   Future<void> update(int id, HelpRequestDto dto, String token) async {
+    debugPrint('[API] PUT /api/HelpRequest/$id başlatılıyor...');
+    final url = Uri.parse('$baseUrl/api/HelpRequest/$id');
+    final headers = {
+      'Content-Type': 'application/json',
+      'x-api-key': ApiConstants.apiKey,
+      'Authorization': 'Bearer $token',
+    };
+    final body = jsonEncode(dto.toJson());
+    debugPrint('[API] PUT URL: $url');
+    debugPrint('[API] PUT Headers: $headers');
+    debugPrint('[API] PUT Body: $body');
     final response = await http.put(
-      Uri.parse('$baseUrl/api/HelpRequest/$id'),
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ApiConstants.apiKey,
-      },
-      body: jsonEncode(dto.toJson()),
+      url,
+      headers: headers,
+      body: body,
     );
+    debugPrint('[API] PUT Status: ${response.statusCode}');
+    debugPrint('[API] PUT Response: ${response.body}');
     if (response.statusCode != 204) {
       throw Exception('Failed to update help request');
     }
