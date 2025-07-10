@@ -417,8 +417,19 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                                         return;
                                       }
                                       final token = accountState.response.token;
-                                      await context.read<CommentCubit>().delete(c.id, token);
-                                      await context.read<CommentCubit>().getByHelpRequestId(widget.requestId);
+                                      try {
+                                        await context.read<CommentCubit>().delete(c.id, token);
+                                        await context.read<CommentCubit>().getByHelpRequestId(widget.requestId);
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('help_requests.comment_delete_success'.tr()), backgroundColor: Colors.green),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('help_requests.comment_delete_failed'.tr(args: [e.toString()])), backgroundColor: Colors.red),
+                                        );
+                                      }
                                     }
                                   }
                                 : null,
@@ -500,8 +511,19 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                                         content: result,
                                         createdAt: c.createdAt,
                                       );
-                                      await context.read<CommentCubit>().update(updated.id, updated, token);
-                                      await context.read<CommentCubit>().getByHelpRequestId(widget.requestId);
+                                      try {
+                                        await context.read<CommentCubit>().update(updated.id, updated, token);
+                                        await context.read<CommentCubit>().getByHelpRequestId(widget.requestId);
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('help_requests.comment_edit_success'.tr()), backgroundColor: Colors.green),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('help_requests.comment_edit_failed'.tr(args: [e.toString()])), backgroundColor: Colors.red),
+                                        );
+                                      }
                                     }
                                   }
                                 : null,
@@ -661,9 +683,14 @@ class _CommentInputState extends State<_CommentInput> {
       await context.read<CommentCubit>().getByHelpRequestId(helpRequestId);
       _controller.clear();
       FocusScope.of(context).unfocus();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('help_requests.comment_add_success'.tr()), backgroundColor: Colors.green),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Yorum eklenemedi: $e')),
+        SnackBar(content: Text('help_requests.comment_add_failed'.tr(args: [e.toString()])), backgroundColor: Colors.red),
       );
     }
     setState(() => _isLoading = false);

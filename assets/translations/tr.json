@@ -324,5 +324,11 @@
   "help_requests.edit_success": "Yardım talebi başarıyla güncellendi.",
   "help_requests.edit_failed": "Düzenleme başarısız: {0}",
   "help_requests.edit_comment_title": "Yorumu Düzenle",
-  "help_requests.edit_comment_hint": "Yorumunuzu düzenleyin"
+  "help_requests.edit_comment_hint": "Yorumunuzu düzenleyin",
+  "help_requests.comment_add_success": "Yorum başarıyla eklendi.",
+  "help_requests.comment_add_failed": "Yorum eklenemedi: {0}",
+  "help_requests.comment_edit_success": "Yorum başarıyla güncellendi.",
+  "help_requests.comment_edit_failed": "Yorum güncellenemedi: {0}",
+  "help_requests.comment_delete_success": "Yorum başarıyla silindi.",
+  "help_requests.comment_delete_failed": "Yorum silinemedi: {0}"
 }

@@ -329,5 +329,11 @@
   "help_requests.edit_success": "Help request updated successfully.",
   "help_requests.edit_failed": "Edit failed: {0}",
   "help_requests.edit_comment_title": "Edit Comment",
-  "help_requests.edit_comment_hint": "Edit your comment"
+  "help_requests.edit_comment_hint": "Edit your comment",
+  "help_requests.comment_add_success": "Comment added successfully.",
+  "help_requests.comment_add_failed": "Failed to add comment: {0}",
+  "help_requests.comment_edit_success": "Comment updated successfully.",
+  "help_requests.comment_edit_failed": "Failed to update comment: {0}",
+  "help_requests.comment_delete_success": "Comment deleted successfully.",
+  "help_requests.comment_delete_failed": "Failed to delete comment: {0}"
 }
