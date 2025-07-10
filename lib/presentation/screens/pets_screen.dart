@@ -499,48 +499,48 @@ class _PetListView extends StatelessWidget {
           } else if (state is PetError) {
             return Center(child: Text('pets.error'.tr() + '\n' + state.error));
           }
-          final pets = state is PetLoaded ? state.allPets : (state as PetFiltered).pets;
-          if (pets.isEmpty) {
-            return ListView(
-              children: [
-                SizedBox(height: 200),
-                Center(child: Text('pets.empty'.tr())),
-              ],
-            );
-          }
-          if (adoptedStatus.length != pets.length || adoptionLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final filteredPets = filterPets(pets).where(filter).toList();
-          if (filteredPets.isEmpty) {
-            return ListView(
-              children: [
-                SizedBox(height: 200),
-                Center(child: Text('pets.empty'.tr())),
-              ],
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            itemCount: filteredPets.length,
-            itemBuilder: (context, index) {
-              final pet = filteredPets[index];
-              final isAdopted = adoptedStatus[pet.id] ?? false;
-              final ownerName = adoptedOwner[pet.id];
-              final isMine = currentUserId != null && pet.ownerId == currentUserId;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: PetCard(
-                  name: pet.name,
-                  species: pet.species,
-                  imageUrl: pet.imageUrl ?? '',
-                  description: pet.description ?? '',
-                  age: pet.age,
-                  gender: pet.gender,
-                  color: pet.color,
-                  vaccinationStatus: pet.vaccinationStatus,
-                  isAdopted: isAdopted,
-                  ownerName: ownerName,
+            final pets = state is PetLoaded ? state.allPets : (state as PetFiltered).pets;
+            if (pets.isEmpty) {
+              return ListView(
+                children: [
+                  SizedBox(height: 200),
+                  Center(child: Text('pets.empty'.tr())),
+                ],
+              );
+            }
+            if (adoptedStatus.length != pets.length || adoptionLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final filteredPets = filterPets(pets).where(filter).toList();
+            if (filteredPets.isEmpty) {
+              return ListView(
+                children: [
+                  SizedBox(height: 200),
+                  Center(child: Text('pets.empty'.tr())),
+                ],
+              );
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              itemCount: filteredPets.length,
+              itemBuilder: (context, index) {
+                final pet = filteredPets[index];
+                final isAdopted = adoptedStatus[pet.id] ?? false;
+                final ownerName = adoptedOwner[pet.id];
+                final isMine = currentUserId != null && pet.ownerId == currentUserId;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: PetCard(
+                    name: pet.name,
+                    species: pet.species,
+                    imageUrl: pet.imageUrl ?? '',
+                    description: pet.description ?? '',
+                    age: pet.age,
+                    gender: pet.gender,
+                    color: pet.color,
+                    vaccinationStatus: pet.vaccinationStatus,
+                    isAdopted: isAdopted,
+                    ownerName: ownerName,
                   onTap: () async {
                     final result = await Navigator.of(context).push(
                       MaterialPageRoute(
@@ -554,12 +554,12 @@ class _PetListView extends StatelessWidget {
                         await onAfterDetailReturn!();
                       }
                     }
-                  },
-                  isMine: isMine,
-                ),
-              );
-            },
-          );
+                    },
+                    isMine: isMine,
+                  ),
+                );
+              },
+            );
         },
       ),
     );
