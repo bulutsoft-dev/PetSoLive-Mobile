@@ -322,5 +322,7 @@
   "help_requests.delete_failed": "Silme işlemi başarısız: {0}",
   "help_requests.edit_title": "Yardım Talebini Düzenle",
   "help_requests.edit_success": "Yardım talebi başarıyla güncellendi.",
-  "help_requests.edit_failed": "Düzenleme başarısız: {0}"
+  "help_requests.edit_failed": "Düzenleme başarısız: {0}",
+  "help_requests.edit_comment_title": "Yorumu Düzenle",
+  "help_requests.edit_comment_hint": "Yorumunuzu düzenleyin"
 }

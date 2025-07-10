@@ -327,5 +327,7 @@
   "help_requests.delete_failed": "Delete failed: {0}",
   "help_requests.edit_title": "Edit Help Request",
   "help_requests.edit_success": "Help request updated successfully.",
-  "help_requests.edit_failed": "Edit failed: {0}"
+  "help_requests.edit_failed": "Edit failed: {0}",
+  "help_requests.edit_comment_title": "Edit Comment",
+  "help_requests.edit_comment_hint": "Edit your comment"
 }

@@ -427,24 +427,58 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                                     final controller = TextEditingController(text: c.content);
                                     final result = await showDialog<String>(
                                       context: context,
-                                      builder: (ctx) => AlertDialog(
-                                        title: Text('Yorumu Düzenle'),
-                                        content: TextField(
-                                          controller: controller,
-                                          minLines: 2,
-                                          maxLines: 5,
-                                          decoration: InputDecoration(hintText: 'Yorumunuzu düzenleyin'),
+                                      builder: (ctx) => Dialog(
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                                        backgroundColor: Theme.of(context).dialogBackgroundColor,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Icon(Icons.edit, color: Theme.of(context).colorScheme.primary),
+                                                  const SizedBox(width: 8),
+                                                  Text('help_requests.edit_comment_title'.tr(), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 18),
+                                              TextField(
+                                                controller: controller,
+                                                minLines: 3,
+                                                maxLines: 6,
+                                                autofocus: true,
+                                                decoration: InputDecoration(
+                                                  hintText: 'help_requests.edit_comment_hint'.tr(),
+                                                  filled: true,
+                                                  fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.13),
+                                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 22),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                children: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.of(ctx).pop(),
+                                                    child: Text('form.cancel'.tr()),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  ElevatedButton(
+                                                    onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
+                                                    style: ElevatedButton.styleFrom(
+                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                                    ),
+                                                    child: Text('form.save'.tr()),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () => Navigator.of(ctx).pop(),
-                                            child: Text('Vazgeç'),
-                                          ),
-                                          TextButton(
-                                            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
-                                            child: Text('Kaydet'),
-                                          ),
-                                        ],
                                       ),
                                     );
                                     if (result != null && result.isNotEmpty && result != c.content) {
@@ -466,7 +500,7 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                                         content: result,
                                         createdAt: c.createdAt,
                                       );
-                                      await context.read<CommentCubit>().add(updated, token);
+                                      await context.read<CommentCubit>().update(updated.id, updated, token);
                                       await context.read<CommentCubit>().getByHelpRequestId(widget.requestId);
                                     }
                                   }

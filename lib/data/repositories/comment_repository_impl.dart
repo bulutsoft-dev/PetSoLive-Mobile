@@ -16,4 +16,7 @@ class CommentRepositoryImpl implements CommentRepository {
 
   @override
   Future<void> delete(int id, String token) => apiService.delete(id, token);
+
+  @override
+  Future<void> update(int id, CommentDto dto, String token) => apiService.update(id, dto, token);
 } 
