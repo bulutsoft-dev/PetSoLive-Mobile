@@ -330,5 +330,19 @@
   "help_requests.comment_edit_success": "Yorum başarıyla güncellendi.",
   "help_requests.comment_edit_failed": "Yorum güncellenemedi: {0}",
   "help_requests.comment_delete_success": "Yorum başarıyla silindi.",
-  "help_requests.comment_delete_failed": "Yorum silinemedi: {0}"
+  "help_requests.comment_delete_failed": "Yorum silinemedi: {0}",
+  "profile.veterinarian_section": "Veterinerlik",
+  "profile.veterinarian_title": "Veteriner misiniz?",
+  "profile.veterinarian_desc": "Eğer bir veterinerseniz, başvurunuzu iletebilirsiniz. Onaylandıktan sonra profilinizde veteriner rozeti görünecek.",
+  "profile.veterinarian_apply": "Veteriner Başvurusu Yap",
+  "profile.veterinarian_apply_title": "Veteriner Başvuru Formu",
+  "profile.qualifications": "Uzmanlıklar",
+  "profile.qualifications_required": "Uzmanlık alanı zorunlu",
+  "profile.clinic_address": "Klinik Adresi",
+  "profile.clinic_address_required": "Klinik adresi zorunlu",
+  "profile.clinic_phone": "Klinik Telefonu",
+  "profile.clinic_phone_required": "Klinik telefonu zorunlu",
+  "profile.veterinarian_apply_success": "Başvurunuz başarıyla iletildi. Onay sürecini bekleyiniz.",
+  "profile.veterinarian_apply_error": "Başvuru sırasında bir hata oluştu: {0}",
+  "profile.veterinarian_apply_loading": "Başvurunuz gönderiliyor..."
 }

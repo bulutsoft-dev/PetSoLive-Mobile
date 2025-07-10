@@ -335,5 +335,19 @@
   "help_requests.comment_edit_success": "Comment updated successfully.",
   "help_requests.comment_edit_failed": "Failed to update comment: {0}",
   "help_requests.comment_delete_success": "Comment deleted successfully.",
-  "help_requests.comment_delete_failed": "Failed to delete comment: {0}"
+  "help_requests.comment_delete_failed": "Failed to delete comment: {0}",
+  "profile.veterinarian_section": "Veterinarian",
+  "profile.veterinarian_title": "Are you a veterinarian?",
+  "profile.veterinarian_desc": "If you are a veterinarian, you can submit your application. After approval, a veterinarian badge will appear on your profile.",
+  "profile.veterinarian_apply": "Apply as Veterinarian",
+  "profile.veterinarian_apply_title": "Veterinarian Application Form",
+  "profile.qualifications": "Qualifications",
+  "profile.qualifications_required": "Qualifications are required",
+  "profile.clinic_address": "Clinic Address",
+  "profile.clinic_address_required": "Clinic address is required",
+  "profile.clinic_phone": "Clinic Phone",
+  "profile.clinic_phone_required": "Clinic phone is required",
+  "profile.veterinarian_apply_success": "Your application has been submitted successfully. Please wait for the approval process.",
+  "profile.veterinarian_apply_error": "An error occurred during application: {0}",
+  "profile.veterinarian_apply_loading": "Submitting your application..."
 }

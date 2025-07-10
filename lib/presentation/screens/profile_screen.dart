@@ -7,6 +7,7 @@ import '../blocs/theme_cubit.dart';
 import '../../injection_container.dart';
 import 'login_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'veterinarian_application_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -31,6 +32,10 @@ class ProfileScreen extends StatelessWidget {
 
                 _buildSectionTitle(context, 'profile.support_section'.tr()),
                 _buildSupportCard(context),
+                const SizedBox(height: 24),
+
+                _buildSectionTitle(context, 'profile.veterinarian_section'.tr()),
+                _buildVeterinarianCard(context),
                 const SizedBox(height: 24),
 
                 _buildSectionTitle(context, 'profile.developer_info'.tr()),
@@ -318,6 +323,50 @@ class ProfileScreen extends StatelessWidget {
                 }
               },
               hoverColor: colorScheme.primary.withOpacity(0.06),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVeterinarianCard(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    // TODO: Kullanıcı veteriner mi kontrolü yapılacak, şimdilik hep başvuru gösteriliyor.
+    return Card(
+      elevation: 2,
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _iconWithBg(context, Icons.medical_services, colorScheme.primary),
+                const SizedBox(width: 10),
+                Text('profile.veterinarian_title'.tr(), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('profile.veterinarian_desc'.tr(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.add_moderator),
+              label: Text('profile.veterinarian_apply'.tr()),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => VeterinarianApplicationScreen(),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -670,6 +719,109 @@ class _LinkText extends StatelessWidget {
             color: colorScheme.primary,
             decoration: TextDecoration.underline,
             fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VeterinarianRegisterDialog extends StatefulWidget {
+  @override
+  State<_VeterinarianRegisterDialog> createState() => _VeterinarianRegisterDialogState();
+}
+
+class _VeterinarianRegisterDialogState extends State<_VeterinarianRegisterDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _qualificationsController = TextEditingController();
+  final _clinicAddressController = TextEditingController();
+  final _clinicPhoneController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _qualificationsController.dispose();
+    _clinicAddressController.dispose();
+    _clinicPhoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    // TODO: Kullanıcı bilgileri ve API çağrısı
+    // Başarılıysa dialog kapat, snackbar göster
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (context.mounted) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('profile.veterinarian_apply_success'.tr()), backgroundColor: Colors.green),
+      );
+    }
+    setState(() => _isLoading = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.medical_services, color: colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text('profile.veterinarian_apply_title'.tr(), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 18),
+              TextFormField(
+                controller: _qualificationsController,
+                decoration: InputDecoration(labelText: 'profile.qualifications'.tr(), prefixIcon: Icon(Icons.school)),
+                validator: (v) => v == null || v.isEmpty ? 'profile.qualifications_required'.tr() : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _clinicAddressController,
+                decoration: InputDecoration(labelText: 'profile.clinic_address'.tr(), prefixIcon: Icon(Icons.location_on)),
+                validator: (v) => v == null || v.isEmpty ? 'profile.clinic_address_required'.tr() : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _clinicPhoneController,
+                decoration: InputDecoration(labelText: 'profile.clinic_phone'.tr(), prefixIcon: Icon(Icons.phone)),
+                validator: (v) => v == null || v.isEmpty ? 'profile.clinic_phone_required'.tr() : null,
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 22),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+                    child: Text('form.cancel'.tr()),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                        : Text('form.save'.tr()),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
