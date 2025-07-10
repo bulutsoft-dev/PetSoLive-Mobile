@@ -53,42 +53,34 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: BaseAppBar(
-          title: 'lost_pets.detail_title'.tr(),
-          centerTitle: true,
-          showLogo: false,
-          backgroundColor: isDark ? AppColors.darkSurface : AppColors.petsoliveBg,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-            tooltip: 'Geri',
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.translate),
-              tooltip: 'Dili Değiştir',
-              onPressed: () async {
-                final current = context.locale;
-                final newLocale = current.languageCode == 'tr' ? const Locale('en') : const Locale('tr');
-                await context.setLocale(newLocale);
-                setState(() {});
-              },
-              color: isDark ? AppColors.darkPrimary : Colors.black,
-            ),
-            IconButton(
-              icon: Icon(
-                isDark ? Icons.light_mode : Icons.dark_mode,
-                color: isDark ? AppColors.darkPrimary  : Colors.black,
-              ),
-              tooltip: isDark ? 'Aydınlık Tema' : 'Karanlık Tema',
-              onPressed: () {
-                context.read<ThemeCubit>().toggleTheme();
-              },
-            ),
-          ],
+      appBar: BaseAppBar(
+        title: 'lost_pets.detail_title'.tr(),
+        showLogo: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+          tooltip: 'Geri',
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.translate),
+            tooltip: 'Dili Değiştir',
+            onPressed: () {
+              final current = context.locale;
+              final newLocale = current.languageCode == 'tr' ? const Locale('en') : const Locale('tr');
+              context.setLocale(newLocale);
+            },
+            color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
+          ),
+          IconButton(
+            icon: Icon(
+              isDark ? Icons.light_mode : Icons.dark_mode,
+              color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
+            ),
+            tooltip: isDark ? 'Aydınlık Tema' : 'Karanlık Tema',
+            onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+          ),
+        ],
       ),
       body: FutureBuilder<LostPetAdDto>(
         future: _adFuture,
@@ -111,6 +103,7 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                   // --- PET GÖRSELİ ve BAŞLIK ---
                   GestureDetector(
                     onTap: () {
+                      if (!mounted) return;
                       showDialog(
                         context: context,
                         barrierColor: Colors.black.withOpacity(0.85),
@@ -364,13 +357,15 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     icon: const Icon(Icons.edit),
-                                    label: const Text('Düzenle'),
+                                    label: Text('lost_pet_ad.form_edit'.tr()),
                                     onPressed: () async {
+                                      if (!mounted) return;
                                       final result = await Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder: (ctx) => EditLostPetAdScreen(ad: ad),
                                         ),
                                       );
+                                      if (!mounted) return;
                                       if (result == true) {
                                         // Düzenleme sonrası ilanı tekrar yükle
                                         setState(() {
@@ -392,21 +387,23 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     icon: const Icon(Icons.delete),
-                                    label: const Text('Sil'),
+                                    label: Text('lost_pet_ad.form_delete'.tr()),
                                     onPressed: () async {
+                                      if (!mounted) return;
                                       final confirmed = await Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder: (ctx) => DeleteConfirmationScreen(
-                                            title: 'İlanı Sil',
-                                            description: 'Bu kayıp ilanını silmek istediğine emin misin?',
-                                            confirmText: 'Sil',
-                                            cancelText: 'Vazgeç',
+                                            title: 'delete_confirm.title'.tr(),
+                                            description: 'delete_confirm.description'.tr(),
+                                            confirmText: 'delete_confirm.confirm'.tr(),
+                                            cancelText: 'form.cancel'.tr(),
                                             onConfirm: () {
                                               Navigator.of(ctx).pop(true);
                                             },
                                           ),
                                         ),
                                       );
+                                      if (!mounted) return;
                                       if (confirmed == true) {
                                         try {
                                           final sessionManager = SessionManager();
@@ -414,18 +411,16 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                                           await context.read<LostPetAdCubit>().delete(ad.id, token);
                                           // Silme sonrası listeyi güncelle
                                           context.read<LostPetAdCubit>().getAll();
-                                          if (mounted) {
-                                            Navigator.of(context).pop();
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(content: Text('İlan başarıyla silindi.'), backgroundColor: Colors.green),
-                                            );
-                                          }
+                                          if (!mounted) return;
+                                          Navigator.of(context).pop();
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('İlan başarıyla silindi.'), backgroundColor: Colors.green),
+                                          );
                                         } catch (e) {
-                                          if (mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Silme işlemi başarısız: $e'), backgroundColor: Colors.red),
-                                            );
-                                          }
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Silme işlemi başarısız: $e'), backgroundColor: Colors.red),
+                                          );
                                         }
                                       }
                                     },

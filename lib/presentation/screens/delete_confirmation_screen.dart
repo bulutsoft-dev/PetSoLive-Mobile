@@ -25,60 +25,51 @@ class DeleteConfirmationScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: BaseAppBar(
-        title: title ?? 'delete_confirm.title'.tr(),
+        title: 'delete_confirm.title'.tr(),
         showLogo: false,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 64),
+            Semantics(
+              label: 'delete_confirm.icon_warning'.tr(),
+              child: Icon(Icons.warning_amber_rounded, color: Colors.red, size: 64),
+            ),
             const SizedBox(height: 24),
             Text(
+              title ?? 'delete_confirm.title'.tr(),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
               description ?? 'delete_confirm.description'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
+              style: Theme.of(context).textTheme.bodyLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
-                    icon: Icon(Icons.cancel, color: colorScheme.error),
-                    label: Text(cancelText ?? 'form.cancel'.tr()),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: colorScheme.error,
-                      side: BorderSide(color: colorScheme.error),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    onPressed: () {
-                      if (onCancel != null) {
-                        onCancel!();
-                      } else {
-                        Navigator.of(context).pop(false);
-                      }
-                    },
+                  child: OutlinedButton(
+                    onPressed: () => onCancel != null ? onCancel!() : Navigator.of(context).pop(false),
+                    child: Text(cancelText ?? 'form.cancel'.tr()),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: ElevatedButton.icon(
-                    icon: Icon(Icons.delete_forever, color: Colors.white),
-                    label: Text(confirmText ?? 'delete_confirm.confirm'.tr()),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.error,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                  child: ElevatedButton(
                     onPressed: () {
-                      onConfirm();
+                      if (onConfirm != null) {
+                        onConfirm();
+                      } else {
+                        Navigator.of(context).pop(true);
+                      }
                     },
+                    child: Text(confirmText ?? 'delete_confirm.confirm'.tr()),
                   ),
                 ),
               ],

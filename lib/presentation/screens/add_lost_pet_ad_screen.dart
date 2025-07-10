@@ -5,6 +5,8 @@ import '../blocs/lost_pet_ad_cubit.dart';
 import '../../core/network/auth_service.dart';
 import '../../data/models/lost_pet_ad_dto.dart';
 import '../../core/helpers/city_list.dart';
+import '../partials/base_app_bar.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class AddLostPetAdScreen extends StatefulWidget {
   const AddLostPetAdScreen({Key? key}) : super(key: key);
@@ -34,13 +36,12 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
       final user = await authService.getUser();
       if (token == null || user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kullanıcı oturumu bulunamadı.')),
+          SnackBar(content: Text('lost_pet_ad.form_login_required'.tr())),
         );
         setState(() => _isLoading = false);
         await Future.delayed(const Duration(seconds: 1));
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/login');
-        }
+        if (!mounted) return;
+        Navigator.of(context).pushReplacementNamed('/login');
         return;
       }
       final dto = LostPetAdDto(
@@ -56,18 +57,19 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
         userName: user['username'] ?? '',
       );
       await context.read<LostPetAdCubit>().create(dto, token);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kayıp ilanı başarıyla eklendi.'), backgroundColor: Colors.green),
-        );
-        await Future.delayed(const Duration(seconds: 1));
-        Navigator.of(context).pop(true);
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('lost_pet_ad.add_success'.tr()), backgroundColor: Colors.green),
+      );
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('İlan eklenemedi: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('lost_pet_ad.form_failed'.tr(args: [e.toString()])), backgroundColor: Colors.red),
       );
     } finally {
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
@@ -76,7 +78,10 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
   Widget build(BuildContext context) {
     final districts = _selectedCity != null ? CityList.getDistrictsByCity(_selectedCity!) : <String>[];
     return Scaffold(
-      appBar: AppBar(title: const Text('Kayıp Hayvan İlanı Ekle')),
+      appBar: BaseAppBar(
+        title: 'lost_pet_ad.add_title'.tr(),
+        showLogo: false,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -84,16 +89,6 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
             children: [
-              Row(
-                children: [
-                  Icon(Icons.add_alert, size: 36, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(width: 10),
-                  Text('Kayıp Hayvan İlanı Ekle', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text('Lütfen kayıp hayvan bilgilerini eksiksiz doldurun.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
-              const SizedBox(height: 18),
               if (_imageUrlController.text.isNotEmpty)
                 Center(
                   child: Padding(
@@ -181,22 +176,22 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
                 children: [
                   Icon(Icons.pets, color: Colors.indigo, size: 20),
                   const SizedBox(width: 8),
-                  Text('Hayvan Bilgileri', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
+                  Text('lost_pet_ad.form_pet_info'.tr(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
                 ],
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _petNameController,
-                decoration: const InputDecoration(labelText: 'Hayvan Adı'),
-                validator: (v) => v == null || v.isEmpty ? 'Zorunlu' : null,
+                decoration: InputDecoration(labelText: 'lost_pet_ad.form_pet_name'.tr()),
+                validator: (v) => v == null || v.isEmpty ? 'lost_pet_ad.form_required'.tr() : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Açıklama'),
+                decoration: InputDecoration(labelText: 'lost_pet_ad.form_description'.tr()),
                 minLines: 2,
                 maxLines: 4,
-                validator: (v) => v == null || v.isEmpty ? 'Zorunlu' : null,
+                validator: (v) => v == null || v.isEmpty ? 'lost_pet_ad.form_required'.tr() : null,
               ),
               const SizedBox(height: 18),
               // Son Görülme Bilgileri
@@ -204,7 +199,7 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
                 children: [
                   Icon(Icons.location_on, color: Colors.teal, size: 20),
                   const SizedBox(width: 8),
-                  Text('Son Görülme', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal)),
+                  Text('lost_pet_ad.form_last_seen'.tr(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -221,8 +216,8 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
                           _selectedDistrict = null;
                         });
                       },
-                      decoration: const InputDecoration(labelText: 'Şehir'),
-                      validator: (v) => v == null || v.isEmpty ? 'Zorunlu' : null,
+                      decoration: InputDecoration(labelText: 'lost_pet_ad.form_city'.tr()),
+                      validator: (v) => v == null || v.isEmpty ? 'lost_pet_ad.form_required'.tr() : null,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -234,9 +229,9 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
                       onChanged: _selectedCity == null
                           ? null
                           : (v) => setState(() => _selectedDistrict = v),
-                      decoration: const InputDecoration(labelText: 'İlçe'),
-                      validator: (v) => v == null || v.isEmpty ? 'Zorunlu' : null,
-                      disabledHint: const Text('Önce şehir seçin'),
+                      decoration: InputDecoration(labelText: 'lost_pet_ad.form_district'.tr()),
+                      validator: (v) => v == null || v.isEmpty ? 'lost_pet_ad.form_required'.tr() : null,
+                      disabledHint: Text('lost_pet_ad.form_city'.tr()),
                     ),
                   ),
                 ],
@@ -255,11 +250,11 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
                   }
                 },
                 child: InputDecorator(
-                  decoration: const InputDecoration(labelText: 'Son Görülme Tarihi'),
+                  decoration: InputDecoration(labelText: 'lost_pet_ad.form_date'.tr()),
                   child: Text(
                     _lastSeenDate != null
                         ? DateFormat('yyyy-MM-dd').format(_lastSeenDate!)
-                        : 'Tarih seç',
+                        : 'lost_pet_ad.form_select_date'.tr(),
                     style: TextStyle(
                       color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
                     ),
@@ -272,19 +267,19 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
                 children: [
                   Icon(Icons.image, color: Colors.orange, size: 20),
                   const SizedBox(width: 8),
-                  Text('Görsel', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+                  Text('lost_pet_ad.form_image'.tr(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
                 ],
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _imageUrlController,
-                decoration: const InputDecoration(labelText: 'Resim URL'),
+                decoration: InputDecoration(labelText: 'lost_pet_ad.form_image_url'.tr()),
                 onChanged: (_) => setState(() {}),
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Zorunlu';
+                  if (v == null || v.isEmpty) return 'lost_pet_ad.form_required'.tr();
                   final uri = Uri.tryParse(v);
                   if (uri == null || !(uri.isScheme('http') || uri.isScheme('https'))) {
-                    return 'Geçerli bir URL girin';
+                    return 'lost_pet_ad.form_image_url'.tr() + ' (http/https)';
                   }
                   return null;
                 },
@@ -303,7 +298,7 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
                       onPressed: _isLoading ? null : submit,
                       label: _isLoading
                           ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Text('Kaydet'),
+                          : Text('lost_pet_ad.form_save'.tr()),
                     ),
                   ),
                 ],
