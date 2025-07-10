@@ -315,5 +315,7 @@
   "help_requests.section_emergency": "Aciliyet & Konum",
   "help_requests.section_contact": "İletişim Bilgileri",
   "help_requests.section_image": "Görsel",
-  "help_requests.login_required": "Yardım talebi eklemek için giriş yapmalısınız."
+  "help_requests.login_required": "Yardım talebi eklemek için giriş yapmalısınız.",
+  "help_requests.edit": "Düzenle",
+  "help_requests.delete": "Sil"
 }

@@ -13,22 +13,44 @@ import '../../injection_container.dart';
 import '../blocs/comment_cubit.dart';
 import '../blocs/theme_cubit.dart';
 import '../partials/base_app_bar.dart';
+import '../../core/network/auth_service.dart';
 
-class HelpRequestScreen extends StatelessWidget {
+class HelpRequestScreen extends StatefulWidget {
   final int requestId;
   const HelpRequestScreen({Key? key, required this.requestId}) : super(key: key);
+
+  @override
+  State<HelpRequestScreen> createState() => _HelpRequestScreenState();
+}
+
+class _HelpRequestScreenState extends State<HelpRequestScreen> {
+  Map<String, dynamic>? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUser();
+  }
+
+  Future<void> _fetchUser() async {
+    final authService = AuthService();
+    final user = await authService.getUser();
+    setState(() {
+      _user = user;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => HelpRequestCubit(sl())..getById(requestId)),
-        BlocProvider(create: (_) => CommentCubit(sl())..getByHelpRequestId(requestId)),
+        BlocProvider(create: (_) => HelpRequestCubit(sl())..getById(widget.requestId)),
+        BlocProvider(create: (_) => CommentCubit(sl())..getByHelpRequestId(widget.requestId)),
       ],
       child: Scaffold(
         appBar: BaseAppBar(
           title: 'help_requests.detail_title'.tr(),
-            showLogo: false,
+          showLogo: false,
           actions: [
             Builder(
               builder: (context) => IconButton(
@@ -248,6 +270,45 @@ class HelpRequestScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 22),
+                  // Eğer ilan sahibi ise düzenle ve sil butonları yorumlar başlığının üstünde
+                  if (_user != null && req.userId == _user!['id']) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              // Düzenle işlemi
+                            },
+                            icon: const Icon(Icons.edit, size: 20),
+                            label: Text('help_requests.edit'.tr()),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Theme.of(context).colorScheme.primary,
+                              side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                              textStyle: Theme.of(context).textTheme.labelLarge,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              // Sil işlemi
+                            },
+                            icon: const Icon(Icons.delete, size: 20),
+                            label: Text('help_requests.delete'.tr()),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: const BorderSide(color: Colors.red),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                              textStyle: Theme.of(context).textTheme.labelLarge,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                  ],
                   // Yorumlar başlığı
                   Text('help_requests.comments'.tr(), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
