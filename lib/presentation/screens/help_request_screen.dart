@@ -383,11 +383,94 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                           return Text('help_requests.no_comments'.tr());
                         }
                         return Column(
-                          children: commentState.comments.map((c) => CommentWidget(
+                          children: commentState.comments.map<Widget>((c) => CommentWidget(
                             userName: c.userName ?? c.userId.toString(),
                             date: DateFormat('dd.MM.yyyy HH:mm').format(c.createdAt),
                             comment: c.content,
                             isVeterinarian: c.veterinarianId != null,
+                            isOwnComment: _user != null && c.userId == _user!['id'],
+                            onDelete: _user != null && c.userId == _user!['id']
+                                ? () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: Text('Yorumu Sil'),
+                                        content: Text('Bu yorumu silmek istediğinize emin misiniz?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(ctx).pop(false),
+                                            child: Text('Vazgeç'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () => Navigator.of(ctx).pop(true),
+                                            child: Text('Sil', style: TextStyle(color: Colors.red)),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirm == true) {
+                                      final accountState = context.read<AccountCubit>().state;
+                                      if (accountState is! AccountSuccess) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('help_requests.login_required'.tr())),
+                                        );
+                                        return;
+                                      }
+                                      final token = accountState.response.token;
+                                      await context.read<CommentCubit>().delete(c.id, token);
+                                      await context.read<CommentCubit>().getByHelpRequestId(widget.requestId);
+                                    }
+                                  }
+                                : null,
+                            onEdit: _user != null && c.userId == _user!['id']
+                                ? () async {
+                                    final controller = TextEditingController(text: c.content);
+                                    final result = await showDialog<String>(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: Text('Yorumu Düzenle'),
+                                        content: TextField(
+                                          controller: controller,
+                                          minLines: 2,
+                                          maxLines: 5,
+                                          decoration: InputDecoration(hintText: 'Yorumunuzu düzenleyin'),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(ctx).pop(),
+                                            child: Text('Vazgeç'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
+                                            child: Text('Kaydet'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (result != null && result.isNotEmpty && result != c.content) {
+                                      final accountState = context.read<AccountCubit>().state;
+                                      if (accountState is! AccountSuccess) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('help_requests.login_required'.tr())),
+                                        );
+                                        return;
+                                      }
+                                      final token = accountState.response.token;
+                                      final updated = CommentDto(
+                                        id: c.id,
+                                        helpRequestId: c.helpRequestId,
+                                        userId: c.userId,
+                                        userName: c.userName,
+                                        veterinarianId: c.veterinarianId,
+                                        veterinarianName: c.veterinarianName,
+                                        content: result,
+                                        createdAt: c.createdAt,
+                                      );
+                                      await context.read<CommentCubit>().add(updated, token);
+                                      await context.read<CommentCubit>().getByHelpRequestId(widget.requestId);
+                                    }
+                                  }
+                                : null,
                           )).toList(),
                         );
                       }
