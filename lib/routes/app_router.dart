@@ -11,7 +11,8 @@ import '../presentation/screens/register_screen.dart';
 import '../presentation/blocs/account_cubit.dart';
 import '../injection_container.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// import '../presentation/screens/help_request_screen.dart';
+import '../presentation/screens/add_help_request_screen.dart';
+import '../presentation/blocs/help_request_cubit.dart';
 
 /// Uygulamanın tüm rotalarını merkezi olarak yöneten sınıf.
 /// Yeni bir ekran eklemek için sadece buraya case eklemen yeterli.
@@ -48,6 +49,16 @@ class AppRouter {
           );
         }
       }
+      case '/add_help_request':
+        return MaterialPageRoute(
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => sl<HelpRequestCubit>()),
+              BlocProvider(create: (_) => sl<AccountCubit>()),
+            ],
+            child: const AddHelpRequestScreen(),
+          ),
+        );
       case '/login':
         return MaterialPageRoute(
           builder: (_) => BlocProvider(
