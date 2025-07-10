@@ -319,5 +319,6 @@
   "help_requests.section_emergency": "Emergency & Location",
   "help_requests.section_contact": "Contact Information",
   "help_requests.section_image": "Image",
-  "help_requests.login_required": "You must be logged in to add a help request."
+  "help_requests.login_required": "You must be logged in to add a help request.",
+  "help_requests.tab_my_ads": "My Ads"
 }

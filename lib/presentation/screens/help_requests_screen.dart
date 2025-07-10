@@ -15,9 +15,8 @@ class HelpRequestsScreen extends StatefulWidget {
   State<HelpRequestsScreen> createState() => _HelpRequestsScreenState();
 }
 
-class _HelpRequestsScreenState extends State<HelpRequestsScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  final List<String> tabs = [
+class _HelpRequestsScreenState extends State<HelpRequestsScreen> {
+  final List<String> baseTabs = [
     'help_requests.tab_all',
     'help_requests.tab_low',
     'help_requests.tab_medium',
@@ -25,13 +24,20 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> with SingleTick
   ];
 
   bool _showFab = false;
+  Map<String, dynamic>? _user;
+  List<dynamic> _helpRequests = [];
+
+  List<String> getTabs(bool showMyAds) {
+    if (showMyAds) {
+      return [...baseTabs, 'help_requests.tab_my_ads']; // En sağda
+    }
+    return baseTabs;
+  }
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: tabs.length, vsync: this);
     _checkUserLoggedIn();
-    // Cubit'ten verileri çek
     Future.microtask(() => context.read<HelpRequestCubit>().getAll());
   }
 
@@ -39,59 +45,65 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> with SingleTick
     final authService = AuthService();
     final user = await authService.getUser();
     setState(() {
+      _user = user;
       _showFab = user != null && user['id'] != null;
     });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      // AppBar kaldırıldı
-      body: Column(
-        children: [
-          TabBar(
-            controller: _tabController,
-            tabs: tabs.map((e) => Tab(text: e.tr())).toList(),
-            labelColor: colorScheme.primary,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: colorScheme.primary,
-            onTap: (_) => setState(() {}), // Tab değişince rebuild
-          ),
-          Expanded(
-            child: BlocBuilder<HelpRequestCubit, HelpRequestState>(
-              builder: (context, state) {
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    await context.read<HelpRequestCubit>().getAll();
-                  },
-                  child: () {
-                    if (state is HelpRequestLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (state is HelpRequestError) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.error_outline, color: Colors.red, size: 48),
-                            const SizedBox(height: 12),
-                            Text('help_requests.error'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)),
-                            const SizedBox(height: 8),
-                            Text(state.error.toString(), style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
-                          ],
-                        ),
-                      );
-                    } else if (state is HelpRequestLoaded) {
-                      final selectedTab = tabs[_tabController.index];
-                      final filtered = selectedTab == 'help_requests.tab_all'
-                          ? state.helpRequests
-                          : state.helpRequests.where((e) => e.emergencyLevel.name == selectedTab.replaceAll('help_requests.tab_', '').toLowerCase()).toList();
+      body: BlocBuilder<HelpRequestCubit, HelpRequestState>(
+        builder: (context, state) {
+          List<dynamic> helpRequests = [];
+          if (state is HelpRequestLoaded) {
+            helpRequests = state.helpRequests;
+            _helpRequests = helpRequests;
+          }
+          final userId = _user != null ? _user!['id'] : null;
+          final hasMyAds = userId != null && helpRequests.any((e) => e.userId == userId);
+          final tabs = getTabs(hasMyAds);
+
+          return DefaultTabController(
+            key: ValueKey(tabs.length),
+            length: tabs.length,
+            child: Column(
+              children: [
+                TabBar(
+                  tabs: tabs.map((e) => Tab(text: e.tr())).toList(),
+                  labelColor: colorScheme.primary,
+                  unselectedLabelColor: Colors.grey,
+                  indicatorColor: colorScheme.primary,
+                ),
+                Expanded(
+                  child: TabBarView(
+                    children: tabs.map((selectedTab) {
+                      List<dynamic> filtered;
+                      if (selectedTab == 'help_requests.tab_my_ads') {
+                        filtered = helpRequests.where((e) => e.userId == userId).toList();
+                      } else if (selectedTab == 'help_requests.tab_all') {
+                        filtered = helpRequests;
+                      } else {
+                        final level = selectedTab.replaceAll('help_requests.tab_', '').toLowerCase();
+                        filtered = helpRequests.where((e) => e.emergencyLevel.toString().split('.').last == level).toList();
+                      }
+                      if (state is HelpRequestLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (state is HelpRequestError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.error_outline, color: Colors.red, size: 48),
+                              const SizedBox(height: 12),
+                              Text('help_requests.error'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)),
+                              const SizedBox(height: 8),
+                              Text(state.error.toString(), style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+                            ],
+                          ),
+                        );
+                      }
                       if (filtered.isEmpty) {
                         return Center(child: Text('help_requests.empty').tr());
                       }
@@ -107,14 +119,13 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> with SingleTick
                           );
                         },
                       );
-                    }
-                    return const SizedBox.shrink();
-                  }(),
-                );
-              },
+                    }).toList(),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
       floatingActionButton: _showFab
           ? FloatingActionButton(
@@ -133,7 +144,7 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> with SingleTick
                 );
                 if (context.mounted) {
                   await context.read<HelpRequestCubit>().getAll();
-                  setState(() {}); // Yeniden çizdir, garanti olsun
+                  setState(() {});
                 }
               },
               backgroundColor: colorScheme.primary,
