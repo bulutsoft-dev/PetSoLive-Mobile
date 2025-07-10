@@ -6,6 +6,7 @@ import '../blocs/account_cubit.dart';
 import '../widgets/help_request_card.dart';
 import '../../injection_container.dart';
 import '../../core/network/auth_service.dart';
+import 'add_help_request_screen.dart';
 
 class HelpRequestsScreen extends StatefulWidget {
   const HelpRequestsScreen({Key? key}) : super(key: key);
@@ -30,6 +31,8 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> with SingleTick
     super.initState();
     _tabController = TabController(length: tabs.length, vsync: this);
     _checkUserLoggedIn();
+    // Cubit'ten verileri çek
+    Future.microtask(() => context.read<HelpRequestCubit>().getAll());
   }
 
   Future<void> _checkUserLoggedIn() async {
@@ -49,91 +52,96 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> with SingleTick
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => sl<HelpRequestCubit>()..getAll()),
-        BlocProvider(create: (_) => sl<AccountCubit>()),
-      ],
-      child: Scaffold(
-        // AppBar kaldırıldı
-        body: Column(
-          children: [
-            TabBar(
-              controller: _tabController,
-              tabs: tabs.map((e) => Tab(text: e.tr())).toList(),
-              labelColor: colorScheme.primary,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: colorScheme.primary,
-              onTap: (_) => setState(() {}), // Tab değişince rebuild
-            ),
-            Expanded(
-              child: BlocBuilder<HelpRequestCubit, HelpRequestState>(
-                builder: (context, state) {
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      await context.read<HelpRequestCubit>().getAll();
-                    },
-                    child: () {
-                      if (state is HelpRequestLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (state is HelpRequestError) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.error_outline, color: Colors.red, size: 48),
-                              const SizedBox(height: 12),
-                              Text('help_requests.error'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)),
-                              const SizedBox(height: 8),
-                              Text(state.error.toString(), style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
-                            ],
-                          ),
-                        );
-                      } else if (state is HelpRequestLoaded) {
-                        final selectedTab = tabs[_tabController.index];
-                        final filtered = selectedTab == 'help_requests.tab_all'
-                            ? state.helpRequests
-                            : state.helpRequests.where((e) => e.emergencyLevel.name == selectedTab.replaceAll('help_requests.tab_', '').toLowerCase()).toList();
-                        if (filtered.isEmpty) {
-                          return Center(child: Text('help_requests.empty').tr());
-                        }
-                        return ListView.builder(
-                          itemCount: filtered.length,
-                          itemBuilder: (context, i) {
-                            final req = filtered[i];
-                            return HelpRequestCard(
-                              request: req,
-                              onTap: () {
-                                Navigator.of(context).pushNamed('/help_request', arguments: req.id);
-                              },
-                            );
-                          },
-                        );
+    return Scaffold(
+      // AppBar kaldırıldı
+      body: Column(
+        children: [
+          TabBar(
+            controller: _tabController,
+            tabs: tabs.map((e) => Tab(text: e.tr())).toList(),
+            labelColor: colorScheme.primary,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: colorScheme.primary,
+            onTap: (_) => setState(() {}), // Tab değişince rebuild
+          ),
+          Expanded(
+            child: BlocBuilder<HelpRequestCubit, HelpRequestState>(
+              builder: (context, state) {
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    await context.read<HelpRequestCubit>().getAll();
+                  },
+                  child: () {
+                    if (state is HelpRequestLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (state is HelpRequestError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.error_outline, color: Colors.red, size: 48),
+                            const SizedBox(height: 12),
+                            Text('help_requests.error'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)),
+                            const SizedBox(height: 8),
+                            Text(state.error.toString(), style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+                          ],
+                        ),
+                      );
+                    } else if (state is HelpRequestLoaded) {
+                      final selectedTab = tabs[_tabController.index];
+                      final filtered = selectedTab == 'help_requests.tab_all'
+                          ? state.helpRequests
+                          : state.helpRequests.where((e) => e.emergencyLevel.name == selectedTab.replaceAll('help_requests.tab_', '').toLowerCase()).toList();
+                      if (filtered.isEmpty) {
+                        return Center(child: Text('help_requests.empty').tr());
                       }
-                      return const SizedBox.shrink();
-                    }(),
-                  );
-                },
-              ),
+                      return ListView.builder(
+                        itemCount: filtered.length,
+                        itemBuilder: (context, i) {
+                          final req = filtered[i];
+                          return HelpRequestCard(
+                            request: req,
+                            onTap: () {
+                              Navigator.of(context).pushNamed('/help_request', arguments: req.id);
+                            },
+                          );
+                        },
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }(),
+                );
+              },
             ),
-          ],
-        ),
-        floatingActionButton: _showFab
-            ? FloatingActionButton(
-                heroTag: 'help_requests_fab',
-                onPressed: () async {
-                  final result = await Navigator.of(context).pushNamed('/add_help_request');
-                  if (result == true && context.mounted) {
-                    context.read<HelpRequestCubit>().getAll();
-                  }
-                },
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-                child: const Icon(Icons.add, size: 28),
-                tooltip: 'help_requests.add'.tr(),
-              )
-            : null,
+          ),
+        ],
       ),
+      floatingActionButton: _showFab
+          ? FloatingActionButton(
+              heroTag: 'help_requests_fab',
+              onPressed: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider.value(value: context.read<HelpRequestCubit>()),
+                        BlocProvider.value(value: context.read<AccountCubit>()),
+                      ],
+                      child: AddHelpRequestScreen(),
+                    ),
+                  ),
+                );
+                if (context.mounted) {
+                  await context.read<HelpRequestCubit>().getAll();
+                  setState(() {}); // Yeniden çizdir, garanti olsun
+                }
+              },
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              child: const Icon(Icons.add, size: 28),
+              tooltip: 'help_requests.add'.tr(),
+            )
+          : null,
     );
   }
 } 

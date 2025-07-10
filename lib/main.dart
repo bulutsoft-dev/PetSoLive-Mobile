@@ -19,6 +19,7 @@ import 'routes/app_router.dart';
 import 'presentation/blocs/account_cubit.dart';
 import 'presentation/screens/pet_detail_screen.dart';
 import 'presentation/blocs/lost_pet_ad_cubit.dart';
+import 'presentation/blocs/help_request_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +35,7 @@ void main() async {
           BlocProvider(create: (_) => ThemeCubit()),
           BlocProvider(create: (_) => sl<AccountCubit>()),
           BlocProvider(create: (_) => LostPetAdCubit(sl())..getAll()),
+          BlocProvider(create: (_) => sl<HelpRequestCubit>()),
         ],
         child: const PetSoLiveApp(),
       ),
