@@ -600,6 +600,8 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                   Text('help_requests.add_comment'.tr(), style: theme.textTheme.titleMedium),
                   const SizedBox(height: 8),
                   _CommentInput(),
+                  const SizedBox(height: 18),
+                  AdmobBannerWidget(),
                 ],
               );
             }
