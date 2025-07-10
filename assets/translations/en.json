@@ -351,5 +351,6 @@
   "profile.veterinarian_apply_success": "Your application has been submitted successfully. Please wait for the approval process.",
   "profile.veterinarian_apply_error": "An error occurred during application: {0}",
   "profile.veterinarian_apply_loading": "Submitting your application...",
-  "profile.veterinarian_already_applied": "You have already submitted a veterinarian application."
+  "profile.veterinarian_already_applied": "You have already submitted a veterinarian application.",
+  "comment.veterinarian_badge": "Veterinarian"
 }

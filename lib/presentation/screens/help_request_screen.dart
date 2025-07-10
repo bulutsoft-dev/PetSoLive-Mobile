@@ -21,6 +21,7 @@ import '../screens/edit_help_request_screen.dart';
 import '../blocs/comment_cubit.dart';
 import '../blocs/comment_cubit.dart';
 import '../../data/models/comment_dto.dart';
+import '../../data/providers/veterinarian_api_service.dart';
 
 class HelpRequestScreen extends StatefulWidget {
   final int requestId;
@@ -32,11 +33,13 @@ class HelpRequestScreen extends StatefulWidget {
 
 class _HelpRequestScreenState extends State<HelpRequestScreen> {
   Map<String, dynamic>? _user;
+  List<int> _approvedVeterinarianUserIds = [];
 
   @override
   void initState() {
     super.initState();
     _fetchUser();
+    _fetchVeterinarians();
   }
 
   Future<void> _fetchUser() async {
@@ -45,6 +48,20 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
     setState(() {
       _user = user;
     });
+  }
+
+  Future<void> _fetchVeterinarians() async {
+    try {
+      final vets = await VeterinarianApiService().getAll();
+      setState(() {
+        _approvedVeterinarianUserIds = vets
+          .where((v) => v.status.toLowerCase() == 'approved')
+          .map((v) => v.userId)
+          .toList();
+      });
+    } catch (e) {
+      // ignore
+    }
   }
 
   @override
@@ -93,6 +110,7 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
               return Center(child: Text('help_requests.error'.tr() + '\n' + state.error));
             } else if (state is HelpRequestDetailLoaded && state.helpRequest != null) {
               final req = state.helpRequest!;
+              final ownerUserId = req.userId;
               final theme = Theme.of(context);
               final colorScheme = theme.colorScheme;
               final emergencyColor = _emergencyColor(req.emergencyLevel, context);
@@ -387,8 +405,9 @@ class _HelpRequestScreenState extends State<HelpRequestScreen> {
                             userName: c.userName ?? c.userId.toString(),
                             date: DateFormat('dd.MM.yyyy HH:mm').format(c.createdAt),
                             comment: c.content,
-                            isVeterinarian: c.veterinarianId != null,
+                            isVeterinarian: _approvedVeterinarianUserIds.contains(c.userId),
                             isOwnComment: _user != null && c.userId == _user!['id'],
+                            isOwnerOfRequest: c.userId == ownerUserId,
                             onDelete: _user != null && c.userId == _user!['id']
                                 ? () async {
                                     final confirm = await showDialog<bool>(

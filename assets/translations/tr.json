@@ -346,5 +346,6 @@
   "profile.veterinarian_apply_success": "Başvurunuz başarıyla iletildi. Onay sürecini bekleyiniz.",
   "profile.veterinarian_apply_error": "Başvuru sırasında bir hata oluştu: {0}",
   "profile.veterinarian_apply_loading": "Başvurunuz gönderiliyor...",
-  "profile.veterinarian_already_applied": "Zaten bir veteriner başvurunuz var."
+  "profile.veterinarian_already_applied": "Zaten bir veteriner başvurunuz var.",
+  "comment.veterinarian_badge": "Veteriner"
 }

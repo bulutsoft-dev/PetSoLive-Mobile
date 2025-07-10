@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class CommentWidget extends StatelessWidget {
   final String userName;
@@ -6,6 +7,7 @@ class CommentWidget extends StatelessWidget {
   final String comment;
   final bool isVeterinarian;
   final bool isOwnComment;
+  final bool isOwnerOfRequest;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
@@ -16,6 +18,7 @@ class CommentWidget extends StatelessWidget {
     required this.comment,
     this.isVeterinarian = false,
     this.isOwnComment = false,
+    this.isOwnerOfRequest = false,
     this.onEdit,
     this.onDelete,
   }) : super(key: key);
@@ -24,100 +27,138 @@ class CommentWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.primary.withOpacity(0.06),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+    Color borderColor = colorScheme.primary.withOpacity(0.08);
+    Color bgColor = colorScheme.surface;
+    Color nameColor = theme.textTheme.bodyMedium?.color ?? Colors.black;
+    FontWeight nameWeight = FontWeight.bold;
+    // Tüm kartların arka planı aynı olsun
+    bgColor = colorScheme.surface;
+    // Kullanıcı adı rengi ve border: öncelik veteriner > ilan sahibi > normal
+    if (isVeterinarian) {
+      borderColor = colorScheme.secondary;
+      nameColor = colorScheme.secondary;
+    } else if (isOwnerOfRequest) {
+      borderColor = colorScheme.primary.withOpacity(0.18);
+      nameColor = colorScheme.primary;
+    } else {
+      borderColor = colorScheme.primary.withOpacity(0.08);
+      nameColor = theme.textTheme.bodyMedium?.color ?? Colors.black;
+    }
+    return Stack(
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.primary.withOpacity(0.06),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+            border: Border.all(
+              color: borderColor,
+              width: (isVeterinarian || isOwnerOfRequest) ? 1.7 : 1,
+            ),
           ),
-        ],
-        border: Border.all(color: colorScheme.primary.withOpacity(0.08)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Icon(Icons.person, size: 18, color: colorScheme.primary.withOpacity(0.7)),
-                    const SizedBox(width: 6),
-                    Text(
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.person, size: 18, color: colorScheme.primary.withOpacity(0.7)),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
                       userName,
-                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: nameWeight, color: nameColor),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
-                    if (isVeterinarian) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: colorScheme.secondary.withOpacity(0.13),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: colorScheme.secondary, width: 1),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.medical_services, size: 14, color: colorScheme.secondary),
-                            const SizedBox(width: 3),
-                            Text('Veteriner', style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.secondary, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      ),
-                    ],
-                    const SizedBox(width: 10),
-                    Icon(Icons.calendar_today, size: 15, color: colorScheme.secondary.withOpacity(0.7)),
-                    const SizedBox(width: 4),
-                    Text(
+                  ),
+                  const SizedBox(width: 10),
+                  Icon(Icons.calendar_today, size: 15, color: colorScheme.secondary.withOpacity(0.7)),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
                       date,
                       style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7)),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              if (isOwnComment)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: 28,
-                      width: 28,
-                      child: IconButton(
-                        icon: Icon(Icons.edit, size: 16, color: colorScheme.primary),
-                        tooltip: 'Düzenle',
-                        onPressed: onEdit,
-                        padding: EdgeInsets.zero,
-                      ),
-                    ),
-                    SizedBox(width: 2),
-                    SizedBox(
-                      height: 28,
-                      width: 28,
-                      child: IconButton(
-                        icon: Icon(Icons.delete, size: 16, color: Colors.red),
-                        tooltip: 'Sil',
-                        onPressed: onDelete,
-                        padding: EdgeInsets.zero,
-                      ),
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 6),
+              Text(
+                comment,
+                style: theme.textTheme.bodyMedium,
+              ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            comment,
-            style: theme.textTheme.bodyMedium,
+        ),
+        if (isOwnComment)
+          Positioned(
+            right: 2,
+            top: 2,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: 28,
+                  width: 28,
+                  child: IconButton(
+                    icon: Icon(Icons.edit, size: 16, color: colorScheme.primary),
+                    tooltip: 'Düzenle',
+                    onPressed: onEdit,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                SizedBox(width: 2),
+                SizedBox(
+                  height: 28,
+                  width: 28,
+                  child: IconButton(
+                    icon: Icon(Icons.delete, size: 16, color: Colors.red),
+                    tooltip: 'Sil',
+                    onPressed: onDelete,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        if (isVeterinarian)
+          Positioned(
+            right: 10,
+            bottom: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: colorScheme.secondary.withOpacity(0.13),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: colorScheme.secondary, width: 1),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.medical_services, size: 14, color: colorScheme.secondary),
+                  const SizedBox(width: 3),
+                  Text(
+                    'comment.veterinarian_badge'.tr(),
+                    style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.secondary, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 } 
