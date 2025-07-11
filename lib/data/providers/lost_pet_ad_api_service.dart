@@ -108,6 +108,33 @@ class LostPetAdApiService {
     }
   }
 
+  Future<void> updateMultipart(LostPetAdDto dto, String token, File imageFile, String imageUrl) async {
+    final url = Uri.parse('$baseUrl/api/LostPetAd/${dto.id}');
+    var request = http.MultipartRequest('PUT', url);
+    request.fields['petName'] = dto.petName;
+    request.fields['description'] = dto.description;
+    request.fields['lastSeenDate'] = dto.lastSeenDate.toIso8601String();
+    request.fields['userId'] = dto.userId.toString();
+    request.fields['lastSeenCity'] = dto.lastSeenCity;
+    request.fields['lastSeenDistrict'] = dto.lastSeenDistrict;
+    request.fields['createdAt'] = dto.createdAt.toIso8601String();
+    request.fields['userName'] = dto.userName;
+    request.fields['ImageUrl'] = imageUrl;
+    request.headers['Authorization'] = 'Bearer ' + token;
+    request.headers['x-api-key'] = ApiConstants.apiKey;
+    request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+    debugPrint('[LOST PET AD UPDATE MULTIPART] URL: $url');
+    debugPrint('[LOST PET AD UPDATE MULTIPART] Fields: ' + request.fields.toString());
+    debugPrint('[LOST PET AD UPDATE MULTIPART] Headers: ' + request.headers.toString());
+    final response = await request.send();
+    final respStr = await response.stream.bytesToString();
+    debugPrint('[LOST PET AD UPDATE MULTIPART] Status: ${response.statusCode}');
+    debugPrint('[LOST PET AD UPDATE MULTIPART] Response: $respStr');
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to update lost pet ad: $respStr');
+    }
+  }
+
   Future<void> delete(int id, String token) async {
     final url = Uri.parse('$baseUrl/api/LostPetAd/$id');
     final headers = {

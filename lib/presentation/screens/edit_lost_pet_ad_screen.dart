@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 import '../blocs/lost_pet_ad_cubit.dart';
 import '../../core/network/auth_service.dart';
 import '../../data/models/lost_pet_ad_dto.dart';
@@ -11,6 +12,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../core/constants/admob_banner_widget.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../data/providers/image_upload_provider.dart';
+import '../../data/providers/lost_pet_ad_api_service.dart';
 
 class EditLostPetAdScreen extends StatefulWidget {
   final LostPetAdDto ad;
@@ -77,9 +79,25 @@ class _EditLostPetAdScreenState extends State<EditLostPetAdScreen> {
     }
   }
 
+  Future<File> _downloadImageToFile(String url) async {
+    debugPrint('[LOST PET AD EDIT] Eski resmi indiriliyor: $url');
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final tempDir = Directory.systemTemp;
+      final file = await File('${tempDir.path}/temp_lostpet_image_${DateTime.now().millisecondsSinceEpoch}.jpg').create();
+      await file.writeAsBytes(response.bodyBytes);
+      debugPrint('[LOST PET AD EDIT] Eski resim dosyaya kaydedildi: ${file.path}');
+      return file;
+    } else {
+      throw Exception('Resim indirilemedi: $url');
+    }
+  }
+
   Future<void> submit() async {
+    debugPrint('[LOST PET AD EDIT] submit() çağrıldı');
     if (!_formKey.currentState!.validate()) return;
     if (_uploadedImageUrl == null) {
+      debugPrint('[LOST PET AD EDIT] Resim yüklenmemiş, işlem iptal.');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lütfen bir resim yükleyin!')),
       );
@@ -90,7 +108,10 @@ class _EditLostPetAdScreenState extends State<EditLostPetAdScreen> {
       final authService = AuthService();
       final token = await authService.getToken();
       final user = await authService.getUser();
+      debugPrint('[LOST PET AD EDIT] Token: ' + (token ?? 'null'));
+      debugPrint('[LOST PET AD EDIT] User: ' + (user != null ? user.toString() : 'null'));
       if (token == null || user == null) {
+        debugPrint('[LOST PET AD EDIT] Kullanıcı veya token yok, login yönlendirmesi.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('lost_pet_ad.form_login_required'.tr())),
         );
@@ -112,7 +133,17 @@ class _EditLostPetAdScreenState extends State<EditLostPetAdScreen> {
         createdAt: widget.ad.createdAt,
         userName: user['username'] ?? '',
       );
-      await context.read<LostPetAdCubit>().update(widget.ad.id, dto, token);
+      debugPrint('[LOST PET AD EDIT] DTO: ' + dto.toJson().toString());
+      File fileToSend;
+      if (_selectedImageFile != null) {
+        debugPrint('[LOST PET AD EDIT] Yeni resim seçildi, updateMultipart çağrılıyor.');
+        fileToSend = _selectedImageFile!;
+      } else {
+        debugPrint('[LOST PET AD EDIT] Yeni resim seçilmedi, eski resim indirilecek.');
+        fileToSend = await _downloadImageToFile(_uploadedImageUrl!);
+      }
+      await LostPetAdApiService().updateMultipart(dto, token, fileToSend, _uploadedImageUrl!);
+      debugPrint('[LOST PET AD EDIT] updateMultipart çağrısı tamamlandı.');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('lost_pet_ad.edit_success'.tr()), backgroundColor: Colors.green),
@@ -121,6 +152,7 @@ class _EditLostPetAdScreenState extends State<EditLostPetAdScreen> {
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
+      debugPrint('[LOST PET AD EDIT] Hata: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('lost_pet_ad.form_failed'.tr(args: [e.toString()])), backgroundColor: Colors.red),
       );
