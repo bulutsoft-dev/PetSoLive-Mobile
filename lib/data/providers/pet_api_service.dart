@@ -86,7 +86,7 @@ class PetApiService {
       'gender': gender,
       'weight': weight.toString(),
       'color': color,
-      'dateOfBirth': dateOfBirth.toUtc().toIso8601String(),
+      'dateOfBirth': dateOfBirth.toIso8601String(),
       'description': description,
       'microchipId': microchipId,
       'vaccinationStatus': vaccinationStatus,
