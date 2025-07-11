@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../../core/constants/api_constants.dart';
 import '../models/help_request_dto.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:io';
 
 class HelpRequestApiService {
   final String baseUrl = ApiConstants.baseUrl;
@@ -62,6 +63,41 @@ class HelpRequestApiService {
       // ignore: avoid_print
       print('[HELP REQUEST CREATE] ERROR: ${response.statusCode} ${response.body}');
       throw Exception('Failed to create help request: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  Future<void> createMultipart(HelpRequestDto dto, String token, File? imageFile, String? imageUrl) async {
+    final url = Uri.parse('$baseUrl/api/HelpRequest');
+    var request = http.MultipartRequest('POST', url);
+    request.fields['id'] = dto.id.toString();
+    request.fields['title'] = dto.title;
+    request.fields['description'] = dto.description;
+    request.fields['emergencyLevel'] = dto.emergencyLevel.name[0].toUpperCase() + dto.emergencyLevel.name.substring(1).toLowerCase();
+    request.fields['createdAt'] = dto.createdAt.toIso8601String();
+    request.fields['userId'] = dto.userId.toString();
+    request.fields['userName'] = dto.userName;
+    request.fields['location'] = dto.location;
+    if (dto.contactName != null) request.fields['contactName'] = dto.contactName!;
+    if (dto.contactPhone != null) request.fields['contactPhone'] = dto.contactPhone!;
+    if (dto.contactEmail != null) request.fields['contactEmail'] = dto.contactEmail!;
+    if (imageUrl != null) request.fields['imageUrl'] = imageUrl;
+    request.fields['status'] = dto.status.name[0].toUpperCase() + dto.status.name.substring(1).toLowerCase();
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['x-api-key'] = ApiConstants.apiKey;
+    if (imageFile != null) {
+      request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+    }
+    debugPrint('[HELP REQUEST CREATE MULTIPART] URL: $url');
+    debugPrint('[HELP REQUEST CREATE MULTIPART] Fields: ' + request.fields.toString());
+    debugPrint('[HELP REQUEST CREATE MULTIPART] Headers: ' + request.headers.toString());
+    if (imageFile != null) debugPrint('[HELP REQUEST CREATE MULTIPART] File: ${imageFile.path}');
+    final response = await request.send();
+    final respStr = await response.stream.bytesToString();
+    debugPrint('[HELP REQUEST CREATE MULTIPART] Status: ${response.statusCode}');
+    debugPrint('[HELP REQUEST CREATE MULTIPART] Response: $respStr');
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      debugPrint('[HELP REQUEST CREATE MULTIPART] ERROR: ${response.statusCode} $respStr');
+      throw Exception('Failed to create help request: $respStr');
     }
   }
 
