@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import 'dart:io';
 import '../../core/constants/api_constants.dart';
 import '../models/lost_pet_ad_dto.dart';
 
@@ -53,7 +54,34 @@ class LostPetAdApiService {
     debugPrint('[LOST PET AD CREATE] Status: ${response.statusCode}');
     debugPrint('[LOST PET AD CREATE] Response: ${response.body}');
     if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception('Failed to create lost pet ad: ${response.statusCode} ${response.body}');
+      throw Exception('Failed to create lost pet a d: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  Future<void> createMultipart(LostPetAdDto dto, String token, File imageFile, String imageUrl) async {
+    final url = Uri.parse('$baseUrl/api/LostPetAd');
+    var request = http.MultipartRequest('POST', url);
+    request.fields['petName'] = dto.petName;
+    request.fields['description'] = dto.description;
+    request.fields['lastSeenDate'] = dto.lastSeenDate.toIso8601String();
+    request.fields['userId'] = dto.userId.toString();
+    request.fields['lastSeenCity'] = dto.lastSeenCity;
+    request.fields['lastSeenDistrict'] = dto.lastSeenDistrict;
+    request.fields['createdAt'] = dto.createdAt.toIso8601String();
+    request.fields['userName'] = dto.userName;
+    request.fields['ImageUrl'] = imageUrl;
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['x-api-key'] = ApiConstants.apiKey;
+    request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+    debugPrint('[LOST PET AD CREATE MULTIPART] URL: $url');
+    debugPrint('[LOST PET AD CREATE MULTIPART] Fields: ' + request.fields.toString());
+    debugPrint('[LOST PET AD CREATE MULTIPART] Headers: ' + request.headers.toString());
+    final response = await request.send();
+    final respStr = await response.stream.bytesToString();
+    debugPrint('[LOST PET AD CREATE MULTIPART] Status: ${response.statusCode}');
+    debugPrint('[LOST PET AD CREATE MULTIPART] Response: $respStr');
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to create lost pet ad: $respStr');
     }
   }
 
