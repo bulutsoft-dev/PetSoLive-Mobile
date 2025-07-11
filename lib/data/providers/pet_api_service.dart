@@ -60,38 +60,44 @@ class PetApiService {
     }
   }
 
-  Future<void> createMultipart({
+  Future<void> createPetMultipart({
     required String name,
     required String species,
     required String breed,
     required int age,
     required String gender,
+    required double weight,
     required String color,
+    required DateTime dateOfBirth,
     required String description,
     required String microchipId,
     required String vaccinationStatus,
+    required bool? isNeutered,
     required File imageFile,
     required String token,
-    // diğer alanlar...
   }) async {
     final url = '$baseUrl/api/Pet';
     var request = http.MultipartRequest('POST', Uri.parse(url));
-    request.fields['name'] = name;
-    request.fields['species'] = species;
-    request.fields['breed'] = breed;
-    request.fields['age'] = age.toString();
-    request.fields['gender'] = gender;
-    request.fields['color'] = color;
-    request.fields['description'] = description;
-    request.fields['microchipId'] = microchipId;
-    request.fields['vaccinationStatus'] = vaccinationStatus;
-    // ... diğer alanlar ...
+    request.fields.addAll({
+      'name': name,
+      'species': species,
+      'breed': breed,
+      'age': age.toString(),
+      'gender': gender,
+      'weight': weight.toString(),
+      'color': color,
+      'dateOfBirth': dateOfBirth.toUtc().toIso8601String(),
+      'description': description,
+      'microchipId': microchipId,
+      'vaccinationStatus': vaccinationStatus,
+      if (isNeutered != null) 'isNeutered': isNeutered.toString(),
+    });
     request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
     request.headers['Authorization'] = 'Bearer $token';
     request.headers['x-api-key'] = apiKey;
     final response = await request.send();
     final respStr = await response.stream.bytesToString();
-    debugPrint('[PET CREATE MULTIPART] Status: ${response.statusCode}');
+    debugPrint('[PET CREATE MULTIPART] Status:  [32m${response.statusCode} [0m');
     debugPrint('[PET CREATE MULTIPART] Response: $respStr');
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Failed to create pet: $respStr');
@@ -135,6 +141,45 @@ class PetApiService {
     debugPrint('[PET UPDATE] Response Headers: ${response.headers}');
     if (response.statusCode != 200) {
       throw Exception('Failed to update pet: \nStatus: ${response.statusCode}\nBody: ${response.body}');
+    }
+  }
+
+  Future<void> updatePetMultipart({
+    required int id,
+    required String name,
+    required String species,
+    required String breed,
+    required int age,
+    required String gender,
+    required String color,
+    required String description,
+    required String microchipId,
+    required String vaccinationStatus,
+    required File imageFile,
+    required String token,
+  }) async {
+    final url = '$baseUrl/api/Pet/$id';
+    var request = http.MultipartRequest('PUT', Uri.parse(url));
+    request.fields.addAll({
+      'name': name,
+      'species': species,
+      'breed': breed,
+      'age': age.toString(),
+      'gender': gender,
+      'color': color,
+      'description': description,
+      'microchipId': microchipId,
+      'vaccinationStatus': vaccinationStatus,
+    });
+    request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['x-api-key'] = apiKey;
+    final response = await request.send();
+    final respStr = await response.stream.bytesToString();
+    debugPrint('[PET UPDATE MULTIPART] Status: ${response.statusCode}');
+    debugPrint('[PET UPDATE MULTIPART] Response: $respStr');
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to update pet: $respStr');
     }
   }
 

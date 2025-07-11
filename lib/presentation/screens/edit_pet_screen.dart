@@ -5,6 +5,9 @@ import '../../data/providers/pet_api_service.dart';
 import '../../data/local/session_manager.dart';
 import '../partials/base_app_bar.dart';
 import '../../core/constants/admob_banner_widget.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import '../widgets/image_upload_button.dart'; // Added import for ImageUploadButton
 
 class EditPetScreen extends StatefulWidget {
   final PetDto pet;
@@ -27,9 +30,11 @@ class _EditPetScreenState extends State<EditPetScreen> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _vaccinationStatusController;
   late final TextEditingController _microchipIdController;
-  late final TextEditingController _imageUrlController;
   bool? _isNeutered;
   bool _isLoading = false;
+  File? _selectedImage;
+  String? _uploadedImageUrl; // Add this for uploaded image url
+  final picker = ImagePicker();
 
   final List<String> _genderOptions = ['Erkek', 'Dişi'];
 
@@ -49,7 +54,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
     _vaccinationStatusController = TextEditingController(text: pet.vaccinationStatus ?? '');
     _microchipIdController = TextEditingController(text: pet.microchipId ?? '');
     _isNeutered = pet.isNeutered ?? false;
-    _imageUrlController = TextEditingController(text: pet.imageUrl);
+    _uploadedImageUrl = pet.imageUrl; // Initialize with existing image url
   }
 
   @override
@@ -63,45 +68,69 @@ class _EditPetScreenState extends State<EditPetScreen> {
     _descriptionController.dispose();
     _vaccinationStatusController.dispose();
     _microchipIdController.dispose();
-    _imageUrlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
   }
 
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _isLoading = true);
-    final updatedPet = widget.pet.copyWith(
-      name: _nameController.text,
-      species: _speciesController.text,
-      breed: _breedController.text,
-      age: int.tryParse(_ageController.text) ?? 0,
-      gender: _selectedGender ?? '',
-      weight: double.tryParse(_weightController.text) ?? 0,
-      color: _colorController.text,
-      dateOfBirth: _selectedDate,
-      description: _descriptionController.text,
-      vaccinationStatus: _vaccinationStatusController.text,
-      microchipId: _microchipIdController.text,
-      isNeutered: _isNeutered,
-      imageUrl: _imageUrlController.text,
-    );
     final sessionManager = SessionManager();
     final token = await sessionManager.getToken() ?? '';
     try {
-      final response = await PetApiService().updateWithResponse(widget.pet.id, updatedPet, token);
-      if (!mounted) return;
-      if (response == 200 || response == 204) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('edit_pet.success'.tr()),
-            backgroundColor: Colors.green,
-          ),
+      if (_selectedImage != null) {
+        await PetApiService().updatePetMultipart(
+          id: widget.pet.id,
+          name: _nameController.text,
+          species: _speciesController.text,
+          breed: _breedController.text,
+          age: int.tryParse(_ageController.text) ?? 0,
+          gender: _selectedGender ?? '',
+          color: _colorController.text,
+          description: _descriptionController.text,
+          microchipId: _microchipIdController.text,
+          vaccinationStatus: _vaccinationStatusController.text,
+          imageFile: _selectedImage!,
+          token: token,
         );
-        await Future.delayed(const Duration(milliseconds: 800));
-        Navigator.of(context).pop(true);
       } else {
-        throw Exception('Status: ' + response.toString());
+        final updatedPet = widget.pet.copyWith(
+          name: _nameController.text,
+          species: _speciesController.text,
+          breed: _breedController.text,
+          age: int.tryParse(_ageController.text) ?? 0,
+          gender: _selectedGender ?? '',
+          weight: double.tryParse(_weightController.text) ?? 0,
+          color: _colorController.text,
+          dateOfBirth: _selectedDate,
+          description: _descriptionController.text,
+          vaccinationStatus: _vaccinationStatusController.text,
+          microchipId: _microchipIdController.text,
+          isNeutered: _isNeutered,
+          imageUrl: _uploadedImageUrl ?? '', // Use uploaded image url
+        );
+        final response = await PetApiService().updateWithResponse(widget.pet.id, updatedPet, token);
+        if (response != 200 && response != 204) {
+          throw Exception('Status: ' + response.toString());
+        }
       }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('edit_pet.success'.tr()),
+          backgroundColor: Colors.green,
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 800));
+      Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -140,27 +169,6 @@ class _EditPetScreenState extends State<EditPetScreen> {
               const SizedBox(height: 4),
               Text('edit_pet.subtitle'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
               const SizedBox(height: 18),
-              if (_imageUrlController.text.isNotEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.network(
-                        _imageUrlController.text,
-                        width: 120,
-                        height: 120,
-                        fit: BoxFit.cover,
-                        errorBuilder: (c, e, s) => Container(
-                          width: 120,
-                          height: 120,
-                          color: Colors.grey[200],
-                          child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
               // Kimlik Bilgileri
               Row(
                 children: [
@@ -328,12 +336,56 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 decoration: InputDecoration(labelText: 'pets.microchip_id'.tr()),
               ),
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: InputDecoration(labelText: 'pets.image_url'.tr()),
-                onChanged: (_) => setState(() {}),
-              ),
+              // Görsel seçme ve önizleme UI moved to the bottom
               const SizedBox(height: 28),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: ImageUploadButton(
+                  label: 'edit_pet.upload_image'.tr(),
+                  initialUrl: _uploadedImageUrl,
+                  onImageUploaded: (url) {
+                    setState(() {
+                      _uploadedImageUrl = url;
+                    });
+                  },
+                ),
+              ),
+              if (_selectedImage != null)
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => Dialog(
+                        backgroundColor: Colors.transparent,
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(ctx).pop(),
+                          child: Center(
+                            child: Image.file(_selectedImage!, fit: BoxFit.contain),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: Image.file(_selectedImage!, width: 120, height: 120),
+                )
+              else if (_uploadedImageUrl != null && _uploadedImageUrl!.isNotEmpty)
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => Dialog(
+                        backgroundColor: Colors.transparent,
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(ctx).pop(),
+                          child: Center(
+                            child: Image.network(_uploadedImageUrl!, fit: BoxFit.contain),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: Image.network(_uploadedImageUrl!, width: 120, height: 120),
+                ),
               Row(
                 children: [
                   Expanded(

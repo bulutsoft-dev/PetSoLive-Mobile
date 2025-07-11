@@ -72,16 +72,19 @@ class _AddPetScreenState extends State<AddPetScreen> {
     try {
       final sessionManager = SessionManager();
       final token = await sessionManager.getToken() ?? '';
-      await PetApiService().createMultipart(
+      await PetApiService().createPetMultipart(
         name: _nameController.text,
         species: _speciesController.text,
         breed: _breedController.text,
         age: int.tryParse(_ageController.text) ?? 0,
         gender: _selectedGender ?? '',
+        weight: double.tryParse(_weightController.text) ?? 0,
         color: _colorController.text,
+        dateOfBirth: _selectedDate ?? DateTime.now(),
         description: _descriptionController.text,
         microchipId: _microchipIdController.text,
         vaccinationStatus: _vaccinationStatusController.text,
+        isNeutered: _isNeutered,
         imageFile: _selectedImage!,
         token: token,
       );
@@ -91,7 +94,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
       );
       Navigator.of(context).pop();
     } catch (e) {
-      print('Hata: $e');
+      debugPrint('Hata: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Bir hata oluştu: $e')),
@@ -299,13 +302,29 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 decoration: InputDecoration(labelText: 'pets.microchip_id'.tr()),
               ),
               const SizedBox(height: 12),
-              // Resim Yükleme
+              // Resim seçme ve önizleme:
               ElevatedButton(
                 onPressed: _pickImage,
                 child: Text('Resim Seç'),
               ),
               if (_selectedImage != null)
-                Image.file(_selectedImage!, width: 100, height: 100),
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => Dialog(
+                        backgroundColor: Colors.transparent,
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(ctx).pop(),
+                          child: Center(
+                            child: Image.file(_selectedImage!, fit: BoxFit.contain),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: Image.file(_selectedImage!, width: 120, height: 120),
+                ),
               const SizedBox(height: 28),
               Row(
                 children: [
