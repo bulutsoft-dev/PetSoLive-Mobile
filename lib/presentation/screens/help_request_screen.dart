@@ -37,51 +37,24 @@ class HelpRequestScreen extends StatefulWidget {
 class _HelpRequestScreenState extends State<HelpRequestScreen> {
   Map<String, dynamic>? _user;
   List<int> _approvedVeterinarianUserIds = [];
-  InterstitialAd? _interstitialAd;
-  bool _isInterstitialShown = false;
+  // InterstitialAd? _interstitialAd;
+  // bool _isInterstitialShown = false;
 
   @override
   void initState() {
     super.initState();
     _fetchUser();
     _fetchVeterinarians();
-    _loadInterstitialAd();
+    // _loadInterstitialAd();
+    InterstitialAdManager.instance.registerClick();
   }
 
-  void _loadInterstitialAd() {
-    InterstitialAd.load(
-      adUnitId: AdMobAdUnitIds.interstitialId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          _interstitialAd = ad;
-          _showInterstitialAd();
-        },
-        onAdFailedToLoad: (error) {
-          _interstitialAd = null;
-        },
-      ),
-    );
-  }
-
-  void _showInterstitialAd() {
-    if (_interstitialAd != null && !_isInterstitialShown) {
-      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-        onAdDismissedFullScreenContent: (ad) {
-          ad.dispose();
-        },
-        onAdFailedToShowFullScreenContent: (ad, error) {
-          ad.dispose();
-        },
-      );
-      _interstitialAd!.show();
-      _isInterstitialShown = true;
-    }
-  }
+  // void _loadInterstitialAd() { ... }
+  // void _showInterstitialAd() { ... }
 
   @override
   void dispose() {
-    _interstitialAd?.dispose();
+    // _interstitialAd?.dispose();
     super.dispose();
   }
 

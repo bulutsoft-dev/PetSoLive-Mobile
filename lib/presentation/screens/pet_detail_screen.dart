@@ -41,46 +41,20 @@ class PetDetailScreen extends StatefulWidget {
 class _PetDetailScreenState extends State<PetDetailScreen> with RouteAware {
   late Future<_PetDetailBundle> _bundleFuture;
   final GlobalKey _topKey = GlobalKey();
-  InterstitialAd? _interstitialAd;
-  bool _isInterstitialShown = false;
+  // InterstitialAd? _interstitialAd;
+  // bool _isInterstitialShown = false;
 
   @override
   void initState() {
     super.initState();
     _bundleFuture = _fetchAll(widget.petId);
-    _loadInterstitialAd();
+    // _loadInterstitialAd();
+    // Yeni mantık: Sayaçlı reklam yönetimi
+    InterstitialAdManager.instance.registerClick();
   }
 
-  void _loadInterstitialAd() {
-    InterstitialAd.load(
-      adUnitId: AdMobAdUnitIds.interstitialId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          _interstitialAd = ad;
-          _showInterstitialAd();
-        },
-        onAdFailedToLoad: (error) {
-          _interstitialAd = null;
-        },
-      ),
-    );
-  }
-
-  void _showInterstitialAd() {
-    if (_interstitialAd != null && !_isInterstitialShown) {
-      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-        onAdDismissedFullScreenContent: (ad) {
-          ad.dispose();
-        },
-        onAdFailedToShowFullScreenContent: (ad, error) {
-          ad.dispose();
-        },
-      );
-      _interstitialAd!.show();
-      _isInterstitialShown = true;
-    }
-  }
+  // void _loadInterstitialAd() { ... }
+  // void _showInterstitialAd() { ... }
 
   @override
   void didChangeDependencies() {
@@ -90,7 +64,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> with RouteAware {
 
   @override
   void dispose() {
-    _interstitialAd?.dispose();
+    // _interstitialAd?.dispose();
     routeObserver.unsubscribe(this);
     super.dispose();
   }
