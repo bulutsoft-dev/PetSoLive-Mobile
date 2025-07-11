@@ -104,135 +104,142 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
       ),
       body: BlocBuilder<LostPetAdCubit, LostPetAdState>(
         builder: (context, state) {
-              if (state is LostPetAdLoading) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (state is LostPetAdError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+          if (state is LostPetAdLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is LostPetAdError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const SizedBox(height: 12),
+                  Text('lost_pets.error'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)),
+                  const SizedBox(height: 8),
+                  Text(state.error, style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+                ],
+              ),
+            );
+          } else if (state is LostPetAdLoaded) {
+            final allAds = state.ads;
+            final cities = getCities(allAds);
+            final districts = selectedCity.isNotEmpty ? getDistricts(allAds, selectedCity) : <String>[];
+            final filteredAds = filterAds(allAds);
+            filteredAds.sort((a, b) => b.id.compareTo(a.id));
+            final userHasAds = currentUserId != null && allAds.any((ad) => ad.userId == currentUserId);
+            return Column(
+              children: [
+                // 'İlanlarım' butonu en yukarıda
+                if (userHasAds)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10, bottom: 4),
+                    child: Center(
+                      child: FilterChip(
+                        label: Text(
+                          'lost_pets.my_ads_only'.tr(),
+                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                        ),
+                        avatar: const Icon(Icons.person, size: 18),
+                        selected: myAdsOnly,
+                        selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                        checkmarkColor: Theme.of(context).colorScheme.primary,
+                        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                        shape: StadiumBorder(side: BorderSide(color: Theme.of(context).colorScheme.primary)),
+                        onSelected: (v) => setState(() => myAdsOnly = v),
+                      ),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, color: Colors.red, size: 48),
-                      const SizedBox(height: 12),
-                      Text('lost_pets.error'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)),
-                      const SizedBox(height: 8),
-                      Text(state.error, style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+                      // Şehir filtresi
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedCity,
+                          isExpanded: true,
+                          decoration: InputDecoration(labelText: 'lost_pets_city'.tr()),
+                          items: [DropdownMenuItem(value: '', child: Text('lost_pets_all'.tr()))] +
+                              cities.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                          onChanged: (v) => setState(() {
+                            selectedCity = v ?? '';
+                            selectedDistrict = '';
+                          }),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // İlçe filtresi
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedDistrict,
+                          isExpanded: true,
+                          decoration: InputDecoration(labelText: 'lost_pets_district'.tr()),
+                          items: [DropdownMenuItem(value: '', child: Text('lost_pets_all'.tr()))] +
+                              districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+                          onChanged: (v) => setState(() => selectedDistrict = v ?? ''),
+                        ),
+                      ),
                     ],
                   ),
-                );
-              } else if (state is LostPetAdLoaded) {
-                final allAds = state.ads;
-                final cities = getCities(allAds);
-                final districts = selectedCity.isNotEmpty ? getDistricts(allAds, selectedCity) : <String>[];
-                final filteredAds = filterAds(allAds);
-                final userHasAds = currentUserId != null && allAds.any((ad) => ad.userId == currentUserId);
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'lost_pets_search_hint'.tr(),
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (v) => setState(() => searchQuery = v),
+                  ),
+                ),
+                AdmobBannerWidget(),
+                const SizedBox(height: 8),
+                if (filteredAds.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Şehir filtresi
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              value: selectedCity,
-                              isExpanded: true,
-                              decoration: InputDecoration(labelText: 'lost_pets_city'.tr()),
-                              items: [DropdownMenuItem(value: '', child: Text('lost_pets_all'.tr()))] +
-                                  cities.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                              onChanged: (v) => setState(() {
-                                selectedCity = v ?? '';
-                                selectedDistrict = '';
-                              }),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // İlçe filtresi
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              value: selectedDistrict,
-                              isExpanded: true,
-                              decoration: InputDecoration(labelText: 'lost_pets_district'.tr()),
-                              items: [DropdownMenuItem(value: '', child: Text('lost_pets_all'.tr()))] +
-                                  districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
-                              onChanged: (v) => setState(() => selectedDistrict = v ?? ''),
-                            ),
-                          ),
+                          Icon(Icons.search_off, color: Theme.of(context).colorScheme.primary, size: 48),
+                          const SizedBox(height: 12),
+                          Text('lost_pets.empty'.tr(), style: Theme.of(context).textTheme.titleLarge),
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'lost_pets_search_hint'.tr(),
-                          prefixIcon: Icon(Icons.search),
-                          border: OutlineInputBorder(),
-                        ),
-                        onChanged: (v) => setState(() => searchQuery = v),
+                  )
+                else
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<LostPetAdCubit>().getAll();
+                      },
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        itemCount: filteredAds.length,
+                        itemBuilder: (context, index) {
+                          final ad = filteredAds[index];
+                          return LostPetAdCard(
+                            ad: ad,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => LostPetAdScreen(adId: ad.id),
+                                ),
+                              );
+                            },
+                          );
+                        },
                       ),
                     ),
-                    AdmobBannerWidget(),
-                    if (userHasAds)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10, bottom: 4),
-                        child: Center(
-                          child: FilterChip(
-                            label: Text(
-                              'lost_pets.my_ads_only'.tr(),
-                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                            ),
-                            avatar: const Icon(Icons.person, size: 18),
-                            selected: myAdsOnly,
-                            selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
-                            checkmarkColor: Theme.of(context).colorScheme.primary,
-                            backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-                            shape: StadiumBorder(side: BorderSide(color: Theme.of(context).colorScheme.primary)),
-                            onSelected: (v) => setState(() => myAdsOnly = v),
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 8),
-                    if (filteredAds.isEmpty)
-                      Expanded(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.search_off, color: Theme.of(context).colorScheme.primary, size: 48),
-                              const SizedBox(height: 12),
-                              Text('lost_pets.empty'.tr(), style: Theme.of(context).textTheme.titleLarge),
-                            ],
-                          ),
-                        ),
-                      )
-                    else
-                      Expanded(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          itemCount: filteredAds.length,
-                          itemBuilder: (context, index) {
-                            final ad = filteredAds[index];
-                            return LostPetAdCard(
-                              ad: ad,
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => LostPetAdScreen(adId: ad.id),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                  ],
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
+                  ),
+              ],
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
     );
   }
 }

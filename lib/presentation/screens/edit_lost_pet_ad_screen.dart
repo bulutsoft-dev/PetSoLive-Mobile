@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +9,8 @@ import '../../core/helpers/city_list.dart';
 import '../partials/base_app_bar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/constants/admob_banner_widget.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../data/providers/image_upload_provider.dart';
 
 class EditLostPetAdScreen extends StatefulWidget {
   final LostPetAdDto ad;
@@ -22,6 +25,10 @@ class _EditLostPetAdScreenState extends State<EditLostPetAdScreen> {
   late final TextEditingController _petNameController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _imageUrlController;
+  String? _uploadedImageUrl;
+  File? _selectedImageFile;
+  final ImagePicker _picker = ImagePicker();
+  bool _isUploadingImage = false;
   String? _selectedCity;
   String? _selectedDistrict;
   DateTime? _lastSeenDate;
@@ -34,6 +41,7 @@ class _EditLostPetAdScreenState extends State<EditLostPetAdScreen> {
     _petNameController = TextEditingController(text: ad.petName);
     _descriptionController = TextEditingController(text: ad.description);
     _imageUrlController = TextEditingController(text: ad.imageUrl);
+    _uploadedImageUrl = ad.imageUrl;
     _selectedCity = ad.lastSeenCity;
     _selectedDistrict = ad.lastSeenDistrict;
     _lastSeenDate = ad.lastSeenDate;
@@ -47,8 +55,36 @@ class _EditLostPetAdScreenState extends State<EditLostPetAdScreen> {
     super.dispose();
   }
 
+  Future<void> _pickAndUploadImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImageFile = File(pickedFile.path);
+        _isUploadingImage = true;
+      });
+      try {
+        final url = await ImageUploadProvider.uploadToImgbb(_selectedImageFile!);
+        setState(() {
+          _uploadedImageUrl = url;
+          _isUploadingImage = false;
+        });
+      } catch (e) {
+        setState(() => _isUploadingImage = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Resim yüklenemedi: $e')),
+        );
+      }
+    }
+  }
+
   Future<void> submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_uploadedImageUrl == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lütfen bir resim yükleyin!')),
+      );
+      return;
+    }
     setState(() => _isLoading = true);
     try {
       final authService = AuthService();
@@ -69,7 +105,7 @@ class _EditLostPetAdScreenState extends State<EditLostPetAdScreen> {
         petName: _petNameController.text,
         description: _descriptionController.text,
         lastSeenDate: _lastSeenDate ?? DateTime.now(),
-        imageUrl: _imageUrlController.text,
+        imageUrl: _uploadedImageUrl!,
         userId: user['id'] ?? 0,
         lastSeenCity: _selectedCity ?? '',
         lastSeenDistrict: _selectedDistrict ?? '',
@@ -110,88 +146,53 @@ class _EditLostPetAdScreenState extends State<EditLostPetAdScreen> {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
             children: [
-              if (_imageUrlController.text.isNotEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => Dialog(
-                            backgroundColor: Colors.transparent,
-                            child: Stack(
-                              alignment: Alignment.topRight,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image.network(
-                                    _imageUrlController.text,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (c, e, s) => Container(
-                                      width: 300,
-                                      height: 300,
-                                      color: Colors.grey[200],
-                                      child: Icon(Icons.image_not_supported, size: 64, color: Colors.grey[400]),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 8,
-                                  right: 8,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Future.microtask(() => Navigator.of(ctx).pop());
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.black54,
-                                        borderRadius: BorderRadius.circular(16),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 18),
+                  child: GestureDetector(
+                    onTap: _isUploadingImage ? null : _pickAndUploadImage,
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(60),
+                          child: _selectedImageFile != null
+                              ? Image.file(_selectedImageFile!, width: 120, height: 120, fit: BoxFit.cover)
+                              : (_uploadedImageUrl != null
+                                  ? Image.network(_uploadedImageUrl!, width: 120, height: 120, fit: BoxFit.cover,
+                                      errorBuilder: (c, e, s) => Container(
+                                        width: 120,
+                                        height: 120,
+                                        color: Colors.grey[200],
+                                        child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
                                       ),
-                                      padding: const EdgeInsets.all(4),
-                                      child: Icon(Icons.close, color: Colors.white, size: 28),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                    )
+                                  : Container(
+                                      width: 120,
+                                      height: 120,
+                                      color: Colors.grey[200],
+                                      child: Icon(Icons.add_a_photo, size: 48, color: Colors.grey[400]),
+                                    )),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(20),
                             ),
+                            padding: const EdgeInsets.all(6),
+                            child: _isUploadingImage
+                                ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : Icon(Icons.camera_alt, color: Colors.white, size: 24),
                           ),
-                        );
-                      },
-                      child: Stack(
-                        alignment: Alignment.topRight,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              _imageUrlController.text,
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                              errorBuilder: (c, e, s) => Container(
-                                width: 120,
-                                height: 120,
-                                color: Colors.grey[200],
-                                child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(Icons.zoom_in, color: Colors.white, size: 22),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+              ),
               // Temel Bilgiler
               Row(
                 children: [

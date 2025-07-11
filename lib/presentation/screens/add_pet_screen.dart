@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import '../../data/providers/pet_api_service.dart';
+import '../../data/providers/image_upload_provider.dart';
 
 class AddPetScreen extends StatefulWidget {
   final PetDto? pet;
@@ -36,6 +37,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
   final _vaccinationStatusController = TextEditingController();
   final _microchipIdController = TextEditingController();
   File? _selectedImage;
+  String? _uploadedImageUrl;
   final picker = ImagePicker();
   bool? _isNeutered = false;
   bool _isLoading = false;
@@ -57,14 +59,25 @@ class _AddPetScreenState extends State<AddPetScreen> {
       setState(() {
         _selectedImage = File(pickedFile.path);
       });
+      // Resmi upload et ve url'yi kaydet
+      try {
+        final url = await ImageUploadProvider.uploadToImgbb(_selectedImage!);
+        setState(() {
+          _uploadedImageUrl = url;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Resim yüklenemedi: $e')),
+        );
+      }
     }
   }
 
   Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() != true) return;
-    if (_selectedImage == null) {
+    if (_uploadedImageUrl == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lütfen bir resim seçin!')),
+        SnackBar(content: Text('Lütfen bir resim yükleyin!')),
       );
       return;
     }

@@ -8,6 +8,7 @@ import '../../core/constants/admob_banner_widget.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../widgets/image_upload_button.dart'; // Added import for ImageUploadButton
+import '../../data/providers/image_upload_provider.dart';
 
 class EditPetScreen extends StatefulWidget {
   final PetDto pet;
@@ -77,6 +78,17 @@ class _EditPetScreenState extends State<EditPetScreen> {
       setState(() {
         _selectedImage = File(pickedFile.path);
       });
+      // Resmi upload et ve url'yi kaydet
+      try {
+        final url = await ImageUploadProvider.uploadToImgbb(_selectedImage!);
+        setState(() {
+          _uploadedImageUrl = url;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Resim yüklenemedi: $e')),
+        );
+      }
     }
   }
 
@@ -86,7 +98,12 @@ class _EditPetScreenState extends State<EditPetScreen> {
     final sessionManager = SessionManager();
     final token = await sessionManager.getToken() ?? '';
     try {
+      // Tarih kontrolü: -infinity veya null ise bug fix
+      DateTime safeDate = (_selectedDate == null || _selectedDate!.isBefore(DateTime(1900)) || _selectedDate!.isAfter(DateTime(2100)))
+          ? DateTime.now()
+          : _selectedDate!;
       if (_selectedImage != null) {
+        debugPrint('[EDIT PET] updatePetMultipart çağrılıyor, yeni resim seçildi.');
         await PetApiService().updatePetMultipart(
           id: widget.pet.id,
           name: _nameController.text,
@@ -96,7 +113,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
           gender: _selectedGender ?? '',
           weight: double.tryParse(_weightController.text) ?? 0,
           color: _colorController.text,
-          dateOfBirth: _selectedDate ?? DateTime.now(),
+          dateOfBirth: safeDate,
           description: _descriptionController.text,
           microchipId: _microchipIdController.text,
           vaccinationStatus: _vaccinationStatusController.text,
@@ -105,6 +122,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
           token: token,
         );
       } else {
+        debugPrint('[EDIT PET] updateWithResponse çağrılıyor, sadece metin alanları güncelleniyor.');
         final updatedPet = widget.pet.copyWith(
           name: _nameController.text,
           species: _speciesController.text,
@@ -113,12 +131,12 @@ class _EditPetScreenState extends State<EditPetScreen> {
           gender: _selectedGender ?? '',
           weight: double.tryParse(_weightController.text) ?? 0,
           color: _colorController.text,
-          dateOfBirth: _selectedDate,
+          dateOfBirth: safeDate,
           description: _descriptionController.text,
           vaccinationStatus: _vaccinationStatusController.text,
           microchipId: _microchipIdController.text,
           isNeutered: _isNeutered,
-          imageUrl: _uploadedImageUrl ?? '', // Use uploaded image url
+          imageUrl: _uploadedImageUrl ?? widget.pet.imageUrl,
         );
         final response = await PetApiService().updateWithResponse(widget.pet.id, updatedPet, token);
         if (response != 200 && response != 204) {
