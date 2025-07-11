@@ -172,6 +172,87 @@ class _EditPetScreenState extends State<EditPetScreen> {
               const SizedBox(height: 4),
               Text('edit_pet.subtitle'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
               const SizedBox(height: 18),
+              // Pet image preview at the top (like AddPetScreen), larger and with zoom icon
+              if (_selectedImage != null)
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => Dialog(
+                          backgroundColor: Colors.transparent,
+                          child: GestureDetector(
+                            onTap: () => Navigator.of(ctx).pop(),
+                            child: Center(
+                              child: Image.file(_selectedImage!, fit: BoxFit.contain),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.file(_selectedImage!, width: 180, height: 180, fit: BoxFit.cover),
+                        ),
+                        Positioned(
+                          bottom: 12,
+                          right: 12,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.all(6),
+                            child: Icon(Icons.zoom_in, color: Colors.white, size: 28),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else if (_uploadedImageUrl != null && _uploadedImageUrl!.isNotEmpty)
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => Dialog(
+                          backgroundColor: Colors.transparent,
+                          child: GestureDetector(
+                            onTap: () => Navigator.of(ctx).pop(),
+                            child: Center(
+                              child: Image.network(_uploadedImageUrl!, fit: BoxFit.contain),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.network(_uploadedImageUrl!, width: 180, height: 180, fit: BoxFit.cover),
+                        ),
+                        Positioned(
+                          bottom: 12,
+                          right: 12,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.all(6),
+                            child: Icon(Icons.zoom_in, color: Colors.white, size: 28),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               // Kimlik Bilgileri
               Row(
                 children: [
@@ -339,56 +420,22 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 decoration: InputDecoration(labelText: 'pets.microchip_id'.tr()),
               ),
               const SizedBox(height: 12),
-              // Görsel seçme ve önizleme UI moved to the bottom
+              // Görsel yükle butonu en altta, preview kaldırıldı
               const SizedBox(height: 28),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: ImageUploadButton(
-                  label: 'edit_pet.upload_image'.tr(),
-                  initialUrl: _uploadedImageUrl,
-                  onImageUploaded: (url) {
-                    setState(() {
-                      _uploadedImageUrl = url;
-                    });
-                  },
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: ImageUploadButton(
+                    label: 'pets.image_url'.tr(),
+                    initialUrl: null, // Do not show any preview in the upload button
+                    onImageUploaded: (url) {
+                      setState(() {
+                        _uploadedImageUrl = url;
+                      });
+                    },
+                  ),
                 ),
               ),
-              if (_selectedImage != null)
-                GestureDetector(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => Dialog(
-                        backgroundColor: Colors.transparent,
-                        child: GestureDetector(
-                          onTap: () => Navigator.of(ctx).pop(),
-                          child: Center(
-                            child: Image.file(_selectedImage!, fit: BoxFit.contain),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  child: Image.file(_selectedImage!, width: 120, height: 120),
-                )
-              else if (_uploadedImageUrl != null && _uploadedImageUrl!.isNotEmpty)
-                GestureDetector(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => Dialog(
-                        backgroundColor: Colors.transparent,
-                        child: GestureDetector(
-                          onTap: () => Navigator.of(ctx).pop(),
-                          child: Center(
-                            child: Image.network(_uploadedImageUrl!, fit: BoxFit.contain),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  child: Image.network(_uploadedImageUrl!, width: 120, height: 120),
-                ),
               Row(
                 children: [
                   Expanded(
