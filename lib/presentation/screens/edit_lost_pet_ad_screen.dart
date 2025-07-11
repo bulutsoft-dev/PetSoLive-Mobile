@@ -329,7 +329,9 @@ class _EditLostPetAdScreenState extends State<EditLostPetAdScreen> {
                 controller: _imageUrlController,
                 decoration: InputDecoration(labelText: 'lost_pet_ad.form_image_url'.tr()),
                 onChanged: (_) => setState(() {}),
+                enabled: _uploadedImageUrl == null || _uploadedImageUrl!.isEmpty,
                 validator: (v) {
+                  if (_uploadedImageUrl != null && _uploadedImageUrl!.isNotEmpty) return null;
                   if (v == null || v.isEmpty) return 'lost_pet_ad.form_required'.tr();
                   final uri = Uri.tryParse(v);
                   if (uri == null || !(uri.isScheme('http') || uri.isScheme('https'))) {
