@@ -94,10 +94,13 @@ class _EditPetScreenState extends State<EditPetScreen> {
           breed: _breedController.text,
           age: int.tryParse(_ageController.text) ?? 0,
           gender: _selectedGender ?? '',
+          weight: double.tryParse(_weightController.text) ?? 0,
           color: _colorController.text,
+          dateOfBirth: _selectedDate ?? DateTime.now(),
           description: _descriptionController.text,
           microchipId: _microchipIdController.text,
           vaccinationStatus: _vaccinationStatusController.text,
+          isNeutered: _isNeutered,
           imageFile: _selectedImage!,
           token: token,
         );

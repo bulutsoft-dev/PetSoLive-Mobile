@@ -151,10 +151,13 @@ class PetApiService {
     required String breed,
     required int age,
     required String gender,
+    required double weight,
     required String color,
+    required DateTime dateOfBirth,
     required String description,
     required String microchipId,
     required String vaccinationStatus,
+    required bool? isNeutered,
     required File imageFile,
     required String token,
   }) async {
@@ -166,10 +169,13 @@ class PetApiService {
       'breed': breed,
       'age': age.toString(),
       'gender': gender,
+      'weight': weight.toString(),
       'color': color,
+      'dateOfBirth': dateOfBirth.toIso8601String(),
       'description': description,
       'microchipId': microchipId,
       'vaccinationStatus': vaccinationStatus,
+      if (isNeutered != null) 'isNeutered': isNeutered.toString(),
     });
     request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
     request.headers['Authorization'] = 'Bearer $token';
