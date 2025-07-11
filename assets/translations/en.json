@@ -391,5 +391,6 @@
   "register_profile_image": "Profile Image (optional)",
   "register_button": "Register",
   "register_already_have": "Already have an account",
-  "register_copyright": "© 2025 PetSoLive & Bulutsoft"
+  "register_copyright": "© 2025 PetSoLive & Bulutsoft",
+  "help_requests.saving": "Saving..."
 }

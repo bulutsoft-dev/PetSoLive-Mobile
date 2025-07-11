@@ -73,13 +73,13 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    _setLoadingByState(context);
+    setState(() => _isLoading = true);
     final accountState = context.read<AccountCubit>().state;
     if (accountState is! AccountSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('help_requests.login_required'.tr())),
       );
-      _setLoadingByState(context);
+      setState(() => _isLoading = false);
       return;
     }
     final user = accountState.response.user;
@@ -119,7 +119,7 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
         );
       }
     } finally {
-      _setLoadingByState(context);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -398,8 +398,12 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
                 const SizedBox(height: 28),
                 ElevatedButton.icon(
                   onPressed: _isLoading ? null : _submit,
-                  icon: _isLoading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save),
-                  label: Text('help_requests.save'.tr()),
+                  icon: _isLoading
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.save),
+                  label: _isLoading
+                      ? Text('help_requests.saving'.tr())
+                      : Text('help_requests.save'.tr()),
                   style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                 ),
                 AdmobBannerWidget(),
