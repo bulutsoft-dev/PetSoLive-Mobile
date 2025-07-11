@@ -362,14 +362,14 @@ class _PetDetailScreenState extends State<PetDetailScreen> with RouteAware {
                           ),
                           const SizedBox(height: 18),
                           // Kimlik Bilgileri
-                          _GroupTitle(icon: Icons.badge, color: Colors.indigo, text: 'Kimlik Bilgileri'),
+                          _GroupTitle(icon: Icons.badge, color: Colors.indigo, text: 'edit_pet.identity'.tr()),
                           const SizedBox(height: 8),
                           _PetDetailRow(emoji: '🐾', label: 'pet_detail.species'.tr(), value: pet.species),
                           _PetDetailRow(emoji: '🧬', label: 'pet_detail.breed'.tr(), value: pet.breed),
                           _PetDetailRow(emoji: '🔗', label: 'pet_detail.microchip_id'.tr(), value: pet.microchipId ?? '-'),
                           const SizedBox(height: 16),
                           // Fiziksel Özellikler
-                          _GroupTitle(icon: Icons.pets, color: Colors.teal, text: 'Fiziksel Özellikler'),
+                          _GroupTitle(icon: Icons.pets, color: Colors.teal, text: 'edit_pet.physical'.tr()),
                           const SizedBox(height: 8),
                           _PetDetailRow(emoji: '🎂', label: 'pet_detail.age'.tr(), value: pet.age != null ? pet.age.toString() : '-'),
                           _PetDetailRow(emoji: pet.gender != null && pet.gender!.toLowerCase().contains('d') || (pet.gender != null && pet.gender!.toLowerCase().contains('f')) ? '♀️' : '♂️', label: 'pet_detail.gender'.tr(), value: pet.gender ?? '-'),
@@ -378,7 +378,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> with RouteAware {
                           _PetDetailRow(emoji: '📅', label: 'pet_detail.date_of_birth'.tr(), value: pet.dateOfBirth != null ? DateFormat('dd.MM.yyyy').format(pet.dateOfBirth!) : '-'),
                           const SizedBox(height: 16),
                           // Sağlık Bilgileri
-                          _GroupTitle(icon: Icons.health_and_safety, color: Colors.redAccent, text: 'Sağlık Bilgileri'),
+                          _GroupTitle(icon: Icons.health_and_safety, color: Colors.redAccent, text: 'edit_pet.health'.tr()),
                           const SizedBox(height: 8),
                           _PetDetailRow(emoji: '💉', label: 'pet_detail.vaccination_status'.tr(), value: pet.vaccinationStatus ?? '-'),
                           _PetDetailRow(emoji: '✂️', label: 'pet_detail.is_neutered'.tr(), value: pet.isNeutered != null ? (pet.isNeutered! ? 'pet_detail.yes'.tr() : 'pet_detail.no'.tr()) : '-'),

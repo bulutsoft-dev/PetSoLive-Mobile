@@ -427,7 +427,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: ImageUploadButton(
                     label: 'pets.image_url'.tr(),
-                    initialUrl: null, // Do not show any preview in the upload button
+                    initialUrl: _uploadedImageUrl,
                     onImageUploaded: (url) {
                       setState(() {
                         _uploadedImageUrl = url;
