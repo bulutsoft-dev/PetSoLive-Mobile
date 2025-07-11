@@ -125,6 +125,41 @@ class HelpRequestApiService {
     }
   }
 
+  Future<void> updateMultipart(int id, HelpRequestDto dto, String token, File? imageFile, String? imageUrl) async {
+    final url = Uri.parse('$baseUrl/api/HelpRequest/$id');
+    var request = http.MultipartRequest('PUT', url);
+    request.fields['id'] = dto.id.toString();
+    request.fields['title'] = dto.title;
+    request.fields['description'] = dto.description;
+    request.fields['emergencyLevel'] = dto.emergencyLevel.name[0].toUpperCase() + dto.emergencyLevel.name.substring(1).toLowerCase();
+    request.fields['createdAt'] = dto.createdAt.toIso8601String();
+    request.fields['userId'] = dto.userId.toString();
+    request.fields['userName'] = dto.userName;
+    request.fields['location'] = dto.location;
+    if (dto.contactName != null) request.fields['contactName'] = dto.contactName!;
+    if (dto.contactPhone != null) request.fields['contactPhone'] = dto.contactPhone!;
+    if (dto.contactEmail != null) request.fields['contactEmail'] = dto.contactEmail!;
+    if (imageUrl != null) request.fields['imageUrl'] = imageUrl;
+    request.fields['status'] = dto.status.name[0].toUpperCase() + dto.status.name.substring(1).toLowerCase();
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['x-api-key'] = ApiConstants.apiKey;
+    if (imageFile != null) {
+      request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+    }
+    debugPrint('[HELP REQUEST UPDATE MULTIPART] URL: $url');
+    debugPrint('[HELP REQUEST UPDATE MULTIPART] Fields: ' + request.fields.toString());
+    debugPrint('[HELP REQUEST UPDATE MULTIPART] Headers: ' + request.headers.toString());
+    if (imageFile != null) debugPrint('[HELP REQUEST UPDATE MULTIPART] File: ${imageFile.path}');
+    final response = await request.send();
+    final respStr = await response.stream.bytesToString();
+    debugPrint('[HELP REQUEST UPDATE MULTIPART] Status: ${response.statusCode}');
+    debugPrint('[HELP REQUEST UPDATE MULTIPART] Response: $respStr');
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      debugPrint('[HELP REQUEST UPDATE MULTIPART] ERROR: ${response.statusCode} $respStr');
+      throw Exception('Failed to update help request: $respStr');
+    }
+  }
+
   Future<void> delete(int id, String token) async {
     debugPrint('[API] DELETE /api/HelpRequest/$id başlatılıyor...');
     final response = await http.delete(

@@ -100,7 +100,7 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
       status: HelpRequestStatus.Active,
     );
     try {
-      if (_selectedImageFile != null && _imageUrlController.text.isNotEmpty) {
+      if (_imageUrlController.text.isNotEmpty) {
         await HelpRequestApiService().createMultipart(dto, token, _selectedImageFile, _imageUrlController.text);
       } else {
         await HelpRequestApiService().create(dto, token);

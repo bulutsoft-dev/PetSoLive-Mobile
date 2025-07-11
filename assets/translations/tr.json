@@ -385,5 +385,6 @@
   "register_profile_image": "Profil Fotoğrafı (opsiyonel)",
   "register_button": "Kayıt Ol",
   "register_already_have": "Zaten hesabım var",
-  "register_copyright": "© 2025 PetSoLive & Bulutsoft"
+  "register_copyright": "© 2025 PetSoLive & Bulutsoft",
+  "help_requests.saving": "Kaydediliyor..."
 }
