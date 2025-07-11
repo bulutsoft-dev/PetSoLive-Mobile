@@ -9,6 +9,10 @@ import 'package:petsolive/presentation/screens/login_screen.dart';
 import '../../injection_container.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../localization/locale_keys.g.dart';
+import 'package:petsolive/presentation/widgets/image_upload_button.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -25,7 +29,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _dateOfBirthController = TextEditingController();
-  final _profileImageUrlController = TextEditingController();
   bool _obscurePassword = true;
 
   DateTime? _selectedDate;
@@ -33,44 +36,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _selectedCity;
   String? _selectedDistrict;
 
-  void _onRegisterPressed() {
-    if (_formKey.currentState?.validate() ?? false) {
-      if (_selectedCity == null || _selectedDistrict == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(LocaleKeys.register_city_district_required.tr())),
-        );
-        return;
-      }
-      if (_selectedDate == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(LocaleKeys.register_birthdate_required.tr())),
-        );
-        return;
-      }
-      try {
-        final dto = RegisterDto(
-          username: _usernameController.text.trim(),
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          phoneNumber: _phoneController.text.trim(),
-          address: _addressController.text.trim(),
-          dateOfBirth: _selectedDate!,
-          city: _selectedCity!,
-          district: _selectedDistrict!,
-          profileImageUrl: _profileImageUrlController.text.isNotEmpty
-              ? _profileImageUrlController.text.trim()
-              : 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimg.freepik.com%2Ffree-icon%2Fuser_318-804790.jpg&f=1&nofb=1&ipt=5936ab431b7527eb5f5e20fc8c26d918ebeea72414e3fa5b59a57ea07459717f',
-        );
-        context.read<AccountCubit>().register(dto);
-      } catch (e, stack) {
-        debugPrint('Register Hatası: $e');
-        debugPrintStack(stackTrace: stack);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(LocaleKeys.register_error.tr(args: [e.toString()]))),
-        );
-      }
-    }
-  }
+  File? _selectedImage;
+  final picker = ImagePicker();
+
+  bool _isLoading = false;
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
@@ -86,6 +55,64 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _selectedDate = picked;
         _dateOfBirthController.text = DateFormat('yyyy-MM-dd').format(picked);
       });
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState?.validate() != true) return;
+    if (_selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lütfen bir profil fotoğrafı seçin!')),
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      var uri = Uri.parse('https://petsolive-api.onrender.com/api/Register');
+      var request = http.MultipartRequest('POST', uri);
+      request.fields['username'] = _usernameController.text.trim();
+      request.fields['email'] = _emailController.text.trim();
+      request.fields['password'] = _passwordController.text;
+      request.fields['phoneNumber'] = _phoneController.text.trim();
+      request.fields['address'] = _addressController.text.trim();
+      request.fields['dateOfBirth'] = _selectedDate?.toIso8601String() ?? '';
+      request.fields['city'] = _selectedCity ?? '';
+      request.fields['district'] = _selectedDistrict ?? '';
+      request.files.add(await http.MultipartFile.fromPath('profileImage', _selectedImage!.path));
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        final respStr = await response.stream.bytesToString();
+        print('Başarılı: ' + respStr);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Kayıt başarılı!')),
+        );
+        Navigator.of(context).pushReplacementNamed('/login');
+      } else {
+        final respStr = await response.stream.bytesToString();
+        print('Hata: ${response.statusCode} $respStr');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Hata: $respStr')),
+        );
+      }
+    } catch (e) {
+      print('Hata: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Bir hata oluştu: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -343,30 +370,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   validator: (value) => value == null || value.isEmpty ? LocaleKeys.register_birthdate_required.tr() : null,
                                 ),
                                 const SizedBox(height: 16),
-                                TextFormField(
-                                  controller: _profileImageUrlController,
-                                  decoration: InputDecoration(
-                                    labelText: LocaleKeys.register_profile_image.tr(),
-                                    prefixIcon: Icon(Icons.image),
-                                  ),
+                                // Profil Resmi Yükleme
+                                ElevatedButton(
+                                  onPressed: _pickImage,
+                                  child: Text('Profil Fotoğrafı Seç'),
                                 ),
+                                if (_selectedImage != null)
+                                  Image.file(_selectedImage!, width: 100, height: 100),
+                                const SizedBox(height: 12),
                                 const SizedBox(height: 32),
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
-                                    onPressed: isLoading ? null : _onRegisterPressed,
+                                    onPressed: _isLoading ? null : _submitForm,
                                     style: ElevatedButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(vertical: 16),
                                       textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                     ),
-                                    child: isLoading
-                                        ? const SizedBox(
-                                            width: 28,
-                                            height: 28,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
-                                          )
-                                        : Text(LocaleKeys.register_button.tr()),
+                                    child: _isLoading ? CircularProgressIndicator() : Text(LocaleKeys.register_button.tr()),
                                   ),
                                 ),
                                 const SizedBox(height: 16),

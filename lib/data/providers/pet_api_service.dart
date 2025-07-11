@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../../core/constants/api_constants.dart';
 import '../models/pet_dto.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:io';
 
 class PetApiService {
   final String baseUrl = ApiConstants.baseUrl;
@@ -56,6 +57,44 @@ class PetApiService {
     debugPrint('[PET CREATE] Response: ${response.body}');
     if (response.statusCode != 201) {
       throw Exception('Failed to create pet: \nStatus: ${response.statusCode}\nBody: ${response.body}');
+    }
+  }
+
+  Future<void> createMultipart({
+    required String name,
+    required String species,
+    required String breed,
+    required int age,
+    required String gender,
+    required String color,
+    required String description,
+    required String microchipId,
+    required String vaccinationStatus,
+    required File imageFile,
+    required String token,
+    // diğer alanlar...
+  }) async {
+    final url = '$baseUrl/api/Pet';
+    var request = http.MultipartRequest('POST', Uri.parse(url));
+    request.fields['name'] = name;
+    request.fields['species'] = species;
+    request.fields['breed'] = breed;
+    request.fields['age'] = age.toString();
+    request.fields['gender'] = gender;
+    request.fields['color'] = color;
+    request.fields['description'] = description;
+    request.fields['microchipId'] = microchipId;
+    request.fields['vaccinationStatus'] = vaccinationStatus;
+    // ... diğer alanlar ...
+    request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['x-api-key'] = apiKey;
+    final response = await request.send();
+    final respStr = await response.stream.bytesToString();
+    debugPrint('[PET CREATE MULTIPART] Status: ${response.statusCode}');
+    debugPrint('[PET CREATE MULTIPART] Response: $respStr');
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to create pet: $respStr');
     }
   }
 
