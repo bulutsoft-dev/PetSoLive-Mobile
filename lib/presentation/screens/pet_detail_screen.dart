@@ -17,6 +17,18 @@ import '../widgets/adoption_request_comment_widget.dart';
 import '../blocs/adoption_request_cubit.dart';
 import '../../data/repositories/adoption_request_repository_impl.dart';
 import '../../data/providers/adoption_request_api_service.dart';
+import '../blocs/account_cubit.dart';
+import 'add_pet_screen.dart';
+import 'edit_pet_screen.dart';
+import 'package:petsolive/presentation/screens/delete_confirmation_screen.dart';
+import 'adoption_request_form_screen.dart';
+import 'package:flutter/widgets.dart';
+import '../../core/constants/admob_banner_widget.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../core/constants/admob_constants.dart';
+
+// RouteObserver global tanımı (main.dart'ta da olması gerekir)
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
 
 class PetDetailScreen extends StatefulWidget {
   final int petId;
@@ -26,14 +38,77 @@ class PetDetailScreen extends StatefulWidget {
   State<PetDetailScreen> createState() => _PetDetailScreenState();
 }
 
-class _PetDetailScreenState extends State<PetDetailScreen> {
+class _PetDetailScreenState extends State<PetDetailScreen> with RouteAware {
   late Future<_PetDetailBundle> _bundleFuture;
-  final int _currentUserId = 1;
+  final GlobalKey _topKey = GlobalKey();
+  InterstitialAd? _interstitialAd;
+  bool _isInterstitialShown = false;
 
   @override
   void initState() {
     super.initState();
     _bundleFuture = _fetchAll(widget.petId);
+    _loadInterstitialAd();
+  }
+
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: AdMobAdUnitIds.interstitialId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitialAd = ad;
+          _showInterstitialAd();
+        },
+        onAdFailedToLoad: (error) {
+          _interstitialAd = null;
+        },
+      ),
+    );
+  }
+
+  void _showInterstitialAd() {
+    if (_interstitialAd != null && !_isInterstitialShown) {
+      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+        },
+      );
+      _interstitialAd!.show();
+      _isInterstitialShown = true;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    _interstitialAd?.dispose();
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPush() {
+    // Sayfa ilk açıldığında
+    setState(() {
+      _bundleFuture = _fetchAll(widget.petId);
+    });
+  }
+
+  @override
+  void didPopNext() {
+    // Başka bir sayfadan geri dönülünce
+    setState(() {
+      _bundleFuture = _fetchAll(widget.petId);
+    });
   }
 
   Future<_PetDetailBundle> _fetchAll(int petId) async {
@@ -120,6 +195,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
         ),
       ),
       body: FutureBuilder<_PetDetailBundle>(
+        key: ValueKey(_bundleFuture),
         future: _bundleFuture,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
@@ -133,9 +209,23 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
           final owner = bundle.owner;
           final adoption = bundle.adoption;
           final adoptionRequests = bundle.adoptionRequests;
+          // Get current user id from AccountCubit
+          final accountState = context.read<AccountCubit>().state;
+          int? currentUserId;
+          if (accountState is AccountSuccess) {
+            currentUserId = accountState.response.user.id;
+          }
+          final bool isMine = currentUserId != null && (
+            (pet.ownerId == currentUserId) || (owner != null && owner.userId == currentUserId)
+          );
+          final bool isAdopted = adoption != null;
+          // Eğer adoption yoksa ama adoptionRequests arasında status 'Approved' olan varsa, isAdopted true gibi davran
+          final bool isAdoptedByRequest = adoptionRequests.any((r) => r.status?.toLowerCase() == 'approved');
+          final bool showAdoptedUI = isAdopted || isAdoptedByRequest;
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
+              Container(key: _topKey),
               Card(
                 elevation: 6,
                 margin: EdgeInsets.zero,
@@ -392,29 +482,235 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                 requests: adoptionRequests,
                 isDark: isDark,
                 theme: theme,
-              ),
-              // Sahiplen butonu
-              Builder(
-                builder: (context) {
-                  final isOwner = owner?.userId == _currentUserId;
-                  final hasRequest = adoptionRequests.any((r) => r.userId == _currentUserId);
-                  if (isOwner) {
-                    return Text('Bu petin sahibisiniz.');
-                  }
-                  if (hasRequest) {
-                    return Text('Daha önce bu pet için başvuru yaptınız.');
-                  }
-                  return ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.favorite_border),
-                    label: Text('pet_detail.adopt').tr(),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  );
+                isOwner: isMine,
+                petId: pet.id,
+                onDataChanged: () {
+                  setState(() {
+                    _bundleFuture = _fetchAll(widget.petId);
+                  });
                 },
               ),
+              // Butonlar: Sadece pet owner ve pet adopted değilse edit/sil, diğerleri için (adopt edilmediyse) sahiplen
+              Builder(
+                builder: (context) {
+                  final isOwner = isMine;
+                  if (!showAdoptedUI && isOwner) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              icon: Icon(Icons.edit),
+                              label: Text('pet_detail.edit').tr(),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isDark
+                                    ? colorScheme.primary.withOpacity(0.85)
+                                    : colorScheme.primary,
+                                foregroundColor: isDark
+                                    ? colorScheme.onPrimary
+                                    : colorScheme.onPrimary,
+                                minimumSize: const Size.fromHeight(48),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              onPressed: () async {
+                                // Düzenleme ekranına yönlendir
+                                final result = await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => EditPetScreen(pet: pet),
+                                  ),
+                                );
+                                if (result == true) {
+                                  // Düzenleme sonrası ekranı yenile
+                                  setState(() {
+                                    _bundleFuture = _fetchAll(widget.petId);
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              icon: Icon(Icons.delete),
+                              label: Text('pet_detail.delete').tr(),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isDark
+                                    ? colorScheme.error.withOpacity(0.85)
+                                    : colorScheme.error,
+                                foregroundColor: isDark
+                                    ? colorScheme.onError
+                                    : colorScheme.onError,
+                                minimumSize: const Size.fromHeight(48),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              onPressed: () async {
+                                final confirm = await Navigator.of(context).push<bool>(
+                                  MaterialPageRoute(
+                                    builder: (_) => DeleteConfirmationScreen(
+                                      title: 'pet_detail.delete'.tr(),
+                                      description: 'pet_detail.delete_confirm_desc'.tr(),
+                                      onConfirm: () async {
+                                        try {
+                                          final accountState = context.read<AccountCubit>().state;
+                                          String? token;
+                                          if (accountState is AccountSuccess) {
+                                            token = accountState.response.token;
+                                          }
+                                          if (token == null) throw Exception('Oturum bulunamadı!');
+                                          final response = await PetApiService().delete(pet.id, token);
+                                          if (context.mounted) {
+                                            Navigator.of(context).pop(true); // Ekranı kapat, true dön
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Silme işlemi başarısız: $e')),
+                                            );
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                );
+                                if (confirm == true && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('pet_detail.delete_success'.tr())),
+                                  );
+                                  await Future.delayed(const Duration(milliseconds: 500));
+                                  Future.microtask(() => Navigator.of(context).pop(true)); // Detay ekranından çıkarken true dön
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  // Sadece owner olmayanlar ve pet adopted değilse sahiplen butonu
+                  if (showAdoptedUI) {
+                    final colorScheme = Theme.of(context).colorScheme;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: null,
+                            icon: Icon(Icons.check_circle_outline, color: colorScheme.onSurfaceVariant),
+                            label: Text('pet_detail.already_adopted_action_blocked').tr(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: colorScheme.surfaceVariant,
+                              foregroundColor: colorScheme.onSurfaceVariant,
+                              disabledBackgroundColor: colorScheme.surfaceVariant,
+                              disabledForegroundColor: colorScheme.onSurfaceVariant,
+                              minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'pet_detail.already_adopted_action_blocked_desc'.tr(),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  if (!showAdoptedUI && !isOwner) {
+                    final hasRequest = currentUserId != null && adoptionRequests.any((r) => r.userId == currentUserId);
+                    if (currentUserId == null) {
+                      // Kullanıcı login değilse
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Future.microtask(() => Navigator.of(context).pushNamed('/login'));
+                          },
+                          icon: const Icon(Icons.login),
+                          label: Text('pet_detail.login_to_adopt').tr(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      );
+                    }
+                    // Daha önce başvuru yaptıysa bilgi göster
+                    if (hasRequest) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Column(
+                          children: [
+                            Text('pet_detail.already_requested'.tr()),
+                            const SizedBox(height: 8),
+                            ElevatedButton.icon(
+                              onPressed: null,
+                              icon: const Icon(Icons.check_circle_outline),
+                              label: Text('adoption_form.success').tr(),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                                disabledBackgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                disabledForegroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                                minimumSize: const Size.fromHeight(48),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    // Normal sahiplen butonu
+                    return ElevatedButton.icon(
+                      onPressed: () async {
+                        final accountState = context.read<AccountCubit>().state;
+                        if (accountState is! AccountSuccess) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Lütfen giriş yapınız.')),
+                          );
+                          return;
+                        }
+                        final user = accountState.response.user;
+                        final result = await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => AdoptionRequestFormScreen(pet: pet, user: user),
+                          ),
+                        );
+                        if (result == true) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('adoption_form.success'.tr())),
+                          );
+                          setState(() {
+                            _bundleFuture = _fetchAll(widget.petId);
+                          });
+                          // Sayfanın en üstüne kaydır
+                          await Future.delayed(const Duration(milliseconds: 100));
+                          if (_topKey.currentContext != null) {
+                            Scrollable.ensureVisible(
+                              _topKey.currentContext!,
+                              duration: const Duration(milliseconds: 400),
+                              alignment: 0,
+                            );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.favorite_border),
+                      label: Text('pet_detail.adopt').tr(),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
+                  }
+                  // Diğer durumlarda hiçbir buton gösterme
+                  return const SizedBox.shrink();
+                },
+              ),
+              AdmobBannerWidget(),
             ],
           );
         },
@@ -487,7 +783,10 @@ class _AdoptionRequestsTabSection extends StatefulWidget {
   final List<AdoptionRequestDto> requests;
   final bool isDark;
   final ThemeData theme;
-  const _AdoptionRequestsTabSection({required this.requests, required this.isDark, required this.theme});
+  final bool isOwner;
+  final int petId;
+  final VoidCallback? onDataChanged;
+  const _AdoptionRequestsTabSection({required this.requests, required this.isDark, required this.theme, required this.isOwner, required this.petId, this.onDataChanged});
   @override
   State<_AdoptionRequestsTabSection> createState() => _AdoptionRequestsTabSectionState();
 }
@@ -720,7 +1019,57 @@ class _AdoptionRequestsTabSectionState extends State<_AdoptionRequestsTabSection
                         itemCount: visible.length + (hasMore ? 1 : 0),
                         itemBuilder: (context, idx) {
                           if (idx < visible.length) {
-                            return AdoptionRequestCommentWidget(request: visible[idx]);
+                            return AdoptionRequestCommentWidget(
+                              request: visible[idx],
+                              isOwner: widget.isOwner,
+                              petId: widget.petId,
+                              onAction: (action, request) async {
+                                final accountState = context.read<AccountCubit>().state;
+                                String? token;
+                                if (accountState is AccountSuccess) {
+                                  token = accountState.response.token;
+                                }
+                                if (token == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Oturum bulunamadı!')),
+                                  );
+                                  return;
+                                }
+                                try {
+                                  final adoptionRequestApi = AdoptionRequestApiService();
+                                  bool success = false;
+                                  if (action == 'approve') {
+                                    success = await adoptionRequestApi.approveRequest(request.id, token);
+                                    if (success) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Başvuru onaylandı!')),
+                                      );
+                                    }
+                                  } else if (action == 'reject') {
+                                    success = await adoptionRequestApi.rejectRequest(request.id, token);
+                                    if (success) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Başvuru reddedildi!')),
+                                      );
+                                    }
+                                  }
+                                  if (success && mounted) {
+                                    setState(() {});
+                                    if (widget.onDataChanged != null) widget.onDataChanged!();
+                                    await Future.delayed(const Duration(milliseconds: 500));
+                                    if (context.mounted) {
+                                      Navigator.of(context).pop(true); // Detay ekranı için result:true
+                                      await Future.delayed(const Duration(milliseconds: 100));
+                                      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                                    }
+                                  }
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('İşlem başarısız: $e')),
+                                  );
+                                }
+                              },
+                            );
                           } else {
                             // Yükleniyor göstergesi
                             return const Padding(

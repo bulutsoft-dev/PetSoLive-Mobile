@@ -13,6 +13,7 @@ class PetDto {
   final String microchipId;
   final bool? isNeutered;
   final String imageUrl;
+  final int? ownerId;
 
   PetDto({
     required this.id,
@@ -29,6 +30,7 @@ class PetDto {
     required this.microchipId,
     this.isNeutered,
     required this.imageUrl,
+    this.ownerId,
   });
 
   factory PetDto.fromJson(Map<String, dynamic> json) {
@@ -47,10 +49,12 @@ class PetDto {
       microchipId: json['microchipId'],
       isNeutered: json['isNeutered'],
       imageUrl: json['imageUrl'],
+      ownerId: json['ownerId'],
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
     'id': id,
     'name': name,
     'species': species,
@@ -59,11 +63,54 @@ class PetDto {
     'gender': gender,
     'weight': weight,
     'color': color,
-    'dateOfBirth': dateOfBirth.toIso8601String(),
+      'dateOfBirth': dateOfBirth.toUtc().toIso8601String(),
     'description': description,
     'vaccinationStatus': vaccinationStatus,
     'microchipId': microchipId,
     'isNeutered': isNeutered,
     'imageUrl': imageUrl,
   };
+    if (ownerId != null) {
+      map['ownerId'] = ownerId;
+    }
+    // Remove null values (for any optional fields)
+    map.removeWhere((key, value) => value == null);
+    return map;
+  }
+
+  PetDto copyWith({
+    int? id,
+    String? name,
+    String? species,
+    String? breed,
+    int? age,
+    String? gender,
+    double? weight,
+    String? color,
+    DateTime? dateOfBirth,
+    String? description,
+    String? vaccinationStatus,
+    String? microchipId,
+    bool? isNeutered,
+    String? imageUrl,
+    int? ownerId,
+  }) {
+    return PetDto(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      species: species ?? this.species,
+      breed: breed ?? this.breed,
+      age: age ?? this.age,
+      gender: gender ?? this.gender,
+      weight: weight ?? this.weight,
+      color: color ?? this.color,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      description: description ?? this.description,
+      vaccinationStatus: vaccinationStatus ?? this.vaccinationStatus,
+      microchipId: microchipId ?? this.microchipId,
+      isNeutered: isNeutered ?? this.isNeutered,
+      imageUrl: imageUrl ?? this.imageUrl,
+      ownerId: ownerId ?? this.ownerId,
+    );
+  }
 } 

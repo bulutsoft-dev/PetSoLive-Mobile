@@ -3,6 +3,9 @@ import '../../data/models/help_request_dto.dart';
 import 'package:intl/intl.dart';
 import '../themes/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../core/enums/emergency_level.dart';
+import '../../core/enums/help_request_status.dart';
+import 'package:http/http.dart' as http;
 
 class HelpRequestCard extends StatelessWidget {
   final HelpRequestDto request;
@@ -10,48 +13,42 @@ class HelpRequestCard extends StatelessWidget {
 
   const HelpRequestCard({required this.request, this.onTap, Key? key}) : super(key: key);
 
-  Color _emergencyColor(String level, BuildContext context) {
-    switch (level.toLowerCase()) {
-      case 'high':
-        return Theme.of(context).brightness == Brightness.dark
-            ? AppColors.petsoliveDanger.withOpacity(0.85)
-            : AppColors.petsoliveDanger;
-      case 'medium':
-        return Theme.of(context).brightness == Brightness.dark
-            ? AppColors.petsoliveWarning.withOpacity(0.85)
-            : AppColors.petsoliveWarning;
-      case 'low':
-        return Theme.of(context).brightness == Brightness.dark
-            ? AppColors.petsoliveSuccess.withOpacity(0.85)
-            : AppColors.petsoliveSuccess;
-      default:
-        return Theme.of(context).colorScheme.primary.withOpacity(0.7);
+  // --- Enum'dan lokalize label alma fonksiyonları ---
+  String _emergencyLabel(EmergencyLevel level) {
+    switch (level) {
+      case EmergencyLevel.low:
+        return 'help_requests.tab_low'.tr();
+      case EmergencyLevel.medium:
+        return 'help_requests.tab_medium'.tr();
+      case EmergencyLevel.high:
+        return 'help_requests.tab_high'.tr();
     }
   }
 
-  String _localizedEmergencyLevel(BuildContext context) {
-    switch (request.emergencyLevel.toLowerCase()) {
-      case 'high':
-        return 'help_requests.emergency_high'.tr();
-      case 'medium':
-        return 'help_requests.emergency_medium'.tr();
-      case 'low':
-        return 'help_requests.emergency_low'.tr();
-      default:
-        return request.emergencyLevel;
-    }
-  }
-
-  String _localizedStatus(BuildContext context) {
-    switch (request.status.toLowerCase()) {
-      case 'open':
-        return 'help_requests.status_open'.tr();
-      case 'closed':
-        return 'help_requests.status_closed'.tr();
-      case 'active':
+  String _statusLabel(HelpRequestStatus status) {
+    switch (status) {
+      case HelpRequestStatus.Active:
         return 'help_requests.status_active'.tr();
-      default:
-        return request.status;
+      case HelpRequestStatus.Passive:
+        return 'help_requests.status_passive'.tr();
+    }
+  }
+
+  // --- Enum'dan renk alma fonksiyonu ---
+  Color _emergencyColor(EmergencyLevel level, BuildContext context) {
+    switch (level) {
+      case EmergencyLevel.high:
+        return Theme.of(context).brightness == Brightness.dark
+            ? Colors.red[700]!
+            : Colors.red;
+      case EmergencyLevel.medium:
+        return Theme.of(context).brightness == Brightness.dark
+            ? Colors.orange[700]!
+            : Colors.orange;
+      case EmergencyLevel.low:
+        return Theme.of(context).brightness == Brightness.dark
+            ? Colors.green[700]!
+            : Colors.green;
     }
   }
 
@@ -59,7 +56,7 @@ class HelpRequestCard extends StatelessWidget {
     final color = _emergencyColor(request.emergencyLevel, context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Chip(
-      label: Text(_localizedEmergencyLevel(context),
+      label: Text(_emergencyLabel(request.emergencyLevel),
         overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
           color: isDark ? color.withOpacity(0.95) : color,
@@ -76,8 +73,8 @@ class HelpRequestCard extends StatelessWidget {
   }
 
   Widget _statusChip(BuildContext context) {
-    final status = request.status.toLowerCase();
-    final isOpen = status == 'open';
+    final status = request.status;
+    final isOpen = status == HelpRequestStatus.Active;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isOpen
         ? (isDark ? Colors.greenAccent.shade200 : AppColors.petsoliveSuccess)
@@ -86,7 +83,7 @@ class HelpRequestCard extends StatelessWidget {
         ? (isDark ? Colors.greenAccent.withOpacity(0.22) : AppColors.petsoliveSuccess.withOpacity(0.18))
         : (isDark ? AppColors.bsGray700.withOpacity(0.22) : AppColors.bsGray300.withOpacity(0.22));
     return Chip(
-      label: Text(_localizedStatus(context),
+      label: Text(_statusLabel(status),
         overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
           color: color,
@@ -152,22 +149,18 @@ class HelpRequestCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Avatar or placeholder
-                  CircleAvatar(
+                  _SafeNetworkAvatar(
+                    imageUrl: request.imageUrl,
                     radius: 28,
                     backgroundColor: colorScheme.surface,
-                    backgroundImage: (request.imageUrl != null && request.imageUrl!.isNotEmpty)
-                        ? NetworkImage(request.imageUrl!)
-                        : null,
-                    child: (request.imageUrl == null || request.imageUrl!.isEmpty)
-                        ? Icon(Icons.volunteer_activism, color: emergencyColor, size: 32)
-                        : null,
+                    emergencyColor: emergencyColor,
                   ),
                   const SizedBox(width: 14),
                   // Main info
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
                         const SizedBox(height: 2),
                         Text(
                           request.title,
@@ -182,9 +175,9 @@ class HelpRequestCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
+              const SizedBox(height: 8),
+              Row(
+                children: [
                             Icon(Icons.location_on, size: 16, color: colorScheme.primary.withOpacity(0.7)),
                             const SizedBox(width: 4),
                             Expanded(
@@ -201,7 +194,7 @@ class HelpRequestCard extends StatelessWidget {
                         Row(
                           children: [
                             Icon(Icons.person, size: 15, color: colorScheme.secondary.withOpacity(0.7)),
-                            const SizedBox(width: 4),
+                  const SizedBox(width: 4),
                             Expanded(
                               child: Text(
                                 request.userName,
@@ -216,11 +209,11 @@ class HelpRequestCard extends StatelessWidget {
                             Text(
                               DateFormat('dd.MM.yyyy').format(request.createdAt),
                               style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7)),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
                   ),
                 ],
               ),
@@ -229,5 +222,73 @@ class HelpRequestCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _SafeNetworkAvatar extends StatelessWidget {
+  final String? imageUrl;
+  final double radius;
+  final Color backgroundColor;
+  final Color emergencyColor;
+  const _SafeNetworkAvatar({this.imageUrl, required this.radius, required this.backgroundColor, required this.emergencyColor});
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrl == null || imageUrl!.isEmpty) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: backgroundColor,
+        child: Icon(Icons.volunteer_activism, color: emergencyColor, size: 32),
+      );
+    }
+    return FutureBuilder<ImageProvider>(
+      future: _tryLoadImage(imageUrl!, context),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+          return CircleAvatar(
+            radius: radius,
+            backgroundColor: backgroundColor,
+            backgroundImage: snapshot.data,
+          );
+        } else if (snapshot.hasError) {
+          return CircleAvatar(
+            radius: radius,
+            backgroundColor: backgroundColor,
+            child: Image.asset(
+              'assets/images/logo.png',
+              fit: BoxFit.contain,
+              height: radius * 1.2,
+              color: emergencyColor.withOpacity(0.5),
+              colorBlendMode: BlendMode.modulate,
+            ),
+          );
+        } else {
+          // Loading or waiting
+          return CircleAvatar(
+            radius: radius,
+            backgroundColor: backgroundColor,
+            child: Icon(Icons.volunteer_activism, color: emergencyColor.withOpacity(0.5), size: 32),
+          );
+        }
+      },
+    );
+  }
+
+  Future<ImageProvider> _tryLoadImage(String url, BuildContext context) async {
+    try {
+      // Önce HTTP HEAD isteği ile görselin varlığını kontrol et
+      final response = await http.head(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final image = NetworkImage(url);
+        // Precache (artık hata beklenmiyor)
+        await precacheImage(image, context);
+        return image;
+      } else {
+        throw Exception('Image not found');
+      }
+    } catch (e) {
+      // Herhangi bir hata, placeholder göster
+      throw Exception('Image load failed');
+    }
   }
 } 

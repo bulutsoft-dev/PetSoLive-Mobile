@@ -4,5 +4,5 @@ import '../../data/models/auth_response_dto.dart';
 
 abstract class AccountRepository {
   Future<AuthResponseDto> login(AuthDto dto);
-  Future<void> register(RegisterDto dto);
+  Future<AuthResponseDto?> register(RegisterDto dto);
 } 

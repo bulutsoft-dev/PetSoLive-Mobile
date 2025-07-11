@@ -3,6 +3,8 @@ import '../../data/models/auth_dto.dart';
 import '../../data/models/register_dto.dart';
 import '../../data/models/auth_response_dto.dart';
 import '../../domain/repositories/account_repository.dart';
+import '../../data/local/session_manager.dart';
+import '../../data/models/user_dto.dart';
 
 abstract class AccountState {}
 class AccountInitial extends AccountState {}
@@ -11,7 +13,10 @@ class AccountSuccess extends AccountState {
   final AuthResponseDto response;
   AccountSuccess(this.response);
 }
-class AccountRegisterSuccess extends AccountState {}
+class AccountRegisterSuccess extends AccountState {
+  final String? message;
+  AccountRegisterSuccess([this.message]);
+}
 class AccountFailure extends AccountState {
   final String error;
   AccountFailure(this.error);
@@ -19,12 +24,25 @@ class AccountFailure extends AccountState {
 
 class AccountCubit extends Cubit<AccountState> {
   final AccountRepository repository;
+  final SessionManager sessionManager = SessionManager();
   AccountCubit(this.repository) : super(AccountInitial());
+
+  Future<void> checkSession() async {
+    final token = await sessionManager.getToken();
+    final userJson = await sessionManager.getUser();
+    if (token != null && userJson != null) {
+      final user = UserDto.fromJson(userJson);
+      emit(AccountSuccess(AuthResponseDto(token: token, user: user)));
+    } else {
+      emit(AccountInitial());
+    }
+  }
 
   Future<void> login(AuthDto dto) async {
     emit(AccountLoading());
     try {
       final response = await repository.login(dto);
+      await sessionManager.saveSession(response.token, response.user.toJson());
       emit(AccountSuccess(response));
     } catch (e) {
       emit(AccountFailure(e.toString()));
@@ -34,10 +52,27 @@ class AccountCubit extends Cubit<AccountState> {
   Future<void> register(RegisterDto dto) async {
     emit(AccountLoading());
     try {
-      await repository.register(dto);
-      emit(AccountRegisterSuccess());
+      final response = await repository.register(dto);
+      // Eğer register sonrası response token ve user dönerse session kaydet
+      if (response != null && response.token != null && response.user != null) {
+        await sessionManager.saveSession(response.token, response.user.toJson());
+        emit(AccountSuccess(response));
+      } else {
+        emit(AccountRegisterSuccess());
+      }
     } catch (e) {
-      emit(AccountFailure(e.toString()));
+      final msg = e.toString();
+      if (msg.startsWith('Exception: REGISTER_SUCCESS_MESSAGE:')) {
+        final successMsg = msg.replaceFirst('Exception: REGISTER_SUCCESS_MESSAGE:', '');
+        emit(AccountRegisterSuccess(successMsg));
+      } else {
+        emit(AccountFailure(e.toString()));
+      }
     }
+  }
+
+  Future<void> logout() async {
+    await sessionManager.clearSession();
+    emit(AccountInitial());
   }
 } 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../core/constants/api_constants.dart';
 import '../models/pet_dto.dart';
+import 'package:flutter/foundation.dart';
 
 class PetApiService {
   final String baseUrl = ApiConstants.baseUrl;
@@ -36,40 +37,84 @@ class PetApiService {
   }
 
   Future<void> create(PetDto dto, String token) async {
+    final url = '$baseUrl/api/Pet';
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'x-api-key': apiKey,
+    };
+    final body = jsonEncode(dto.toJson());
+    debugPrint('[PET CREATE] URL: $url');
+    debugPrint('[PET CREATE] Headers: ' + headers.toString());
+    debugPrint('[PET CREATE] Body: $body');
     final response = await http.post(
-      Uri.parse('$baseUrl/api/Pet'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(dto.toJson()),
+      Uri.parse(url),
+      headers: headers,
+      body: body,
     );
+    debugPrint('[PET CREATE] Status: ${response.statusCode}');
+    debugPrint('[PET CREATE] Response: ${response.body}');
     if (response.statusCode != 201) {
-      throw Exception('Failed to create pet');
+      throw Exception('Failed to create pet: \nStatus: ${response.statusCode}\nBody: ${response.body}');
     }
   }
 
-  Future<void> update(int id, PetDto dto, String token) async {
+  Future<int> updateWithResponse(int id, PetDto dto, String token) async {
+    final url = '$baseUrl/api/Pet/$id';
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'x-api-key': apiKey,
+    };
+    final body = jsonEncode(dto.toJson());
     final response = await http.put(
-      Uri.parse('$baseUrl/api/Pet/$id'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(dto.toJson()),
+      Uri.parse(url),
+      headers: headers,
+      body: body,
     );
-    if (response.statusCode != 204) {
-      throw Exception('Failed to update pet');
+    return response.statusCode;
+  }
+
+  Future<void> update(int id, PetDto dto, String token) async {
+    final url = '$baseUrl/api/Pet/$id';
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'x-api-key': apiKey,
+    };
+    final body = jsonEncode(dto.toJson());
+    debugPrint('[PET UPDATE] URL: $url');
+    debugPrint('[PET UPDATE] Headers: ' + headers.toString());
+    debugPrint('[PET UPDATE] Body: $body');
+    final response = await http.put(
+      Uri.parse(url),
+      headers: headers,
+      body: body,
+    );
+    debugPrint('[PET UPDATE] Status: ${response.statusCode}');
+    debugPrint('[PET UPDATE] Response Body: ${response.body}');
+    debugPrint('[PET UPDATE] Response Headers: ${response.headers}');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update pet: \nStatus: ${response.statusCode}\nBody: ${response.body}');
     }
   }
 
   Future<void> delete(int id, String token) async {
+    final url = '$baseUrl/api/Pet/$id';
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'x-api-key': apiKey,
+    };
+    debugPrint('[PET DELETE] URL: $url');
+    debugPrint('[PET DELETE] Headers: ' + headers.toString());
     final response = await http.delete(
-      Uri.parse('$baseUrl/api/Pet/$id'),
-      headers: {'Authorization': 'Bearer $token'},
+      Uri.parse(url),
+      headers: headers,
     );
-    if (response.statusCode != 204) {
-      throw Exception('Failed to delete pet');
+    debugPrint('[PET DELETE] Status: ${response.statusCode}');
+    debugPrint('[PET DELETE] Response: ${response.body}');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete pet: \nStatus: ${response.statusCode}\nBody: ${response.body}');
     }
   }
 

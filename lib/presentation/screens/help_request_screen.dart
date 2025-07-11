@@ -1,31 +1,123 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 import '../blocs/help_request_cubit.dart';
 import '../widgets/help_request_card.dart';
 import '../widgets/comment_widget.dart';
 import '../themes/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../core/enums/emergency_level.dart';
+import '../../core/enums/help_request_status.dart';
 import '../localization/locale_keys.g.dart';
 import '../../injection_container.dart';
 import '../blocs/comment_cubit.dart';
 import '../blocs/theme_cubit.dart';
+import '../partials/base_app_bar.dart';
+import '../../core/network/auth_service.dart';
+import '../blocs/account_cubit.dart';
+import '../screens/delete_confirmation_screen.dart';
+import '../screens/edit_help_request_screen.dart';
+import '../blocs/comment_cubit.dart';
+import '../blocs/comment_cubit.dart';
+import '../../data/models/comment_dto.dart';
+import '../../data/providers/veterinarian_api_service.dart';
+import '../../core/constants/admob_banner_widget.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../core/constants/admob_constants.dart';
 
-class HelpRequestScreen extends StatelessWidget {
+class HelpRequestScreen extends StatefulWidget {
   final int requestId;
   const HelpRequestScreen({Key? key, required this.requestId}) : super(key: key);
+
+  @override
+  State<HelpRequestScreen> createState() => _HelpRequestScreenState();
+}
+
+class _HelpRequestScreenState extends State<HelpRequestScreen> {
+  Map<String, dynamic>? _user;
+  List<int> _approvedVeterinarianUserIds = [];
+  InterstitialAd? _interstitialAd;
+  bool _isInterstitialShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUser();
+    _fetchVeterinarians();
+    _loadInterstitialAd();
+  }
+
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: AdMobAdUnitIds.interstitialId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitialAd = ad;
+          _showInterstitialAd();
+        },
+        onAdFailedToLoad: (error) {
+          _interstitialAd = null;
+        },
+      ),
+    );
+  }
+
+  void _showInterstitialAd() {
+    if (_interstitialAd != null && !_isInterstitialShown) {
+      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+        },
+      );
+      _interstitialAd!.show();
+      _isInterstitialShown = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    _interstitialAd?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchUser() async {
+    final authService = AuthService();
+    final user = await authService.getUser();
+    setState(() {
+      _user = user;
+    });
+  }
+
+  Future<void> _fetchVeterinarians() async {
+    try {
+      final vets = await VeterinarianApiService().getAll();
+      setState(() {
+        _approvedVeterinarianUserIds = vets
+          .where((v) => v.status.toLowerCase() == 'approved')
+          .map((v) => v.userId)
+          .toList();
+      });
+    } catch (e) {
+      // ignore
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => HelpRequestCubit(sl())..getById(requestId)),
-        BlocProvider(create: (_) => CommentCubit(sl())..getByHelpRequestId(requestId)),
+        BlocProvider(create: (_) => HelpRequestCubit(sl())..getById(widget.requestId)),
+        BlocProvider(create: (_) => CommentCubit(sl())..getByHelpRequestId(widget.requestId)),
       ],
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('help_requests.detail_title'.tr()),
-          centerTitle: true,
+        appBar: BaseAppBar(
+          title: 'help_requests.detail_title'.tr(),
+          showLogo: false,
           actions: [
             Builder(
               builder: (context) => IconButton(
@@ -40,8 +132,6 @@ class HelpRequestScreen extends StatelessWidget {
                 },
               ),
             ),
-            
-            // Dil değiştirme butonu
             Builder(
               builder: (context) => IconButton(
                 icon: const Icon(Icons.translate),
@@ -53,7 +143,6 @@ class HelpRequestScreen extends StatelessWidget {
                 },
               ),
             ),
-            // Tema değiştirme butonu
           ],
         ),
         body: BlocBuilder<HelpRequestCubit, HelpRequestState>(
@@ -64,6 +153,7 @@ class HelpRequestScreen extends StatelessWidget {
               return Center(child: Text('help_requests.error'.tr() + '\n' + state.error));
             } else if (state is HelpRequestDetailLoaded && state.helpRequest != null) {
               final req = state.helpRequest!;
+              final ownerUserId = req.userId;
               final theme = Theme.of(context);
               final colorScheme = theme.colorScheme;
               final emergencyColor = _emergencyColor(req.emergencyLevel, context);
@@ -131,6 +221,12 @@ class HelpRequestScreen extends StatelessWidget {
                                     child: Image.network(
                                       req.imageUrl!,
                                       fit: BoxFit.contain,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Image.asset(
+                                          'assets/images/logo.png',
+                                          fit: BoxFit.contain,
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),
@@ -144,6 +240,14 @@ class HelpRequestScreen extends StatelessWidget {
                               height: 220,
                               width: double.infinity,
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/logo.png',
+                                  height: 220,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                );
+                              },
                             ),
                           ),
                         ),
@@ -166,6 +270,12 @@ class HelpRequestScreen extends StatelessWidget {
                                         child: Image.network(
                                           req.imageUrl!,
                                           fit: BoxFit.contain,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Image.asset(
+                                              'assets/images/logo.png',
+                                              fit: BoxFit.contain,
+                                            );
+                                          },
                                         ),
                                       ),
                                     ),
@@ -228,6 +338,98 @@ class HelpRequestScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 22),
+                  // Eğer ilan sahibi ise düzenle ve sil butonları yorumlar başlığının üstünde
+                  if (_user != null && req.userId == _user!['id']) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final req = state.helpRequest!;
+                              final result = await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => MultiBlocProvider(
+                                    providers: [
+                                      BlocProvider.value(value: context.read<HelpRequestCubit>()),
+                                      BlocProvider.value(value: context.read<AccountCubit>()),
+                                    ],
+                                    child: EditHelpRequestScreen(helpRequest: req),
+                                  ),
+                                ),
+                              );
+                              if (result == true && context.mounted) {
+                                await context.read<HelpRequestCubit>().getById(req.id);
+                                setState(() {});
+                              }
+                            },
+                            icon: const Icon(Icons.edit, size: 20),
+                            label: Text('help_requests.edit'.tr()),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Theme.of(context).colorScheme.primary,
+                              side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                              textStyle: Theme.of(context).textTheme.labelLarge,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final req = state.helpRequest!;
+                              debugPrint('[DELETE] Silme butonuna tıklandı. ID: ${req.id}');
+                              final confirm = await Navigator.of(context).push<bool>(
+                                MaterialPageRoute(
+                                  builder: (_) => DeleteConfirmationScreen(
+                                    title: 'help_requests.delete'.tr(),
+                                    description: 'help_requests.delete_confirm_desc'.tr(),
+                                    onConfirm: () async {
+                                      try {
+                                        final accountState = context.read<AccountCubit>().state;
+                                        String? token;
+                                        if (accountState is AccountSuccess) {
+                                          token = accountState.response.token;
+                                        }
+                                        debugPrint('[DELETE] Token: ${token}');
+                                        if (token == null) throw Exception('Oturum bulunamadı!');
+                                        debugPrint('[DELETE] Silme isteği gönderiliyor...');
+                                        await context.read<HelpRequestCubit>().delete(req.id, token);
+                                        debugPrint('[DELETE] Silme isteği başarılı.');
+                                        if (context.mounted) {
+                                          Navigator.of(context).pop(true);
+                                        }
+                                      } catch (e) {
+                                        debugPrint('[DELETE] Hata: ${e.toString()}');
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('help_requests.delete_failed'.tr(args: [e.toString()]))),
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ),
+                              );
+                              debugPrint('[DELETE] Onay ekranı kapandı, confirm: ${confirm}');
+                              if (confirm == true && context.mounted) {
+                                debugPrint('[DELETE] Detay ekranı kapatılıyor.');
+                                Navigator.of(context).pop(true);
+                              }
+                            },
+                            icon: const Icon(Icons.delete, size: 20),
+                            label: Text('help_requests.delete'.tr()),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: const BorderSide(color: Colors.red),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                              textStyle: Theme.of(context).textTheme.labelLarge,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                  ],
                   // Yorumlar başlığı
                   Text('help_requests.comments'.tr(), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
@@ -242,10 +444,151 @@ class HelpRequestScreen extends StatelessWidget {
                           return Text('help_requests.no_comments'.tr());
                         }
                         return Column(
-                          children: commentState.comments.map((c) => CommentWidget(
-                            userName: c.userId.toString(),
+                          children: commentState.comments.map<Widget>((c) => CommentWidget(
+                            userName: c.userName ?? c.userId.toString(),
                             date: DateFormat('dd.MM.yyyy HH:mm').format(c.createdAt),
                             comment: c.content,
+                            isVeterinarian: _approvedVeterinarianUserIds.contains(c.userId),
+                            isOwnComment: _user != null && c.userId == _user!['id'],
+                            isOwnerOfRequest: c.userId == ownerUserId,
+                            onDelete: _user != null && c.userId == _user!['id']
+                                ? () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: Text('Yorumu Sil'),
+                                        content: Text('Bu yorumu silmek istediğinize emin misiniz?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(ctx).pop(false),
+                                            child: Text('Vazgeç'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () => Navigator.of(ctx).pop(true),
+                                            child: Text('Sil', style: TextStyle(color: Colors.red)),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirm == true) {
+                                      final accountState = context.read<AccountCubit>().state;
+                                      if (accountState is! AccountSuccess) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('help_requests.login_required'.tr())),
+                                        );
+                                        return;
+                                      }
+                                      final token = accountState.response.token;
+                                      try {
+                                        await context.read<CommentCubit>().delete(c.id, token);
+                                        await context.read<CommentCubit>().getByHelpRequestId(widget.requestId);
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('help_requests.comment_delete_success'.tr()), backgroundColor: Colors.green),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('help_requests.comment_delete_failed'.tr(args: [e.toString()])), backgroundColor: Colors.red),
+                                        );
+                                      }
+                                    }
+                                  }
+                                : null,
+                            onEdit: _user != null && c.userId == _user!['id']
+                                ? () async {
+                                    final controller = TextEditingController(text: c.content);
+                                    final result = await showDialog<String>(
+                                      context: context,
+                                      builder: (ctx) => Dialog(
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                                        backgroundColor: Theme.of(context).dialogBackgroundColor,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Icon(Icons.edit, color: Theme.of(context).colorScheme.primary),
+                                                  const SizedBox(width: 8),
+                                                  Text('help_requests.edit_comment_title'.tr(), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 18),
+                                              TextField(
+                                                controller: controller,
+                                                minLines: 3,
+                                                maxLines: 6,
+                                                autofocus: true,
+                                                decoration: InputDecoration(
+                                                  hintText: 'help_requests.edit_comment_hint'.tr(),
+                                                  filled: true,
+                                                  fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.13),
+                                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 22),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                children: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.of(ctx).pop(),
+                                                    child: Text('form.cancel'.tr()),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  ElevatedButton(
+                                                    onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
+                                                    style: ElevatedButton.styleFrom(
+                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                                    ),
+                                                    child: Text('form.save'.tr()),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                    if (result != null && result.isNotEmpty && result != c.content) {
+                                      final accountState = context.read<AccountCubit>().state;
+                                      if (accountState is! AccountSuccess) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('help_requests.login_required'.tr())),
+                                        );
+                                        return;
+                                      }
+                                      final token = accountState.response.token;
+                                      final updated = CommentDto(
+                                        id: c.id,
+                                        helpRequestId: c.helpRequestId,
+                                        userId: c.userId,
+                                        userName: c.userName,
+                                        veterinarianId: c.veterinarianId,
+                                        veterinarianName: c.veterinarianName,
+                                        content: result,
+                                        createdAt: c.createdAt,
+                                      );
+                                      try {
+                                        await context.read<CommentCubit>().update(updated.id, updated, token);
+                                        await context.read<CommentCubit>().getByHelpRequestId(widget.requestId);
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('help_requests.comment_edit_success'.tr()), backgroundColor: Colors.green),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('help_requests.comment_edit_failed'.tr(args: [e.toString()])), backgroundColor: Colors.red),
+                                        );
+                                      }
+                                    }
+                                  }
+                                : null,
                           )).toList(),
                         );
                       }
@@ -257,6 +600,8 @@ class HelpRequestScreen extends StatelessWidget {
                   Text('help_requests.add_comment'.tr(), style: theme.textTheme.titleMedium),
                   const SizedBox(height: 8),
                   _CommentInput(),
+                  const SizedBox(height: 18),
+                  AdmobBannerWidget(),
                 ],
               );
             }
@@ -267,56 +612,49 @@ class HelpRequestScreen extends StatelessWidget {
     );
   }
 
-  String _localizedEmergencyLevel(BuildContext context, String level) {
-    switch (level.toLowerCase()) {
-      case 'high':
-        return 'help_requests.emergency_high'.tr();
-      case 'medium':
-        return 'help_requests.emergency_medium'.tr();
-      case 'low':
-        return 'help_requests.emergency_low'.tr();
-      default:
-        return level;
+  String _emergencyLabel(EmergencyLevel level) {
+    switch (level) {
+      case EmergencyLevel.low:
+        return 'help_requests.tab_low'.tr();
+      case EmergencyLevel.medium:
+        return 'help_requests.tab_medium'.tr();
+      case EmergencyLevel.high:
+        return 'help_requests.tab_high'.tr();
     }
   }
 
-  String _localizedStatus(BuildContext context, String status) {
-    switch (status.toLowerCase()) {
-      case 'open':
-        return 'help_requests.status_open'.tr();
-      case 'closed':
-        return 'help_requests.status_closed'.tr();
-      case 'active':
+  String _statusLabel(HelpRequestStatus status) {
+    switch (status) {
+      case HelpRequestStatus.Active:
         return 'help_requests.status_active'.tr();
-      default:
-        return status;
+      case HelpRequestStatus.Passive:
+        return 'help_requests.status_passive'.tr();
     }
   }
 
-  Color _emergencyColor(String level, BuildContext context) {
-    switch (level.toLowerCase()) {
-      case 'high':
+  Color _emergencyColor(EmergencyLevel level, BuildContext context) {
+    switch (level) {
+      case EmergencyLevel.high:
         return Theme.of(context).brightness == Brightness.dark
             ? AppColors.petsoliveDanger.withOpacity(0.85)
             : AppColors.petsoliveDanger;
-      case 'medium':
+      case EmergencyLevel.medium:
         return Theme.of(context).brightness == Brightness.dark
             ? AppColors.petsoliveWarning.withOpacity(0.85)
             : AppColors.petsoliveWarning;
-      case 'low':
+      case EmergencyLevel.low:
         return Theme.of(context).brightness == Brightness.dark
             ? AppColors.petsoliveSuccess.withOpacity(0.85)
             : AppColors.petsoliveSuccess;
-      default:
-        return Theme.of(context).colorScheme.primary.withOpacity(0.7);
     }
+    return Theme.of(context).colorScheme.primary.withOpacity(0.7);
   }
 
-  Widget _emergencyChip(BuildContext context, String level) {
+  Widget _emergencyChip(BuildContext context, EmergencyLevel level) {
     final color = _emergencyColor(level, context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Chip(
-      label: Text(_localizedEmergencyLevel(context, level),
+      label: Text(_emergencyLabel(level),
         overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
           color: isDark ? color.withOpacity(0.95) : color,
@@ -332,9 +670,9 @@ class HelpRequestScreen extends StatelessWidget {
     );
   }
 
-  Widget _statusChip(BuildContext context, String status) {
-    final s = status.toLowerCase();
-    final isOpen = s == 'open' || s == 'active';
+  Widget _statusChip(BuildContext context, HelpRequestStatus status) {
+    final s = status;
+    final isOpen = s == HelpRequestStatus.Active || s == HelpRequestStatus.Passive;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isOpen
         ? (isDark ? Colors.greenAccent.shade200 : AppColors.petsoliveSuccess)
@@ -343,7 +681,7 @@ class HelpRequestScreen extends StatelessWidget {
         ? (isDark ? Colors.greenAccent.withOpacity(0.22) : AppColors.petsoliveSuccess.withOpacity(0.18))
         : (isDark ? AppColors.bsGray700.withOpacity(0.22) : AppColors.bsGray300.withOpacity(0.22));
     return Chip(
-      label: Text(_localizedStatus(context, status),
+      label: Text(_statusLabel(status),
         overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
           color: color,
@@ -360,13 +698,75 @@ class HelpRequestScreen extends StatelessWidget {
   }
 }
 
-class _CommentInput extends StatelessWidget {
+class _CommentInput extends StatefulWidget {
+  @override
+  State<_CommentInput> createState() => _CommentInputState();
+}
+
+class _CommentInputState extends State<_CommentInput> {
+  final _controller = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _submit() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    setState(() => _isLoading = true);
+
+    // Kullanıcı ve token al
+    final accountState = context.read<AccountCubit>().state;
+    if (accountState is! AccountSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('help_requests.login_required'.tr())),
+      );
+      setState(() => _isLoading = false);
+      return;
+    }
+    final token = accountState.response.token;
+    final user = accountState.response.user;
+
+    // Yorum DTO'su oluştur
+    final helpRequestId = context.findAncestorStateOfType<_HelpRequestScreenState>()?.widget.requestId;
+    if (helpRequestId == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+    final dto = CommentDto(
+      id: 0,
+      helpRequestId: helpRequestId,
+      userId: user.id,
+      userName: user.username,
+      content: text,
+      createdAt: DateTime.now(),
+      veterinarianId: null,
+      veterinarianName: null,
+    );
+
+    try {
+      await context.read<CommentCubit>().add(dto, token);
+      // Yorumlar güncellensin
+      await context.read<CommentCubit>().getByHelpRequestId(helpRequestId);
+      _controller.clear();
+      FocusScope.of(context).unfocus();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('help_requests.comment_add_success'.tr()), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('help_requests.comment_add_failed'.tr(args: [e.toString()])), backgroundColor: Colors.red),
+      );
+    }
+    setState(() => _isLoading = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: TextField(
+            controller: _controller,
             decoration: InputDecoration(
               hintText: 'help_requests.write_comment'.tr(),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -378,8 +778,8 @@ class _CommentInput extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         ElevatedButton(
-          onPressed: () {},
-          child: const Icon(Icons.send),
+          onPressed: _isLoading ? null : _submit,
+          child: _isLoading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.send),
           style: ElevatedButton.styleFrom(
             shape: const CircleBorder(),
             padding: const EdgeInsets.all(12),

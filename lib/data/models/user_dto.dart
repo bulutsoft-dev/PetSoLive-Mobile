@@ -34,16 +34,16 @@ class UserDto {
       id: json['id'],
       username: json['username'] ?? '',
       email: json['email'] ?? '',
-      phoneNumber: json['phoneNumber'],
-      address: json['address'],
+      phoneNumber: json['phoneNumber'] ?? '',
+      address: json['address'] ?? '',
       dateOfBirth: json['dateOfBirth'] != null ? DateTime.tryParse(json['dateOfBirth']) : null,
       isActive: json['isActive'],
       createdDate: json['createdDate'] != null ? DateTime.tryParse(json['createdDate']) : null,
       lastLoginDate: json['lastLoginDate'] != null ? DateTime.tryParse(json['lastLoginDate']) : null,
-      profileImageUrl: json['profileImageUrl'],
+      profileImageUrl: json['profileImageUrl'] ?? '',
       roles: (json['roles'] as List?)?.map((e) => e.toString()).toList(),
-      city: json['city'],
-      district: json['district'],
+      city: json['city'] ?? '',
+      district: json['district'] ?? '',
     );
   }
 

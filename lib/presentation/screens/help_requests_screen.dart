@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../blocs/help_request_cubit.dart';
-import '../widgets/help_request_card.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../localization/locale_keys.g.dart';
+import '../blocs/help_request_cubit.dart';
+import '../blocs/account_cubit.dart';
+import '../widgets/help_request_card.dart';
 import '../../injection_container.dart';
+import '../../core/network/auth_service.dart';
+import 'add_help_request_screen.dart';
+import '../../core/constants/admob_banner_widget.dart';
 
 class HelpRequestsScreen extends StatefulWidget {
   const HelpRequestsScreen({Key? key}) : super(key: key);
@@ -13,105 +16,149 @@ class HelpRequestsScreen extends StatefulWidget {
   State<HelpRequestsScreen> createState() => _HelpRequestsScreenState();
 }
 
-class _HelpRequestsScreenState extends State<HelpRequestsScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _HelpRequestsScreenState extends State<HelpRequestsScreen> {
+  final List<String> baseTabs = [
+    'help_requests.tab_all',
+    'help_requests.tab_low',
+    'help_requests.tab_medium',
+    'help_requests.tab_high',
+  ];
+
+  bool _showFab = false;
+  Map<String, dynamic>? _user;
+  List<dynamic> _helpRequests = [];
+
+  List<String> getTabs(bool showMyAds) {
+    if (showMyAds) {
+      return [...baseTabs, 'help_requests.tab_my_ads']; // En sağda
+    }
+    return baseTabs;
+  }
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _checkUserLoggedIn();
+    Future.microtask(() => context.read<HelpRequestCubit>().getAll());
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  Future<void> _checkUserLoggedIn() async {
+    final authService = AuthService();
+    final user = await authService.getUser();
+    setState(() {
+      _user = user;
+      _showFab = user != null && user['id'] != null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final tabs = [
-      'help_requests.tab_all',
-      'help_requests.tab_low',
-      'help_requests.tab_medium',
-      'help_requests.tab_high',
-    ];
-    return BlocProvider(
-      create: (_) => HelpRequestCubit(sl())..getAll(),
-      child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: SafeArea(
-            child: TabBar(
-              controller: _tabController,
-              tabs: tabs.map((e) => Tab(text: e.tr())).toList(),
-              labelColor: Theme.of(context).colorScheme.primary,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-        ),
-        body: BlocBuilder<HelpRequestCubit, HelpRequestState>(
-          builder: (context, state) {
-            if (state is HelpRequestLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is HelpRequestError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, color: Colors.red, size: 48),
-                    const SizedBox(height: 12),
-                    Text(
-                      'help_requests.error'.tr(),
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      state.error.toString(),
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      body: BlocBuilder<HelpRequestCubit, HelpRequestState>(
+        builder: (context, state) {
+          List<dynamic> helpRequests = [];
+          if (state is HelpRequestLoaded) {
+            helpRequests = state.helpRequests;
+            _helpRequests = helpRequests;
+          }
+          final userId = _user != null ? _user!['id'] : null;
+          final hasMyAds = userId != null && helpRequests.any((e) => e.userId == userId);
+          final tabs = getTabs(hasMyAds);
+
+          return DefaultTabController(
+            key: ValueKey(tabs.length),
+            length: tabs.length,
+            child: Column(
+              children: [
+                TabBar(
+                  tabs: tabs.map((e) => Tab(text: e.tr())).toList(),
+                  labelColor: colorScheme.primary,
+                  unselectedLabelColor: Colors.grey,
+                  indicatorColor: colorScheme.primary,
                 ),
-              );
-            } else if (state is HelpRequestLoaded) {
-              if (state.helpRequests.isEmpty) {
-                return Center(child: Text('help_requests.empty').tr());
-              }
-              final selectedTab = tabs[_tabController.index];
-              final filtered = selectedTab == 'help_requests.tab_all'
-                  ? state.helpRequests
-                  : state.helpRequests.where((e) => e.emergencyLevel.toLowerCase() == selectedTab.replaceAll('help_requests.tab_', '').toLowerCase()).toList();
-              return TabBarView(
-                controller: _tabController,
-                children: tabs.map((tab) {
-                  final tabFiltered = tab == 'help_requests.tab_all'
-                      ? state.helpRequests
-                      : state.helpRequests.where((e) => e.emergencyLevel.toLowerCase() == tab.replaceAll('help_requests.tab_', '').toLowerCase()).toList();
-                  if (tabFiltered.isEmpty) {
-                    return Center(child: Text('help_requests.empty').tr());
-                  }
-                  return ListView.builder(
-                    itemCount: tabFiltered.length,
-                    itemBuilder: (context, i) {
-                      final req = tabFiltered[i];
-                      return HelpRequestCard(
-                        request: req,
-                        onTap: () {
-                          Navigator.of(context).pushNamed('/help_request', arguments: req.id);
+                AdmobBannerWidget(),
+                Expanded(
+                  child: TabBarView(
+                    children: tabs.map((selectedTab) {
+                      List<dynamic> filtered;
+                      if (selectedTab == 'help_requests.tab_my_ads') {
+                        filtered = helpRequests.where((e) => e.userId == userId).toList();
+                      } else if (selectedTab == 'help_requests.tab_all') {
+                        filtered = helpRequests;
+                      } else {
+                        final level = selectedTab.replaceAll('help_requests.tab_', '').toLowerCase();
+                        filtered = helpRequests.where((e) => e.emergencyLevel.toString().split('.').last == level).toList();
+                      }
+                      if (state is HelpRequestLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (state is HelpRequestError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.error_outline, color: Colors.red, size: 48),
+                              const SizedBox(height: 12),
+                              Text('help_requests.error'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.red)),
+                              const SizedBox(height: 8),
+                              Text(state.error.toString(), style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+                            ],
+                          ),
+                        );
+                      }
+                      if (filtered.isEmpty) {
+                        return Center(child: Text('help_requests.empty').tr());
+                      }
+                      return ListView.builder(
+                        itemCount: filtered.length,
+                        itemBuilder: (context, i) {
+                          final req = filtered[i];
+                          return HelpRequestCard(
+                            request: req,
+                            onTap: () async {
+                              final result = await Navigator.of(context).pushNamed('/help_request', arguments: req.id);
+                              if (result == true && context.mounted) {
+                                await context.read<HelpRequestCubit>().getAll();
+                                setState(() {});
+                              }
+                            },
+                          );
                         },
                       );
-                    },
-                  );
-                }).toList(),
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        ),
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
+      floatingActionButton: _showFab
+          ? FloatingActionButton(
+              heroTag: 'help_requests_fab',
+              onPressed: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider.value(value: context.read<HelpRequestCubit>()),
+                        BlocProvider.value(value: context.read<AccountCubit>()),
+                      ],
+                      child: AddHelpRequestScreen(),
+                    ),
+                  ),
+                );
+                if (context.mounted) {
+                  await context.read<HelpRequestCubit>().getAll();
+                  setState(() {});
+                }
+              },
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              child: const Icon(Icons.add, size: 28),
+              tooltip: 'help_requests.add'.tr(),
+            )
+          : null,
     );
   }
 } 

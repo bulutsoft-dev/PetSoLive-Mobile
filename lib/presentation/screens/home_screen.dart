@@ -10,6 +10,8 @@ import '../blocs/lost_pet_ad_cubit.dart';
 import '../blocs/help_request_cubit.dart';
 import '../../injection_container.dart';
 import '../localization/locale_keys.g.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../core/constants/admob_constants.dart';
 
 class HomeScreen extends StatelessWidget {
   final void Function(int) onTabChange;
@@ -68,62 +70,6 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
-            // FEATURE INTRO SECTION
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isNarrow = constraints.maxWidth < 500;
-                      final featureWidgets = [
-                        _SimpleFeature(
-                          icon: Icons.pets,
-                          title: 'home.animals_desc'.tr(),
-                          description: 'home.animals_title'.tr(),
-                          color: colorScheme.primary,
-                        ),
-                        _SimpleFeature(
-                          icon: Icons.search,
-                          title: 'home.lost_pets_desc'.tr(),
-                          description: 'home.lost_pets_title'.tr(),
-                          color: colorScheme.secondary,
-                        ),
-                        _SimpleFeature(
-                          icon: Icons.volunteer_activism,
-                          title: 'home.help_requests_desc'.tr(),
-                          description: 'home.help_requests_title'.tr(),
-                          color: colorScheme.tertiary ?? colorScheme.primary,
-                        ),
-                      ];
-                      if (isNarrow) {
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            featureWidgets[0],
-                            const SizedBox(height: 16),
-                            featureWidgets[1],
-                            const SizedBox(height: 16),
-                            featureWidgets[2],
-                          ],
-                        );
-                      } else {
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: featureWidgets
-                              .map((w) => Expanded(child: w))
-                              .toList(),
-                        );
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 28),
             // BÖLÜM BAŞLIKLARI
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
@@ -156,7 +102,7 @@ class HomeScreen extends StatelessWidget {
                 } else if (state is PetError) {
                   return Center(child: Text('pets.error'.tr() + '\n' + state.error));
                 } else if (state is PetLoaded || state is PetFiltered) {
-                  final pets = state is PetLoaded ? state.pets : (state as PetFiltered).pets;
+                  final pets = state is PetLoaded ? state.allPets : (state as PetFiltered).pets;
                   if (pets.isEmpty) {
                     return Center(child: Text('pets.empty'.tr()));
                   }
@@ -299,9 +245,55 @@ class HomeScreen extends StatelessWidget {
                 return const SizedBox.shrink();
               },
             ),
+            // Banner Ad
+            _HomeBannerAd(),
             const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _HomeBannerAd extends StatefulWidget {
+  @override
+  State<_HomeBannerAd> createState() => _HomeBannerAdState();
+}
+
+class _HomeBannerAdState extends State<_HomeBannerAd> {
+  BannerAd? _bannerAd;
+  bool _isLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _bannerAd = BannerAd(
+      adUnitId: AdMobAdUnitIds.bannerId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) => setState(() => _isLoaded = true),
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isLoaded) return const SizedBox(height: 0);
+    return Center(
+      child: SizedBox(
+        width: _bannerAd!.size.width.toDouble(),
+        height: _bannerAd!.size.height.toDouble(),
+        child: AdWidget(ad: _bannerAd!),
       ),
     );
   }

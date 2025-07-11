@@ -21,26 +21,69 @@ class CommentApiService {
   }
 
   Future<void> add(CommentDto dto, String token) async {
+    final url = Uri.parse('$baseUrl/api/Comment');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'x-api-key': ApiConstants.apiKey,
+    };
+    final body = jsonEncode(dto.toJson());
+    // Debug printler
+    print('[COMMENT ADD] URL: $url');
+    print('[COMMENT ADD] Headers: ' + headers.toString());
+    print('[COMMENT ADD] Body: $body');
     final response = await http.post(
-      Uri.parse('$baseUrl/api/Comment'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(dto.toJson()),
+      url,
+      headers: headers,
+      body: body,
     );
+    print('[COMMENT ADD] Status: ${response.statusCode}');
+    print('[COMMENT ADD] Response: ${response.body}');
     if (response.statusCode != 200) {
       throw Exception('Failed to add comment');
     }
   }
 
   Future<void> delete(int id, String token) async {
+    final url = Uri.parse('$baseUrl/api/Comment/$id');
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'x-api-key': ApiConstants.apiKey,
+    };
+    print('[COMMENT DELETE] URL: $url');
+    print('[COMMENT DELETE] Headers: ' + headers.toString());
     final response = await http.delete(
-      Uri.parse('$baseUrl/api/Comment/$id'),
-      headers: {'Authorization': 'Bearer $token'},
+      url,
+      headers: headers,
     );
-    if (response.statusCode != 204) {
+    print('[COMMENT DELETE] Status: ${response.statusCode}');
+    print('[COMMENT DELETE] Response: ${response.body}');
+    if (response.statusCode != 200) {
       throw Exception('Failed to delete comment');
+    }
+  }
+
+  Future<void> update(int id, CommentDto dto, String token) async {
+    final url = Uri.parse('$baseUrl/api/Comment/$id');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'x-api-key': ApiConstants.apiKey,
+    };
+    final body = jsonEncode(dto.toJson());
+    print('[COMMENT UPDATE] URL: $url');
+    print('[COMMENT UPDATE] Headers: ' + headers.toString());
+    print('[COMMENT UPDATE] Body: $body');
+    print('[COMMENT UPDATE] Token: $token');
+    final response = await http.put(
+      url,
+      headers: headers,
+      body: body,
+    );
+    print('[COMMENT UPDATE] Status: ${response.statusCode}');
+    print('[COMMENT UPDATE] Response: ${response.body}');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update comment');
     }
   }
 }

@@ -6,7 +6,13 @@ import '../presentation/screens/lost_pets_screen.dart';
 import '../presentation/screens/help_requests_screen.dart';
 import '../presentation/screens/lost_pet_ad_screen.dart';
 import '../presentation/screens/help_request_screen.dart';
-// import '../presentation/screens/help_request_screen.dart';
+import '../presentation/screens/login_screen.dart';
+import '../presentation/screens/register_screen.dart';
+import '../presentation/blocs/account_cubit.dart';
+import '../injection_container.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../presentation/screens/add_help_request_screen.dart';
+import '../presentation/blocs/help_request_cubit.dart';
 
 /// Uygulamanın tüm rotalarını merkezi olarak yöneten sınıf.
 /// Yeni bir ekran eklemek için sadece buraya case eklemen yeterli.
@@ -43,6 +49,30 @@ class AppRouter {
           );
         }
       }
+      case '/add_help_request':
+        return MaterialPageRoute(
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => sl<HelpRequestCubit>()),
+              BlocProvider.value(value: BlocProvider.of<AccountCubit>(context)),
+            ],
+            child: const AddHelpRequestScreen(),
+          ),
+        );
+      case '/login':
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<AccountCubit>(),
+            child: const LoginScreen(),
+          ),
+        );
+      case '/register':
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<AccountCubit>(),
+            child: const RegisterScreen(),
+          ),
+        );
       // case '/help_request':
       //   final reqId = settings.arguments as int?;
       //   return MaterialPageRoute(builder: (_) => HelpRequestScreen(requestId: reqId));

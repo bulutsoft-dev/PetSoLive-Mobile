@@ -9,6 +9,13 @@ import '../blocs/theme_cubit.dart';
 import 'package:petsolive/data/providers/lost_pet_ad_api_service.dart';
 import 'package:petsolive/data/providers/user_api_service.dart';
 import 'package:petsolive/data/models/user_dto.dart';
+import '../../data/local/session_manager.dart';
+import 'edit_lost_pet_ad_screen.dart';
+import 'delete_confirmation_screen.dart';
+import '../blocs/lost_pet_ad_cubit.dart';
+import '../../core/constants/admob_banner_widget.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../core/constants/admob_constants.dart';
 
 class LostPetAdScreen extends StatefulWidget {
   final int adId;
@@ -21,11 +28,61 @@ class LostPetAdScreen extends StatefulWidget {
 class _LostPetAdScreenState extends State<LostPetAdScreen> {
   late Future<LostPetAdDto> _adFuture;
   Future<UserDto?>? _userFuture;
+  int? _currentUserId;
+  InterstitialAd? _interstitialAd;
+  bool _isInterstitialShown = false;
+  bool _isOwner(LostPetAdDto ad) => _currentUserId != null && ad.userId == _currentUserId;
 
   @override
   void initState() {
     super.initState();
     _adFuture = fetchLostPetAd(widget.adId);
+    _loadCurrentUserId();
+    _loadInterstitialAd();
+  }
+
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: AdMobAdUnitIds.interstitialId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitialAd = ad;
+          _showInterstitialAd();
+        },
+        onAdFailedToLoad: (error) {
+          _interstitialAd = null;
+        },
+      ),
+    );
+  }
+
+  void _showInterstitialAd() {
+    if (_interstitialAd != null && !_isInterstitialShown) {
+      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+        },
+      );
+      _interstitialAd!.show();
+      _isInterstitialShown = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    _interstitialAd?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadCurrentUserId() async {
+    final user = await SessionManager().getUser();
+    setState(() {
+      _currentUserId = user != null ? user['id'] as int? : null;
+    });
   }
 
   Future<LostPetAdDto> fetchLostPetAd(int id) async {
@@ -39,42 +96,34 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: BaseAppBar(
-          title: 'lost_pets.detail_title'.tr(),
-          centerTitle: true,
-          showLogo: false,
-          backgroundColor: isDark ? AppColors.darkSurface : AppColors.petsoliveBg,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-            tooltip: 'Geri',
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.translate),
-              tooltip: 'Dili Değiştir',
-              onPressed: () async {
-                final current = context.locale;
-                final newLocale = current.languageCode == 'tr' ? const Locale('en') : const Locale('tr');
-                await context.setLocale(newLocale);
-                setState(() {});
-              },
-              color: isDark ? AppColors.darkPrimary : Colors.black,
-            ),
-            IconButton(
-              icon: Icon(
-                isDark ? Icons.light_mode : Icons.dark_mode,
-                color: isDark ? AppColors.darkPrimary  : Colors.black,
-              ),
-              tooltip: isDark ? 'Aydınlık Tema' : 'Karanlık Tema',
-              onPressed: () {
-                context.read<ThemeCubit>().toggleTheme();
-              },
-            ),
-          ],
+      appBar: BaseAppBar(
+        title: 'lost_pets.detail_title'.tr(),
+        showLogo: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+          tooltip: 'Geri',
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.translate),
+            tooltip: 'Dili Değiştir',
+            onPressed: () {
+              final current = context.locale;
+              final newLocale = current.languageCode == 'tr' ? const Locale('en') : const Locale('tr');
+              context.setLocale(newLocale);
+            },
+            color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
+          ),
+          IconButton(
+            icon: Icon(
+              isDark ? Icons.light_mode : Icons.dark_mode,
+              color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
+            ),
+            tooltip: isDark ? 'Aydınlık Tema' : 'Karanlık Tema',
+            onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+          ),
+        ],
       ),
       body: FutureBuilder<LostPetAdDto>(
         future: _adFuture,
@@ -87,6 +136,7 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
           }
           final ad = snapshot.data!;
           _userFuture ??= UserApiService().getById(ad.userId);
+          final isOwner = _isOwner(ad);
           return SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -96,6 +146,7 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                   // --- PET GÖRSELİ ve BAŞLIK ---
                   GestureDetector(
                     onTap: () {
+                      if (!mounted) return;
                       showDialog(
                         context: context,
                         barrierColor: Colors.black.withOpacity(0.85),
@@ -247,7 +298,7 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                   ),
                   const SizedBox(height: 18),
                   // --- KULLANICI BİLGİLERİ ---
-                  FutureBuilder<UserDto?>(
+                  FutureBuilder<UserDto?> (
                     future: _userFuture,
                     builder: (context, userSnap) {
                       if (userSnap.connectionState != ConnectionState.done) {
@@ -323,7 +374,6 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 18),
                           // Diğer bilgiler blok halinde
                           _iconInfoRow(Icons.email, 'lost_pet_ad.email'.tr(), user.email, theme),
                           if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty) ...[
@@ -342,11 +392,100 @@ class _LostPetAdScreenState extends State<LostPetAdScreen> {
                             const SizedBox(height: 6),
                             _iconInfoRow(Icons.map, 'lost_pet_ad.district'.tr(), user.district!, theme),
                           ],
+                          // BUTONLAR: sadece ilan sahibi ise
+                          if (isOwner) ...[
+                            const SizedBox(height: 18),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.edit),
+                                    label: Text('lost_pet_ad.form_edit'.tr()),
+                                    onPressed: () async {
+                                      if (!mounted) return;
+                                      final result = await Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (ctx) => EditLostPetAdScreen(ad: ad),
+                                        ),
+                                      );
+                                      if (!mounted) return;
+                                      if (result == true) {
+                                        // Düzenleme sonrası ilanı tekrar yükle
+                                        setState(() {
+                                          _adFuture = fetchLostPetAd(widget.adId);
+                                          _userFuture = null;
+                                        });
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Theme.of(context).colorScheme.primary,
+                                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.delete),
+                                    label: Text('lost_pet_ad.form_delete'.tr()),
+                                    onPressed: () async {
+                                      if (!mounted) return;
+                                      final confirmed = await Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (ctx) => DeleteConfirmationScreen(
+                                            title: 'delete_confirm.title'.tr(),
+                                            description: 'delete_confirm.description'.tr(),
+                                            confirmText: 'delete_confirm.confirm'.tr(),
+                                            cancelText: 'form.cancel'.tr(),
+                                            onConfirm: () {
+                                              Navigator.of(ctx).pop(true);
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                      if (!mounted) return;
+                                      if (confirmed == true) {
+                                        try {
+                                          final sessionManager = SessionManager();
+                                          final token = await sessionManager.getToken() ?? '';
+                                          await context.read<LostPetAdCubit>().delete(ad.id, token);
+                                          // Silme sonrası listeyi güncelle
+                                          context.read<LostPetAdCubit>().getAll();
+                                          if (!mounted) return;
+                                          Navigator.of(context).pop();
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('İlan başarıyla silindi.'), backgroundColor: Colors.green),
+                                          );
+                                        } catch (e) {
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Silme işlemi başarısız: $e'), backgroundColor: Colors.red),
+                                          );
+                                        }
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Theme.of(context).colorScheme.error,
+                                      foregroundColor: Theme.of(context).colorScheme.onError,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 18),
                         ],
                       );
                     },
                   ),
                   const SizedBox(height: 32),
+                  AdmobBannerWidget(),
                 ],
               ),
             ),

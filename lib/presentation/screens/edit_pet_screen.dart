@@ -1,55 +1,126 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../blocs/pet_cubit.dart';
 import '../../data/models/pet_dto.dart';
+import '../../data/providers/pet_api_service.dart';
 import '../../data/local/session_manager.dart';
 import '../partials/base_app_bar.dart';
 import '../../core/constants/admob_banner_widget.dart';
 
-class AddPetScreen extends StatefulWidget {
-  final PetDto? pet;
-  final bool isEdit;
-
-  const AddPetScreen({Key? key, this.pet, this.isEdit = false}) : super(key: key);
+class EditPetScreen extends StatefulWidget {
+  final PetDto pet;
+  const EditPetScreen({Key? key, required this.pet}) : super(key: key);
 
   @override
-  State<AddPetScreen> createState() => _AddPetScreenState();
+  State<EditPetScreen> createState() => _EditPetScreenState();
 }
 
-class _AddPetScreenState extends State<AddPetScreen> {
+class _EditPetScreenState extends State<EditPetScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _speciesController = TextEditingController();
-  final _breedController = TextEditingController();
-  final _ageController = TextEditingController();
+  late final TextEditingController _nameController;
+  late final TextEditingController _speciesController;
+  late final TextEditingController _breedController;
+  late final TextEditingController _ageController;
   String? _selectedGender;
-  final _weightController = TextEditingController();
-  final _colorController = TextEditingController();
+  late final TextEditingController _weightController;
+  late final TextEditingController _colorController;
   DateTime? _selectedDate;
-  final _descriptionController = TextEditingController();
-  final _vaccinationStatusController = TextEditingController();
-  final _microchipIdController = TextEditingController();
-  final _imageUrlController = TextEditingController();
-  bool? _isNeutered = false;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _vaccinationStatusController;
+  late final TextEditingController _microchipIdController;
+  late final TextEditingController _imageUrlController;
+  bool? _isNeutered;
   bool _isLoading = false;
 
   final List<String> _genderOptions = ['Erkek', 'Dişi'];
-  final List<String> _speciesOptions = ['Köpek', 'Kedi', 'Kuş', 'Diğer...'];
-  bool _customSpecies = false;
 
-  Future<List<String>> fetchSpeciesList() async {
-    // Burada gerçek API çağrısı yapılabilir
-    await Future.delayed(const Duration(milliseconds: 300));
-    // Örnek veri, API'dan geliyormuş gibi
-    return ['Köpek', 'Kedi', 'Kuş', 'Hamster', 'Balık', 'Diğer...'];
+  @override
+  void initState() {
+    super.initState();
+    final pet = widget.pet;
+    _nameController = TextEditingController(text: pet.name);
+    _speciesController = TextEditingController(text: pet.species);
+    _breedController = TextEditingController(text: pet.breed);
+    _ageController = TextEditingController(text: pet.age != null ? pet.age.toString() : '');
+    _selectedGender = pet.gender;
+    _weightController = TextEditingController(text: pet.weight != null ? pet.weight.toString() : '');
+    _colorController = TextEditingController(text: pet.color ?? '');
+    _selectedDate = pet.dateOfBirth;
+    _descriptionController = TextEditingController(text: pet.description);
+    _vaccinationStatusController = TextEditingController(text: pet.vaccinationStatus ?? '');
+    _microchipIdController = TextEditingController(text: pet.microchipId ?? '');
+    _isNeutered = pet.isNeutered ?? false;
+    _imageUrlController = TextEditingController(text: pet.imageUrl);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _speciesController.dispose();
+    _breedController.dispose();
+    _ageController.dispose();
+    _weightController.dispose();
+    _colorController.dispose();
+    _descriptionController.dispose();
+    _vaccinationStatusController.dispose();
+    _microchipIdController.dispose();
+    _imageUrlController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    setState(() => _isLoading = true);
+    final updatedPet = widget.pet.copyWith(
+      name: _nameController.text,
+      species: _speciesController.text,
+      breed: _breedController.text,
+      age: int.tryParse(_ageController.text) ?? 0,
+      gender: _selectedGender ?? '',
+      weight: double.tryParse(_weightController.text) ?? 0,
+      color: _colorController.text,
+      dateOfBirth: _selectedDate,
+      description: _descriptionController.text,
+      vaccinationStatus: _vaccinationStatusController.text,
+      microchipId: _microchipIdController.text,
+      isNeutered: _isNeutered,
+      imageUrl: _imageUrlController.text,
+    );
+    final sessionManager = SessionManager();
+    final token = await sessionManager.getToken() ?? '';
+    try {
+      final response = await PetApiService().updateWithResponse(widget.pet.id, updatedPet, token);
+      if (!mounted) return;
+      if (response == 200 || response == 204) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('edit_pet.success'.tr()),
+            backgroundColor: Colors.green,
+          ),
+        );
+        await Future.delayed(const Duration(milliseconds: 800));
+        Navigator.of(context).pop(true);
+      } else {
+        throw Exception('Status: ' + response.toString());
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('form.error'.tr(args: [e.toString()])),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: BaseAppBar(
-        title: 'pets.add'.tr(),
+        title: 'pet_detail.edit'.tr(),
         showLogo: false,
       ),
       body: Padding(
@@ -61,92 +132,31 @@ class _AddPetScreenState extends State<AddPetScreen> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.add, size: 36, color: Theme.of(context).colorScheme.primary),
+                  Icon(Icons.edit, size: 36, color: colorScheme.primary),
                   const SizedBox(width: 10),
-                  Text('pets.add'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  Text('pet_detail.edit'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: 4),
-              Text('pets.add_subtitle'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
+              Text('edit_pet.subtitle'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.7))),
               const SizedBox(height: 18),
               if (_imageUrlController.text.isNotEmpty)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => Dialog(
-                            backgroundColor: Colors.transparent,
-                            child: Stack(
-                              alignment: Alignment.topRight,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image.network(
-                                    _imageUrlController.text,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (c, e, s) => Container(
-                                      width: 300,
-                                      height: 300,
-                                      color: Colors.grey[200],
-                                      child: Icon(Icons.image_not_supported, size: 64, color: Colors.grey[400]),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 8,
-                                  right: 8,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Future.microtask(() => Navigator.of(ctx).pop());
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.black54,
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      padding: const EdgeInsets.all(4),
-                                      child: Icon(Icons.close, color: Colors.white, size: 28),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                      child: Stack(
-                        alignment: Alignment.topRight,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              _imageUrlController.text,
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                              errorBuilder: (c, e, s) => Container(
-                                width: 120,
-                                height: 120,
-                                color: Colors.grey[200],
-                                child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(Icons.zoom_in, color: Colors.white, size: 22),
-                            ),
-                          ),
-                        ],
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.network(
+                        _imageUrlController.text,
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                        errorBuilder: (c, e, s) => Container(
+                          width: 120,
+                          height: 120,
+                          color: Colors.grey[200],
+                          child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
+                        ),
                       ),
                     ),
                   ),
@@ -334,46 +344,21 @@ class _AddPetScreenState extends State<AddPetScreen> {
                         textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      onPressed: _isLoading ? null : () async {
-                        if (_formKey.currentState?.validate() ?? false) {
-                          setState(() => _isLoading = true);
-                          final pet = PetDto(
-                            id: 0,
-                            name: _nameController.text,
-                            species: _speciesController.text,
-                            breed: _breedController.text,
-                            age: int.tryParse(_ageController.text) ?? 0,
-                            gender: _selectedGender ?? '',
-                            weight: double.tryParse(_weightController.text) ?? 0,
-                            color: _colorController.text,
-                            dateOfBirth: _selectedDate?.toUtc() ?? DateTime.now().toUtc(),
-                            description: _descriptionController.text,
-                            vaccinationStatus: _vaccinationStatusController.text,
-                            microchipId: _microchipIdController.text,
-                            isNeutered: _isNeutered,
-                            imageUrl: _imageUrlController.text,
-                          );
-                          final sessionManager = SessionManager();
-                          final token = await sessionManager.getToken() ?? '';
-                          try {
-                            await context.read<PetCubit>().create(pet, token);
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('pets.add_success'.tr())),
-                            );
-                            await Future.delayed(const Duration(milliseconds: 800));
-                            Navigator.of(context).pop();
-                          } catch (e) {
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('form.error'.tr(args: [e.toString()]))),
-                            );
-                          } finally {
-                            if (mounted) setState(() => _isLoading = false);
-                          }
-                        }
-                      },
+                      onPressed: _isLoading ? null : _save,
                       label: _isLoading ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text('form.save'.tr()),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: Icon(Icons.cancel),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                      label: Text('form.cancel'.tr()),
                     ),
                   ),
                 ],

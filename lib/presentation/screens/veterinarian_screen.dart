@@ -1,1 +1,0 @@
-// Veterinarian ekranı burada olacak 

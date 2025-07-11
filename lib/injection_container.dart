@@ -24,16 +24,21 @@ import 'data/providers/comment_api_service.dart';
 import 'data/repositories/comment_repository_impl.dart';
 import 'domain/repositories/comment_repository.dart';
 import 'presentation/blocs/comment_cubit.dart';
+import 'data/providers/pet_owner_api_service.dart';
+import 'data/providers/adoption_request_api_service.dart';
+import 'presentation/blocs/help_request_cubit.dart';
 
 final sl = GetIt.instance;
 
 void init() {
   sl.registerLazySingleton<PetApiService>(() => PetApiService());
+  sl.registerLazySingleton<PetOwnerApiService>(() => PetOwnerApiService());
   sl.registerLazySingleton<PetRepository>(() => PetRepositoryImpl(sl()));
   sl.registerLazySingleton<LostPetAdApiService>(() => LostPetAdApiService());
   sl.registerLazySingleton<LostPetAdRepository>(() => LostPetAdRepositoryImpl(sl()));
   sl.registerLazySingleton<HelpRequestApiService>(() => HelpRequestApiService());
   sl.registerLazySingleton<HelpRequestRepository>(() => HelpRequestRepositoryImpl(sl()));
+  sl.registerFactory(() => HelpRequestCubit(sl<HelpRequestRepository>()));
   sl.registerLazySingleton<UserApiService>(() => UserApiService());
   sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(sl()));
   sl.registerFactory(() => UserCubit(sl()));
@@ -45,6 +50,7 @@ void init() {
   sl.registerLazySingleton<AdoptionApiService>(() => AdoptionApiService());
   sl.registerLazySingleton<AdoptionRepository>(() => AdoptionRepositoryImpl(sl()));
   sl.registerFactory(() => AdoptionCubit(sl()));
+  sl.registerLazySingleton<AdoptionRequestApiService>(() => AdoptionRequestApiService());
 
   // Comment
   sl.registerLazySingleton<CommentApiService>(() => CommentApiService());

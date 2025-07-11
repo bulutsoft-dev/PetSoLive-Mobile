@@ -47,4 +47,14 @@ class CommentCubit extends Cubit<CommentState> {
       emit(CommentError(e.toString()));
     }
   }
+
+  Future<void> update(int id, CommentDto dto, String token) async {
+    emit(CommentLoading());
+    try {
+      await repository.update(id, dto, token);
+      emit(CommentInitial());
+    } catch (e) {
+      emit(CommentError(e.toString()));
+    }
+  }
 } 
