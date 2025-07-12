@@ -5,6 +5,7 @@ import '../../data/models/auth_response_dto.dart';
 import '../../domain/repositories/account_repository.dart';
 import '../../data/local/session_manager.dart';
 import '../../data/models/user_dto.dart';
+import 'dart:io';
 
 abstract class AccountState {}
 class AccountInitial extends AccountState {}
@@ -66,7 +67,63 @@ class AccountCubit extends Cubit<AccountState> {
         final successMsg = msg.replaceFirst('Exception: REGISTER_SUCCESS_MESSAGE:', '');
         emit(AccountRegisterSuccess(successMsg));
       } else {
-        emit(AccountFailure(e.toString()));
+        // Hata mesajını daha kullanıcı dostu hale getir
+        String errorMessage = msg;
+        if (msg.contains('415')) {
+          errorMessage = 'error.unsupported_media_type';
+        } else if (msg.contains('404')) {
+          errorMessage = 'error.not_found_error';
+        } else if (msg.contains('401')) {
+          errorMessage = 'error.unauthorized_error';
+        } else if (msg.contains('403')) {
+          errorMessage = 'error.forbidden_error';
+        } else if (msg.contains('500')) {
+          errorMessage = 'error.internal_server_error';
+        } else if (msg.contains('400')) {
+          errorMessage = 'error.bad_request';
+        } else {
+          errorMessage = 'error.register_failed';
+        }
+        emit(AccountFailure(errorMessage));
+      }
+    }
+  }
+
+  Future<void> registerWithImage(RegisterDto dto, File profileImage) async {
+    emit(AccountLoading());
+    try {
+      final response = await repository.registerWithImage(dto, profileImage);
+      // Eğer register sonrası response token ve user dönerse session kaydet
+      if (response != null && response.token != null && response.user != null) {
+        await sessionManager.saveSession(response.token, response.user.toJson());
+        emit(AccountSuccess(response));
+      } else {
+        emit(AccountRegisterSuccess());
+      }
+    } catch (e) {
+      final msg = e.toString();
+      if (msg.startsWith('Exception: REGISTER_SUCCESS_MESSAGE:')) {
+        final successMsg = msg.replaceFirst('Exception: REGISTER_SUCCESS_MESSAGE:', '');
+        emit(AccountRegisterSuccess(successMsg));
+      } else {
+        // Hata mesajını daha kullanıcı dostu hale getir
+        String errorMessage = msg;
+        if (msg.contains('415')) {
+          errorMessage = 'error.unsupported_media_type';
+        } else if (msg.contains('404')) {
+          errorMessage = 'error.not_found_error';
+        } else if (msg.contains('401')) {
+          errorMessage = 'error.unauthorized_error';
+        } else if (msg.contains('403')) {
+          errorMessage = 'error.forbidden_error';
+        } else if (msg.contains('500')) {
+          errorMessage = 'error.internal_server_error';
+        } else if (msg.contains('400')) {
+          errorMessage = 'error.bad_request';
+        } else {
+          errorMessage = 'error.register_failed';
+        }
+        emit(AccountFailure(errorMessage));
       }
     }
   }

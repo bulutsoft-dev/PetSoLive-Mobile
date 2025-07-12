@@ -386,5 +386,21 @@
   "register_button": "Kayıt Ol",
   "register_already_have": "Zaten hesabım var",
   "register_copyright": "© 2025 PetSoLive & Bulutsoft",
-  "help_requests.saving": "Kaydediliyor..."
+  "help_requests.saving": "Kaydediliyor...",
+  "error": {
+    "register_failed": "Kayıt başarısız: {0}",
+    "login_failed": "Giriş başarısız: {0}",
+    "network_error": "Ağ hatası: {0}",
+    "api_error": "API hatası: {0}",
+    "unknown_error": "Bilinmeyen hata: {0}",
+    "validation_error": "Doğrulama hatası: {0}",
+    "server_error": "Sunucu hatası: {0}",
+    "timeout_error": "Zaman aşımı hatası",
+    "unauthorized_error": "Yetkilendirme hatası",
+    "forbidden_error": "Erişim reddedildi",
+    "not_found_error": "Kaynak bulunamadı",
+    "unsupported_media_type": "Desteklenmeyen medya türü",
+    "bad_request": "Geçersiz istek",
+    "internal_server_error": "Sunucu iç hatası"
+  }
 }

@@ -392,5 +392,21 @@
   "register_button": "Register",
   "register_already_have": "Already have an account",
   "register_copyright": "© 2025 PetSoLive & Bulutsoft",
-  "help_requests.saving": "Saving..."
+  "help_requests.saving": "Saving...",
+  "error": {
+    "register_failed": "Registration failed: {0}",
+    "login_failed": "Login failed: {0}",
+    "network_error": "Network error: {0}",
+    "api_error": "API error: {0}",
+    "unknown_error": "Unknown error: {0}",
+    "validation_error": "Validation error: {0}",
+    "server_error": "Server error: {0}",
+    "timeout_error": "Timeout error",
+    "unauthorized_error": "Unauthorized error",
+    "forbidden_error": "Access denied",
+    "not_found_error": "Resource not found",
+    "unsupported_media_type": "Unsupported media type",
+    "bad_request": "Bad request",
+    "internal_server_error": "Internal server error"
+  }
 }
