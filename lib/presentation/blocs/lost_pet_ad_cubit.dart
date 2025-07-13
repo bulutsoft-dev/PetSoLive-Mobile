@@ -54,7 +54,7 @@ class LostPetAdCubit extends Cubit<LostPetAdState> {
     try {
       await repository.create(dto, token);
       if (isClosed) return;
-      emit(LostPetAdInitial());
+      await getAll();
     } catch (e) {
       if (isClosed) return;
       emit(LostPetAdError(e.toString()));

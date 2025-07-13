@@ -9,6 +9,11 @@ import '../partials/base_app_bar.dart';
 import '../../core/enums/emergency_level.dart';
 import '../../core/enums/help_request_status.dart';
 import '../../core/constants/admob_banner_widget.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:petsolive/data/providers/image_upload_provider.dart';
+import 'dart:io';
+import 'package:petsolive/data/providers/help_request_api_service.dart';
+import 'package:http/http.dart' as http;
 
 class EditHelpRequestScreen extends StatefulWidget {
   final HelpRequestDto helpRequest;
@@ -30,6 +35,11 @@ class _EditHelpRequestScreenState extends State<EditHelpRequestScreen> {
   late EmergencyLevel _emergencyLevel;
   late HelpRequestStatus _status;
   bool _isLoading = false;
+  // --- EKLENENLER ---
+  File? _selectedImageFile;
+  bool _isUploadingImage = false;
+  final ImagePicker _picker = ImagePicker();
+  // --- SON EKLENENLER ---
 
   void _setLoadingByState(BuildContext context) {
     final state = context.read<HelpRequestCubit>().state;
@@ -65,15 +75,51 @@ class _EditHelpRequestScreenState extends State<EditHelpRequestScreen> {
     super.dispose();
   }
 
+  Future<void> _pickAndUploadImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImageFile = File(pickedFile.path);
+        _isUploadingImage = true;
+      });
+      try {
+        final url = await ImageUploadProvider.uploadToImgbb(_selectedImageFile!);
+        setState(() {
+          _imageUrlController.text = url;
+          _isUploadingImage = false;
+        });
+      } catch (e) {
+        setState(() => _isUploadingImage = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Resim yüklenemedi: $e')),
+        );
+      }
+    }
+  }
+
+  Future<File> _downloadImageToFile(String url) async {
+    debugPrint('[HELP REQUEST EDIT] Eski resmi indiriliyor: $url');
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final tempDir = Directory.systemTemp;
+      final file = await File('${tempDir.path}/temp_helpreq_image_${DateTime.now().millisecondsSinceEpoch}.jpg').create();
+      await file.writeAsBytes(response.bodyBytes);
+      debugPrint('[HELP REQUEST EDIT] Eski resim dosyaya kaydedildi: ${file.path}');
+      return file;
+    } else {
+      throw Exception('Resim indirilemedi: $url');
+    }
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    _setLoadingByState(context);
+    setState(() => _isLoading = true);
     final accountState = context.read<AccountCubit>().state;
     if (accountState is! AccountSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('help_requests.login_required'.tr())),
       );
-      _setLoadingByState(context);
+      setState(() => _isLoading = false);
       return;
     }
     final token = accountState.response.token;
@@ -92,7 +138,32 @@ class _EditHelpRequestScreenState extends State<EditHelpRequestScreen> {
       createdAt: widget.helpRequest.createdAt,
       status: _status,
     );
-    await context.read<HelpRequestCubit>().update(dto.id, dto, token);
+    try {
+      File? fileToSend;
+      if (_selectedImageFile != null) {
+        debugPrint('[HELP REQUEST EDIT] Yeni resim seçildi, updateMultipart çağrılıyor.');
+        fileToSend = _selectedImageFile;
+      } else if (_imageUrlController.text.isNotEmpty) {
+        debugPrint('[HELP REQUEST EDIT] Yeni resim seçilmedi, eski resim indirilecek.');
+        fileToSend = await _downloadImageToFile(_imageUrlController.text);
+      }
+      await HelpRequestApiService().updateMultipart(dto.id, dto, token, fileToSend, _imageUrlController.text);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('help_requests.edit_success'.tr()), backgroundColor: Colors.green),
+        );
+        await Future.delayed(const Duration(milliseconds: 800));
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('help_requests.edit_failed'.tr(args: [e.toString()])), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   String _emergencyLevelLabel(EmergencyLevel level) {
@@ -302,6 +373,44 @@ class _EditHelpRequestScreenState extends State<EditHelpRequestScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
+                Center(
+                  child: GestureDetector(
+                    onTap: _isUploadingImage ? null : _pickAndUploadImage,
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: _selectedImageFile != null
+                              ? Image.file(_selectedImageFile!, width: 120, height: 120, fit: BoxFit.cover)
+                              : (_imageUrlController.text.isNotEmpty
+                                  ? Image.network(_imageUrlController.text, width: 120, height: 120, fit: BoxFit.cover)
+                                  : Container(
+                                      width: 120,
+                                      height: 120,
+                                      color: Colors.grey[200],
+                                      child: Icon(Icons.add_a_photo, size: 48, color: Colors.grey[400]),
+                                    )),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.all(6),
+                            child: _isUploadingImage
+                                ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : Icon(Icons.camera_alt, color: Colors.white, size: 24),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 TextFormField(
                   controller: _imageUrlController,
                   decoration: InputDecoration(labelText: 'help_requests.image_url'.tr(), prefixIcon: Icon(Icons.link)),
@@ -310,8 +419,12 @@ class _EditHelpRequestScreenState extends State<EditHelpRequestScreen> {
                 const SizedBox(height: 28),
                 ElevatedButton.icon(
                   onPressed: _isLoading ? null : _submit,
-                  icon: _isLoading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save),
-                  label: Text('help_requests.save'.tr()),
+                  icon: _isLoading
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.save),
+                  label: _isLoading
+                      ? Text('help_requests.saving'.tr())
+                      : Text('help_requests.save'.tr()),
                   style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                 ),
                 AdmobBannerWidget(),

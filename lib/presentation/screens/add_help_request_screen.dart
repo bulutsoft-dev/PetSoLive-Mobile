@@ -9,6 +9,10 @@ import '../partials/base_app_bar.dart';
 import '../../core/enums/emergency_level.dart';
 import '../../core/enums/help_request_status.dart';
 import '../../core/constants/admob_banner_widget.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:petsolive/data/providers/image_upload_provider.dart';
+import 'dart:io';
+import 'package:petsolive/data/providers/help_request_api_service.dart';
 
 class AddHelpRequestScreen extends StatefulWidget {
   const AddHelpRequestScreen({Key? key}) : super(key: key);
@@ -28,6 +32,11 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
   final _contactEmailController = TextEditingController();
   EmergencyLevel _emergencyLevel = EmergencyLevel.low;
   bool _isLoading = false;
+  // --- EKLENENLER ---
+  File? _selectedImageFile;
+  bool _isUploadingImage = false;
+  final ImagePicker _picker = ImagePicker();
+  // --- SON EKLENENLER ---
 
   void _setLoadingByState(BuildContext context) {
     final state = context.read<HelpRequestCubit>().state;
@@ -64,13 +73,13 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    _setLoadingByState(context);
+    setState(() => _isLoading = true);
     final accountState = context.read<AccountCubit>().state;
     if (accountState is! AccountSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('help_requests.login_required'.tr())),
       );
-      _setLoadingByState(context);
+      setState(() => _isLoading = false);
       return;
     }
     final user = accountState.response.user;
@@ -90,7 +99,50 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
       createdAt: DateTime.now(),
       status: HelpRequestStatus.Active,
     );
-    context.read<HelpRequestCubit>().create(dto, token);
+    try {
+      if (_imageUrlController.text.isNotEmpty) {
+        await HelpRequestApiService().createMultipart(dto, token, _selectedImageFile, _imageUrlController.text);
+      } else {
+        await HelpRequestApiService().create(dto, token);
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('help_requests.add_success'.tr()), backgroundColor: Colors.green),
+        );
+        await Future.delayed(const Duration(milliseconds: 800));
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('help_requests.add_failed'.tr(args: [e.toString()])), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImageFile = File(pickedFile.path);
+        _isUploadingImage = true;
+      });
+      try {
+        final url = await ImageUploadProvider.uploadToImgbb(_selectedImageFile!);
+        setState(() {
+          _imageUrlController.text = url;
+          _isUploadingImage = false;
+        });
+      } catch (e) {
+        setState(() => _isUploadingImage = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Resim yüklenemedi: $e')),
+        );
+      }
+    }
   }
 
   String _emergencyLevelLabel(EmergencyLevel level) {
@@ -300,6 +352,44 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
+                Center(
+                  child: GestureDetector(
+                    onTap: _isUploadingImage ? null : _pickAndUploadImage,
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: _selectedImageFile != null
+                              ? Image.file(_selectedImageFile!, width: 120, height: 120, fit: BoxFit.cover)
+                              : (_imageUrlController.text.isNotEmpty
+                                  ? Image.network(_imageUrlController.text, width: 120, height: 120, fit: BoxFit.cover)
+                                  : Container(
+                                      width: 120,
+                                      height: 120,
+                                      color: Colors.grey[200],
+                                      child: Icon(Icons.add_a_photo, size: 48, color: Colors.grey[400]),
+                                    )),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.all(6),
+                            child: _isUploadingImage
+                                ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : Icon(Icons.camera_alt, color: Colors.white, size: 24),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 TextFormField(
                   controller: _imageUrlController,
                   decoration: InputDecoration(labelText: 'help_requests.image_url'.tr(), prefixIcon: Icon(Icons.link)),
@@ -308,8 +398,12 @@ class _AddHelpRequestScreenState extends State<AddHelpRequestScreen> {
                 const SizedBox(height: 28),
                 ElevatedButton.icon(
                   onPressed: _isLoading ? null : _submit,
-                  icon: _isLoading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save),
-                  label: Text('help_requests.save'.tr()),
+                  icon: _isLoading
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.save),
+                  label: _isLoading
+                      ? Text('help_requests.saving'.tr())
+                      : Text('help_requests.save'.tr()),
                   style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                 ),
                 AdmobBannerWidget(),

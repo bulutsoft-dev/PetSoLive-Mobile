@@ -25,7 +25,8 @@ class _ImageUploadButtonState extends State<ImageUploadButton> {
     setState(() => _isUploading = true);
     try {
       final bytes = await pickedFile.readAsBytes();
-      final apiKey = '314bbcee2e4f10dd079a48f5240c7fb7'; // TODO: Replace with your ImgBB API key
+      final apiKey = '314bbcee2e4f10dd079a48f5240c7fb7';
+      debugPrint('IMGBB_API_KEY: ' + apiKey);
       final base64Image = base64Encode(bytes);
       final response = await http.post(
         Uri.parse('https://api.imgbb.com/1/upload'),

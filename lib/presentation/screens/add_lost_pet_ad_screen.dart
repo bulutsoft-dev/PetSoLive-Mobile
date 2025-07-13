@@ -8,6 +8,10 @@ import '../../core/helpers/city_list.dart';
 import '../partials/base_app_bar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/constants/admob_banner_widget.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import '../../data/providers/image_upload_provider.dart';
+import '../../data/providers/lost_pet_ad_api_service.dart';
 
 class AddLostPetAdScreen extends StatefulWidget {
   const AddLostPetAdScreen({Key? key}) : super(key: key);
@@ -27,15 +31,30 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
   bool _isLoading = false;
   String? _selectedCity;
   String? _selectedDistrict;
+  File? _selectedImageFile;
+  final ImagePicker _picker = ImagePicker();
+  bool _isUploadingImage = false;
+  String? _uploadedImageUrl;
 
   Future<void> submit() async {
+    debugPrint('[LOST PET AD] submit() çağrıldı');
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedImageFile == null || _uploadedImageUrl == null) {
+      debugPrint('[LOST PET AD] Resim yüklenmemiş, işlem iptal.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lütfen bir resim yükleyin!')),
+      );
+      return;
+    }
     setState(() => _isLoading = true);
     try {
       final authService = AuthService();
       final token = await authService.getToken();
       final user = await authService.getUser();
+      debugPrint('[LOST PET AD] Token: ' + (token ?? 'null'));
+      debugPrint('[LOST PET AD] User: ' + (user != null ? user.toString() : 'null'));
       if (token == null || user == null) {
+        debugPrint('[LOST PET AD] Kullanıcı veya token yok, login yönlendirmesi.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('lost_pet_ad.form_login_required'.tr())),
         );
@@ -50,14 +69,16 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
         petName: _petNameController.text,
         description: _descriptionController.text,
         lastSeenDate: _lastSeenDate ?? DateTime.now(),
-        imageUrl: _imageUrlController.text,
+        imageUrl: _uploadedImageUrl!,
         userId: user['id'] ?? 0,
         lastSeenCity: _selectedCity ?? '',
         lastSeenDistrict: _selectedDistrict ?? '',
         createdAt: DateTime.now(),
         userName: user['username'] ?? '',
       );
-      await context.read<LostPetAdCubit>().create(dto, token);
+      debugPrint('[LOST PET AD] DTO: ' + dto.toJson().toString());
+      await LostPetAdApiService().createMultipart(dto, token, _selectedImageFile!, _uploadedImageUrl!);
+      debugPrint('[LOST PET AD] createMultipart çağrısı tamamlandı.');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('lost_pet_ad.add_success'.tr()), backgroundColor: Colors.green),
@@ -66,12 +87,41 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
+      debugPrint('[LOST PET AD] Hata: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('lost_pet_ad.form_failed'.tr(args: [e.toString()])), backgroundColor: Colors.red),
       );
     } finally {
       if (!mounted) return;
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    debugPrint('[LOST PET AD] _pickAndUploadImage() çağrıldı');
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImageFile = File(pickedFile.path);
+        _isUploadingImage = true;
+      });
+      try {
+        debugPrint('[LOST PET AD] Resim seçildi, upload başlıyor: ' + pickedFile.path);
+        final url = await ImageUploadProvider.uploadToImgbb(_selectedImageFile!);
+        debugPrint('[LOST PET AD] Resim upload tamamlandı, url: $url');
+        setState(() {
+          _uploadedImageUrl = url;
+          _isUploadingImage = false;
+        });
+      } catch (e) {
+        debugPrint('[LOST PET AD] Resim upload hatası: $e');
+        setState(() => _isUploadingImage = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Resim yüklenemedi: $e')),
+        );
+      }
+    } else {
+      debugPrint('[LOST PET AD] Resim seçilmedi.');
     }
   }
 
@@ -90,88 +140,54 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
             children: [
-              if (_imageUrlController.text.isNotEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => Dialog(
-                            backgroundColor: Colors.transparent,
-                            child: Stack(
-                              alignment: Alignment.topRight,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image.network(
-                                    _imageUrlController.text,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (c, e, s) => Container(
-                                      width: 300,
-                                      height: 300,
-                                      color: Colors.grey[200],
-                                      child: Icon(Icons.image_not_supported, size: 64, color: Colors.grey[400]),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 8,
-                                  right: 8,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Future.microtask(() => Navigator.of(ctx).pop());
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.black54,
-                                        borderRadius: BorderRadius.circular(16),
+              // Görsel seçme alanı EN ÜSTTE
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 18),
+                  child: GestureDetector(
+                    onTap: _isUploadingImage ? null : _pickAndUploadImage,
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(60),
+                          child: _selectedImageFile != null
+                              ? Image.file(_selectedImageFile!, width: 120, height: 120, fit: BoxFit.cover)
+                              : (_uploadedImageUrl != null
+                                  ? Image.network(_uploadedImageUrl!, width: 120, height: 120, fit: BoxFit.cover,
+                                      errorBuilder: (c, e, s) => Container(
+                                        width: 120,
+                                        height: 120,
+                                        color: Colors.grey[200],
+                                        child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
                                       ),
-                                      padding: const EdgeInsets.all(4),
-                                      child: Icon(Icons.close, color: Colors.white, size: 28),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                    )
+                                  : Container(
+                                      width: 120,
+                                      height: 120,
+                                      color: Colors.grey[200],
+                                      child: Icon(Icons.add_a_photo, size: 48, color: Colors.grey[400]),
+                                    )),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(20),
                             ),
+                            padding: const EdgeInsets.all(6),
+                            child: _isUploadingImage
+                                ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : Icon(Icons.camera_alt, color: Colors.white, size: 24),
                           ),
-                        );
-                      },
-                      child: Stack(
-                        alignment: Alignment.topRight,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              _imageUrlController.text,
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                              errorBuilder: (c, e, s) => Container(
-                                width: 120,
-                                height: 120,
-                                color: Colors.grey[200],
-                                child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(Icons.zoom_in, color: Colors.white, size: 22),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+              ),
               // Temel Bilgiler
               Row(
                 children: [
@@ -263,28 +279,6 @@ class _AddLostPetAdScreenState extends State<AddLostPetAdScreen> {
                 ),
               ),
               const SizedBox(height: 18),
-              // Görsel
-              Row(
-                children: [
-                  Icon(Icons.image, color: Colors.orange, size: 20),
-                  const SizedBox(width: 8),
-                  Text('lost_pet_ad.form_image'.tr(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: InputDecoration(labelText: 'lost_pet_ad.form_image_url'.tr()),
-                onChanged: (_) => setState(() {}),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'lost_pet_ad.form_required'.tr();
-                  final uri = Uri.tryParse(v);
-                  if (uri == null || !(uri.isScheme('http') || uri.isScheme('https'))) {
-                    return 'lost_pet_ad.form_image_url'.tr() + ' (http/https)';
-                  }
-                  return null;
-                },
-              ),
               const SizedBox(height: 28),
               Row(
                 children: [

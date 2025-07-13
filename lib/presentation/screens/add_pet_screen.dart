@@ -6,6 +6,12 @@ import '../../data/models/pet_dto.dart';
 import '../../data/local/session_manager.dart';
 import '../partials/base_app_bar.dart';
 import '../../core/constants/admob_banner_widget.dart';
+import '../widgets/image_upload_button.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import '../../data/providers/pet_api_service.dart';
+import '../../data/providers/image_upload_provider.dart';
 
 class AddPetScreen extends StatefulWidget {
   final PetDto? pet;
@@ -30,7 +36,9 @@ class _AddPetScreenState extends State<AddPetScreen> {
   final _descriptionController = TextEditingController();
   final _vaccinationStatusController = TextEditingController();
   final _microchipIdController = TextEditingController();
-  final _imageUrlController = TextEditingController();
+  File? _selectedImage;
+  String? _uploadedImageUrl;
+  final picker = ImagePicker();
   bool? _isNeutered = false;
   bool _isLoading = false;
 
@@ -43,6 +51,70 @@ class _AddPetScreenState extends State<AddPetScreen> {
     await Future.delayed(const Duration(milliseconds: 300));
     // Örnek veri, API'dan geliyormuş gibi
     return ['Köpek', 'Kedi', 'Kuş', 'Hamster', 'Balık', 'Diğer...'];
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+      // Resmi upload et ve url'yi kaydet
+      try {
+        final url = await ImageUploadProvider.uploadToImgbb(_selectedImage!);
+        setState(() {
+          _uploadedImageUrl = url;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Resim yüklenemedi: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState?.validate() != true) return;
+    if (_uploadedImageUrl == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lütfen bir resim yükleyin!')),
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      final sessionManager = SessionManager();
+      final token = await sessionManager.getToken() ?? '';
+      await PetApiService().createPetMultipart(
+        name: _nameController.text,
+        species: _speciesController.text,
+        breed: _breedController.text,
+        age: int.tryParse(_ageController.text) ?? 0,
+        gender: _selectedGender ?? '',
+        weight: double.tryParse(_weightController.text) ?? 0,
+        color: _colorController.text,
+        dateOfBirth: _selectedDate ?? DateTime.now(),
+        description: _descriptionController.text,
+        microchipId: _microchipIdController.text,
+        vaccinationStatus: _vaccinationStatusController.text,
+        isNeutered: _isNeutered,
+        imageFile: _selectedImage!,
+        token: token,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Pet başarıyla eklendi!')),
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      debugPrint('Hata: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Bir hata oluştu: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -69,86 +141,11 @@ class _AddPetScreenState extends State<AddPetScreen> {
               const SizedBox(height: 4),
               Text('pets.add_subtitle'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
               const SizedBox(height: 18),
-              if (_imageUrlController.text.isNotEmpty)
+              if (_selectedImage != null)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => Dialog(
-                            backgroundColor: Colors.transparent,
-                            child: Stack(
-                              alignment: Alignment.topRight,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image.network(
-                                    _imageUrlController.text,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (c, e, s) => Container(
-                                      width: 300,
-                                      height: 300,
-                                      color: Colors.grey[200],
-                                      child: Icon(Icons.image_not_supported, size: 64, color: Colors.grey[400]),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 8,
-                                  right: 8,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Future.microtask(() => Navigator.of(ctx).pop());
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.black54,
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      padding: const EdgeInsets.all(4),
-                                      child: Icon(Icons.close, color: Colors.white, size: 28),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                      child: Stack(
-                        alignment: Alignment.topRight,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              _imageUrlController.text,
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                              errorBuilder: (c, e, s) => Container(
-                                width: 120,
-                                height: 120,
-                                color: Colors.grey[200],
-                                child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(Icons.zoom_in, color: Colors.white, size: 22),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: Image.file(_selectedImage!, width: 120, height: 120),
                   ),
                 ),
               // Kimlik Bilgileri
@@ -318,11 +315,29 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 decoration: InputDecoration(labelText: 'pets.microchip_id'.tr()),
               ),
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: InputDecoration(labelText: 'pets.image_url'.tr()),
-                onChanged: (_) => setState(() {}),
+              // Resim seçme ve önizleme:
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: Text('Resim Seç'),
               ),
+              if (_selectedImage != null)
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => Dialog(
+                        backgroundColor: Colors.transparent,
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(ctx).pop(),
+                          child: Center(
+                            child: Image.file(_selectedImage!, fit: BoxFit.contain),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: Image.file(_selectedImage!, width: 120, height: 120),
+                ),
               const SizedBox(height: 28),
               Row(
                 children: [
@@ -334,45 +349,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                         textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      onPressed: _isLoading ? null : () async {
-                        if (_formKey.currentState?.validate() ?? false) {
-                          setState(() => _isLoading = true);
-                          final pet = PetDto(
-                            id: 0,
-                            name: _nameController.text,
-                            species: _speciesController.text,
-                            breed: _breedController.text,
-                            age: int.tryParse(_ageController.text) ?? 0,
-                            gender: _selectedGender ?? '',
-                            weight: double.tryParse(_weightController.text) ?? 0,
-                            color: _colorController.text,
-                            dateOfBirth: _selectedDate?.toUtc() ?? DateTime.now().toUtc(),
-                            description: _descriptionController.text,
-                            vaccinationStatus: _vaccinationStatusController.text,
-                            microchipId: _microchipIdController.text,
-                            isNeutered: _isNeutered,
-                            imageUrl: _imageUrlController.text,
-                          );
-                          final sessionManager = SessionManager();
-                          final token = await sessionManager.getToken() ?? '';
-                          try {
-                            await context.read<PetCubit>().create(pet, token);
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('pets.add_success'.tr())),
-                            );
-                            await Future.delayed(const Duration(milliseconds: 800));
-                            Navigator.of(context).pop();
-                          } catch (e) {
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('form.error'.tr(args: [e.toString()]))),
-                            );
-                          } finally {
-                            if (mounted) setState(() => _isLoading = false);
-                          }
-                        }
-                      },
+                      onPressed: _isLoading ? null : _submitForm,
                       label: _isLoading ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text('form.save'.tr()),
                     ),
                   ),
