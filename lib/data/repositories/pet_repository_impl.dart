@@ -2,33 +2,23 @@ import '../../domain/repositories/pet_repository.dart';
 import '../models/pet_dto.dart';
 import '../providers/pet_api_service.dart';
 import '../../domain/entities/pet.dart';
+import '../local/pet_local_data_source.dart';
 
 class PetRepositoryImpl implements PetRepository {
   final PetApiService apiService;
+  final PetLocalDataSource localDataSource;
 
-  PetRepositoryImpl(this.apiService);
+  PetRepositoryImpl(this.apiService, this.localDataSource);
 
   @override
-  Future<List<Pet>> getPets() async {
-    final dtos = await apiService.getAll();
-    return dtos.map((dto) => Pet(
-      id: dto.id,
-      name: dto.name,
-      species: dto.species,
-      breed: dto.breed,
-      age: dto.age,
-      gender: dto.gender,
-      weight: dto.weight,
-      color: dto.color,
-      dateOfBirth: dto.dateOfBirth,
-      description: dto.description,
-      vaccinationStatus: dto.vaccinationStatus,
-      microchipId: dto.microchipId,
-      isNeutered: dto.isNeutered,
-      imageUrl: dto.imageUrl,
-      adoptionRequests: const [],
-      petOwners: const [],
-    )).toList();
+  Future<List<PetDto>> getPets() async {
+    // Önce localden veri çek
+    final localDtos = await localDataSource.getPets();
+    // Arka planda API'den veri çekip local veriyi güncelle
+    apiService.getAll().then((dtos) async {
+      await localDataSource.savePets(dtos);
+    });
+    return localDtos;
   }
 
   @override

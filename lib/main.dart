@@ -21,10 +21,15 @@ import 'presentation/screens/pet_detail_screen.dart';
 import 'presentation/blocs/lost_pet_ad_cubit.dart';
 import 'presentation/blocs/help_request_cubit.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'data/models/pet_dto.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(PetDtoAdapter());
   await MobileAds.instance.initialize();
   init();
   runApp(

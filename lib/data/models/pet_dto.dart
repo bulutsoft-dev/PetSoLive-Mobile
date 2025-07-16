@@ -1,18 +1,38 @@
+import 'package:hive/hive.dart';
+
+part 'pet_dto.g.dart';
+
+@HiveType(typeId: 0)
 class PetDto {
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final String name;
+  @HiveField(2)
   final String species;
+  @HiveField(3)
   final String breed;
+  @HiveField(4)
   final int age;
+  @HiveField(5)
   final String gender;
+  @HiveField(6)
   final double weight;
+  @HiveField(7)
   final String color;
+  @HiveField(8)
   final DateTime dateOfBirth;
+  @HiveField(9)
   final String description;
+  @HiveField(10)
   final String vaccinationStatus;
+  @HiveField(11)
   final String microchipId;
+  @HiveField(12)
   final bool? isNeutered;
+  @HiveField(13)
   final String imageUrl;
+  @HiveField(14)
   final int? ownerId;
 
   PetDto({

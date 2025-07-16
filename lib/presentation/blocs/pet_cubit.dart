@@ -9,7 +9,8 @@ class PetLoading extends PetState {}
 class PetLoaded extends PetState {
   final List<PetDto> allPets;
   final List<PetDto> myPets;
-  PetLoaded({required this.allPets, required this.myPets});
+  final bool hasMore;
+  PetLoaded({required this.allPets, required this.myPets, required this.hasMore});
 }
 class PetDetailLoaded extends PetState {
   final PetDto? pet;
@@ -27,6 +28,8 @@ class PetFiltered extends PetState {
 class PetCubit extends Cubit<PetState> {
   final PetRepository repository;
   List<PetDto> _allPets = [];
+  int _loadedCount = 0;
+  final int _pageSize = 5;
   PetOwnerApiService? petOwnerApiService;
   int? currentUserId;
   PetCubit(this.repository) : super(PetInitial());
@@ -35,12 +38,27 @@ class PetCubit extends Cubit<PetState> {
   Future<void> getAll() async {
     emit(PetLoading());
     try {
-      final list = await repository.getAll();
-      _allPets = list;
-      if (!isClosed) emit(PetLoaded(allPets: list, myPets: []));
+      final allList = await repository.getPets();
+      _allPets = allList;
+      _loadedCount = _pageSize;
+      emit(PetLoaded(
+        allPets: _allPets.take(_loadedCount).toList(),
+        myPets: [],
+        hasMore: _allPets.length > _loadedCount,
+      ));
     } catch (e) {
-      if (!isClosed) emit(PetError(e.toString()));
+      emit(PetError(e.toString()));
     }
+  }
+
+  void loadMore() {
+    if (_loadedCount >= _allPets.length) return;
+    _loadedCount += _pageSize;
+    emit(PetLoaded(
+      allPets: _allPets.take(_loadedCount).toList(),
+      myPets: [],
+      hasMore: _allPets.length > _loadedCount,
+    ));
   }
 
   Future<void> getAllWithOwners({required int? userId, required PetOwnerApiService petOwnerApiService}) async {
@@ -52,7 +70,7 @@ class PetCubit extends Cubit<PetState> {
         return pet.copyWith(ownerId: owner?.userId);
       }))).cast<PetDto>();
       final myPets = userId == null ? <PetDto>[] : petsWithOwner.where((pet) => pet.ownerId == userId).toList();
-      if (!isClosed) emit(PetLoaded(allPets: petsWithOwner, myPets: myPets));
+      if (!isClosed) emit(PetLoaded(allPets: petsWithOwner, myPets: myPets, hasMore: false));
     } catch (e) {
       if (!isClosed) emit(PetError(e.toString()));
     }
