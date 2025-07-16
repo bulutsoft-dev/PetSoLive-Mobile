@@ -1,14 +1,22 @@
 import '../../domain/repositories/lost_pet_ad_repository.dart';
 import '../models/lost_pet_ad_dto.dart';
 import '../providers/lost_pet_ad_api_service.dart';
+import '../local/lost_pet_ad_local_data_source.dart';
 
 class LostPetAdRepositoryImpl implements LostPetAdRepository {
   final LostPetAdApiService apiService;
-
-  LostPetAdRepositoryImpl(this.apiService);
+  final LostPetAdLocalDataSource localDataSource;
+  LostPetAdRepositoryImpl(this.apiService, this.localDataSource);
 
   @override
-  Future<List<LostPetAdDto>> getAll() => apiService.getAll();
+  Future<List<LostPetAdDto>> getAll() async {
+    final localAds = await localDataSource.getAds();
+    // Arka planda API'den veri çekip local veriyi güncelle
+    apiService.getAll().then((ads) async {
+      await localDataSource.saveAds(ads);
+    });
+    return localAds;
+  }
 
   @override
   Future<LostPetAdDto?> getById(int id) => apiService.getById(id);
