@@ -29,6 +29,7 @@ import 'data/providers/adoption_request_api_service.dart';
 import 'presentation/blocs/help_request_cubit.dart';
 import 'data/local/pet_local_data_source.dart';
 import 'data/local/lost_pet_ad_local_data_source.dart';
+import 'data/local/help_request_local_data_source.dart';
 
 final sl = GetIt.instance;
 
@@ -47,7 +48,11 @@ void init() {
     sl<LostPetAdLocalDataSource>(),
   ));
   sl.registerLazySingleton<HelpRequestApiService>(() => HelpRequestApiService());
-  sl.registerLazySingleton<HelpRequestRepository>(() => HelpRequestRepositoryImpl(sl()));
+  sl.registerLazySingleton<HelpRequestLocalDataSource>(() => HelpRequestLocalDataSource());
+  sl.registerLazySingleton<HelpRequestRepository>(() => HelpRequestRepositoryImpl(
+    sl<HelpRequestApiService>(),
+    sl<HelpRequestLocalDataSource>(),
+  ));
   sl.registerFactory(() => HelpRequestCubit(sl<HelpRequestRepository>()));
   sl.registerLazySingleton<UserApiService>(() => UserApiService());
   sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(sl()));

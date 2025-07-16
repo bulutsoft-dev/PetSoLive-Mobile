@@ -25,6 +25,9 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'data/models/pet_dto.dart';
 import 'data/models/lost_pet_ad_dto.dart';
+import 'data/models/help_request_dto.dart';
+import 'core/enums/emergency_level.dart';
+import 'core/enums/help_request_status.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +35,9 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(PetDtoAdapter());
   Hive.registerAdapter(LostPetAdDtoAdapter());
+  Hive.registerAdapter(HelpRequestDtoAdapter());
+  Hive.registerAdapter(EmergencyLevelAdapter());
+  Hive.registerAdapter(HelpRequestStatusAdapter());
   await MobileAds.instance.initialize();
   init();
   runApp(
