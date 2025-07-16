@@ -86,15 +86,23 @@ class _PetDetailScreenState extends State<PetDetailScreen> with RouteAware {
   }
 
   Future<_PetDetailBundle> _fetchAll(int petId) async {
-    final pet = await PetApiService().fetchPet(petId);
-    final owner = await PetOwnerApiService().getByPetId(petId);
-    final adoption = await AdoptionApiService().fetchAdoptionByPetId(petId);
-    final adoptionRequests = await AdoptionRequestApiService().getAllByPetId(petId);
+    final petFuture = PetApiService().fetchPet(petId);
+    final ownerFuture = PetOwnerApiService().getByPetId(petId);
+    final adoptionFuture = AdoptionApiService().fetchAdoptionByPetId(petId);
+    final adoptionRequestsFuture = AdoptionRequestApiService().getAllByPetId(petId);
+
+    final results = await Future.wait([
+      petFuture,
+      ownerFuture,
+      adoptionFuture,
+      adoptionRequestsFuture,
+    ]);
+
     return _PetDetailBundle(
-      pet: pet,
-      owner: owner,
-      adoption: adoption,
-      adoptionRequests: adoptionRequests,
+      pet: results[0] as PetDto,
+      owner: results[1] as PetOwnerDto?,
+      adoption: results[2] as AdoptionDto?,
+      adoptionRequests: results[3] as List<AdoptionRequestDto>,
     );
   }
 

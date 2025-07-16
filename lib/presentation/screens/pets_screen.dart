@@ -45,6 +45,10 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
   List<String> get colorList => petsCache.map((p) => p.color as String).toSet().toList();
   List<String> get breedList => petsCache.map((p) => p.breed as String).toSet().toList();
 
+  int _loadedCount = 0;
+  final int _pageSize = 10;
+  bool _hasMore = false;
+
   Future<void> fetchAdoptionStatuses(List pets) async {
     setState(() { adoptionLoading = true; });
     final adoptionRepo = sl<AdoptionRepository>();
@@ -103,6 +107,24 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
     }
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _resetLoadedChunk();
+  }
+
+  void _resetLoadedChunk() {
+    setState(() {
+      _loadedCount = _pageSize;
+    });
+  }
+
+  void _loadMore() {
+    setState(() {
+      _loadedCount += _pageSize;
+    });
+  }
+
   List filterPets(List pets) {
     // Sıralama: Sahiplendirilmemişler en üstte, sahiplendirilmişler en altta, yeni eklenenler en üstte (id'ye göre)
     final sorted = List.from(pets);
@@ -116,7 +138,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
       // id'ye göre yeni eklenenler en üstte
       return b.id.compareTo(a.id); // id büyük olan önce
     });
-    return sorted.where((pet) {
+    final filtered = sorted.where((pet) {
       final adopted = adoptedStatus[pet.id] ?? false;
       if (statusFilter == 'owned' && !adopted) return false;
       if (statusFilter == 'waiting' && adopted) return false;
@@ -125,6 +147,8 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
       if (breedFilter != null && breedFilter!.isNotEmpty && pet.breed != breedFilter) return false;
       return true;
     }).toList();
+    _hasMore = filtered.length > _loadedCount;
+    return filtered.take(_loadedCount).toList();
   }
 
   void _openFilterModal(BuildContext context) async {
@@ -492,15 +516,23 @@ class _PetListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: onRefresh ?? () async {},
-      child: BlocBuilder<PetCubit, PetState>(
-        builder: (context, state) {
-          if (state is PetLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is PetError) {
-            return Center(child: Text('pets.error'.tr() + '\n' + state.error));
-          }
+    return NotificationListener<ScrollNotification>(
+      onNotification: (scrollInfo) {
+        final state = context.findAncestorStateOfType<_PetsScreenBodyState>();
+        if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent && state != null && state._hasMore) {
+          state._loadMore();
+        }
+        return false;
+      },
+      child: RefreshIndicator(
+        onRefresh: onRefresh ?? () async {},
+        child: BlocBuilder<PetCubit, PetState>(
+          builder: (context, state) {
+            if (state is PetLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is PetError) {
+              return Center(child: Text('pets.error'.tr() + '\n' + state.error));
+            }
             final pets = state is PetLoaded ? state.allPets : (state as PetFiltered).pets;
             if (pets.isEmpty) {
               return ListView(
@@ -514,6 +546,8 @@ class _PetListView extends StatelessWidget {
               return const Center(child: CircularProgressIndicator());
             }
             final filteredPets = filterPets(pets).where(filter).toList();
+            final parentState = context.findAncestorStateOfType<_PetsScreenBodyState>();
+            final hasMore = parentState?._hasMore ?? false;
             if (filteredPets.isEmpty) {
               return ListView(
                 children: [
@@ -524,45 +558,53 @@ class _PetListView extends StatelessWidget {
             }
             return ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              itemCount: filteredPets.length,
+              itemCount: filteredPets.length + (hasMore ? 1 : 0),
               itemBuilder: (context, index) {
-                final pet = filteredPets[index];
-                final isAdopted = adoptedStatus[pet.id] ?? false;
-                final ownerName = adoptedOwner[pet.id];
-                final isMine = currentUserId != null && pet.ownerId == currentUserId;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: PetCard(
-                    name: pet.name,
-                    species: pet.species,
-                    imageUrl: pet.imageUrl ?? '',
-                    description: pet.description ?? '',
-                    age: pet.age,
-                    gender: pet.gender,
-                    color: pet.color,
-                    vaccinationStatus: pet.vaccinationStatus,
-                    isAdopted: isAdopted,
-                    ownerName: ownerName,
-                  onTap: () async {
-                    final result = await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => PetDetailScreen(
-                          petId: pet.id,
-                        ),
-                      ),
-                    );
-                    if (result == true) {
-                      if (onAfterDetailReturn != null) {
-                        await onAfterDetailReturn!();
-                      }
-                    }
-                    },
-                    isMine: isMine,
-                  ),
-                );
+                if (index < filteredPets.length) {
+                  final pet = filteredPets[index];
+                  final isAdopted = adoptedStatus[pet.id] ?? false;
+                  final ownerName = adoptedOwner[pet.id];
+                  final isMine = currentUserId != null && pet.ownerId == currentUserId;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: PetCard(
+                      name: pet.name,
+                      species: pet.species,
+                      imageUrl: pet.imageUrl ?? '',
+                      description: pet.description ?? '',
+                      age: pet.age,
+                      gender: pet.gender,
+                      color: pet.color,
+                      vaccinationStatus: pet.vaccinationStatus,
+                      isAdopted: isAdopted,
+                      ownerName: ownerName,
+                      onTap: () async {
+                        final result = await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => PetDetailScreen(
+                              petId: pet.id,
+                            ),
+                          ),
+                        );
+                        if (result == true) {
+                          if (onAfterDetailReturn != null) {
+                            await onAfterDetailReturn!();
+                          }
+                        }
+                      },
+                      isMine: isMine,
+                    ),
+                  );
+                } else {
+                  return const Center(child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ));
+                }
               },
             );
-        },
+          },
+        ),
       ),
     );
   }
