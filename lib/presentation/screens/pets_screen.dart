@@ -35,6 +35,9 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
   List petsCache = [];
   int? currentUserId;
 
+  // --- OPTIMIZATION: Cache for fetched adoption statuses ---
+  Set<int> _adoptionStatusFetchedPetIds = {};
+
   // Filtreler
   String statusFilter = 'all'; // all, owned, waiting
   String? speciesFilter;
@@ -49,32 +52,38 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
   final int _pageSize = 10;
   bool _hasMore = false;
 
+  // --- OPTIMIZED fetchAdoptionStatuses ---
   Future<void> fetchAdoptionStatuses(List pets) async {
+    // Sadece ekranda gösterilen ve daha önce sorgulanmamış pet'ler için sorgu yap
+    final visiblePets = filterPets(pets);
+    final petsToFetch = visiblePets.where((pet) => !_adoptionStatusFetchedPetIds.contains(pet.id)).toList();
+    if (petsToFetch.isEmpty) {
+      setState(() { adoptionLoading = false; });
+      return;
+    }
     setState(() { adoptionLoading = true; });
     final adoptionRepo = sl<AdoptionRepository>();
     final adoptionRequestApi = sl<AdoptionRequestApiService>();
-    final Map<int, bool> statusMap = {};
-    final Map<int, String?> ownerMap = {};
-    final futures = pets.map((pet) async {
+    final Map<int, bool> statusMap = Map.from(adoptedStatus);
+    final Map<int, String?> ownerMap = Map.from(adoptedOwner);
+    final futures = petsToFetch.map((pet) async {
       try {
         final adoption = await adoptionRepo.getByPetId(pet.id);
         final adopted = adoption != null;
         statusMap[pet.id] = adopted;
         ownerMap[pet.id] = adopted ? adoption?.userName : null;
         if (!adopted) {
-          // Adoption yoksa, adoptionRequest'lere bak
           final requests = await adoptionRequestApi.getAllByPetId(pet.id);
-          final hasApproved = requests.any((r) =>
-          (r.status?.toLowerCase() ?? '') == 'approved'
-          );
+          final hasApproved = requests.any((r) => (r.status?.toLowerCase() ?? '') == 'approved');
           if (hasApproved) {
             statusMap[pet.id] = true;
-            // İstersen ownerMap[pet.id] = ... ile kullanıcı adını da ekleyebilirsin
           }
         }
+        _adoptionStatusFetchedPetIds.add(pet.id);
       } catch (e) {
         statusMap[pet.id] = false;
         ownerMap[pet.id] = null;
+        _adoptionStatusFetchedPetIds.add(pet.id);
       }
     }).toList();
     await Future.wait(futures);
@@ -89,10 +98,16 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
 
   void _onPetStateChanged(PetState state) {
     if (state is PetLoaded || state is PetFiltered) {
-      // Her zaman allPets üzerinden fetchAdoptionStatuses çağır
       final pets = state is PetLoaded ? state.allPets : (state as PetFiltered).pets;
       if (petsCache != pets) {
         petsCache = pets;
+        // Cache'i sıfırla, yeni veri geldiğinde baştan başla
+        _adoptionStatusFetchedPetIds.clear();
+        adoptedStatus.clear();
+        adoptedOwner.clear();
+        fetchAdoptionStatuses(pets);
+      } else {
+        // Sadece yeni ekrana gelenler için fetch
         fetchAdoptionStatuses(pets);
       }
     }
@@ -116,6 +131,9 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
   void _resetLoadedChunk() {
     setState(() {
       _loadedCount = _pageSize;
+      _adoptionStatusFetchedPetIds.clear();
+      adoptedStatus.clear();
+      adoptedOwner.clear();
     });
   }
 
@@ -123,6 +141,8 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
     setState(() {
       _loadedCount += _pageSize;
     });
+    // Sadece yeni ekrana gelen pet'ler için adoption durumu sorgula
+    fetchAdoptionStatuses(petsCache);
   }
 
   List filterPets(List pets) {
