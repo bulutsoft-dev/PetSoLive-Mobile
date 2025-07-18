@@ -8,6 +8,7 @@ import '../../data/models/pet_list_item.dart';
 import 'pets/pet_tab_bar.dart';
 import 'pets/pet_search_bar.dart';
 import 'pets/pet_list_tab.dart';
+import '../../core/constants/admob_banner_widget.dart';
 
 class PetsScreen extends StatelessWidget {
   const PetsScreen({Key? key}) : super(key: key);
@@ -288,6 +289,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderSta
               onFilterPressed: () => _openFilterModal(context),
               isDark: isDark,
             ),
+            const AdmobBannerWidget(),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
