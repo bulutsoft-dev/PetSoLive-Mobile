@@ -28,6 +28,7 @@ import 'data/models/lost_pet_ad_dto.dart';
 import 'data/models/help_request_dto.dart';
 import 'core/enums/emergency_level.dart';
 import 'core/enums/help_request_status.dart';
+import 'presentation/themes/colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -277,7 +278,10 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   Widget _buildNavBarItem(IconData icon, String labelKey, int index) {
     final isSelected = _currentIndex == index;
-    final color = isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isDark
+        ? (isSelected ? AppColors.darkOnPrimary : AppColors.darkOnSurface.withOpacity(0.7))
+        : (isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.6));
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _currentIndex = index),

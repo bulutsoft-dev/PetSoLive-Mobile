@@ -51,10 +51,10 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: leading,
       elevation: 2,
       iconTheme: IconThemeData(
-        color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
+        color: isDark ? AppColors.darkOnPrimary : AppColors.petsolivePrimary,
       ),
       titleTextStyle: TextStyle(
-        color: isDark ? AppColors.darkPrimary : AppColors.petsolivePrimary,
+        color: isDark ? AppColors.darkOnPrimary : AppColors.petsolivePrimary,
         fontWeight: FontWeight.bold,
         fontSize: 20,
       ),
