@@ -420,7 +420,7 @@
   "pets.adopted_status": "Adoption Status",
   "pets.all": "All",
   "pets.owned": "Adopted",
-  "pets.waiting": "Waiting for Adoption",
+  "pets.waiting": "Waiting",
   "pets.clear": "Clear",
   "pets.apply": "Apply"
 }

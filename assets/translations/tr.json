@@ -414,8 +414,8 @@
   "pets.breed": "Cins",
   "pets.adopted_status": "Sahiplenme Durumu",
   "pets.all": "Tümü",
-  "pets.owned": "Sahiplenilmiş",
-  "pets.waiting": "Sahiplenilmeyi Bekleyen",
+  "pets.owned": "Sahipli",
+  "pets.waiting": "Bekliyor",
   "pets.clear": "Temizle",
   "pets.apply": "Uygula"
 }
