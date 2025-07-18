@@ -3,12 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../blocs/pet_cubit.dart';
 import '../blocs/account_cubit.dart';
-import '../widgets/pet_card.dart';
 import '../../injection_container.dart';
 import '../../data/models/pet_list_item.dart';
-import '../../data/providers/pet_api_service.dart';
-import 'add_pet_screen.dart';
-import 'pet_detail_screen.dart';
+import 'pets/pet_tab_bar.dart';
+import 'pets/pet_search_bar.dart';
+import 'pets/pet_list_tab.dart';
 
 class PetsScreen extends StatelessWidget {
   const PetsScreen({Key? key}) : super(key: key);
@@ -277,58 +276,23 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderSta
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return Column(
           children: [
-            // TabBar üstte sabit ve taşma yok
-            Container(
-              color: colorScheme.background,
-              child: TabBar(
-                controller: _tabController,
-                tabs: tabs,
-                isScrollable: false,
-                indicatorColor: colorScheme.primary,
-                labelColor: colorScheme.primary,
-                unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
-                labelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ),
-            // Search bar ve filtre butonu
-            Container(
-              color: colorScheme.background,
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      onChanged: (value) {
-                        setState(() {
-                          searchQuery = value;
-                        });
-                        _fetchTabPets(reset: true);
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'pets.search_placeholder'.tr(),
-                        prefixIcon: Icon(Icons.search, color: colorScheme.primary),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        filled: true,
-                        fillColor: isDark ? colorScheme.surface : colorScheme.background,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(Icons.filter_list, color: colorScheme.primary),
-                    onPressed: () => _openFilterModal(context),
-                    tooltip: 'Filtrele',
-                  ),
-                ],
-              ),
+            PetTabBar(controller: _tabController, tabs: tabs),
+            PetSearchBar(
+              controller: _controller,
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+                _fetchTabPets(reset: true);
+              },
+              onFilterPressed: () => _openFilterModal(context),
+              isDark: isDark,
             ),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _PetListTab(
+                  PetListTab(
                     adoptedStatus: null,
                     species: speciesFilter,
                     color: colorFilter,
@@ -336,7 +300,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderSta
                     search: searchQuery,
                     currentUserId: currentUserId,
                   ),
-                  _PetListTab(
+                  PetListTab(
                     adoptedStatus: 'owned',
                     species: speciesFilter,
                     color: colorFilter,
@@ -344,7 +308,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderSta
                     search: searchQuery,
                     currentUserId: currentUserId,
                   ),
-                  _PetListTab(
+                  PetListTab(
                     adoptedStatus: 'waiting',
                     species: speciesFilter,
                     color: colorFilter,
@@ -353,7 +317,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderSta
                     currentUserId: currentUserId,
                   ),
                   if (showMyPetsTab)
-                    _PetListTab(
+                    PetListTab(
                       adoptedStatus: null,
                       species: speciesFilter,
                       color: colorFilter,
@@ -371,104 +335,4 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderSta
       },
     );
   }
-}
-
-class _PetListTab extends StatelessWidget {
-  final String? adoptedStatus;
-  final String? species;
-  final String? color;
-  final String? breed;
-  final String? search;
-  final bool myPetsOnly;
-  final int? currentUserId;
-  const _PetListTab({this.adoptedStatus, this.species, this.color, this.breed, this.search, this.myPetsOnly = false, this.currentUserId});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<PetCubit, PetState>(
-      builder: (context, state) {
-        if (state is PetLoading) {
-          return Center(child: CircularProgressIndicator());
-        } else if (state is PetError) {
-          return Center(child: Text('pets.error'.tr() + '\n' + state.error));
-        } else if (state is PetLoaded) {
-          List pets = state.pets;
-          // Arama filtresi uygula (isim, tür, cins, renk, açıklama, yaş, cinsiyet, aşı durumu, ownerId, adoptedOwnerName)
-          final q = _normalize(search ?? '');
-          if (q.isNotEmpty) {
-            pets = pets.where((pet) {
-              final fields = [
-                pet.name,
-                pet.species,
-                pet.breed,
-                pet.color,
-                pet.description,
-                pet.age?.toString(),
-                pet.gender,
-                pet.vaccinationStatus,
-                pet.ownerId?.toString(),
-                pet.adoptedOwnerName
-              ];
-              final normalizedFields = fields.map((f) => _normalize(f ?? '')).join(' ');
-              return q.split('').every((char) => normalizedFields.contains(char));
-            }).toList();
-          }
-          if (myPetsOnly && currentUserId != null) {
-            pets = pets.where((pet) => pet.ownerId == currentUserId).toList();
-          } else if (adoptedStatus == 'owned') {
-            pets = pets.where((pet) => pet.isAdopted == true).toList();
-          } else if (adoptedStatus == 'waiting') {
-            pets = pets.where((pet) => pet.isAdopted == false).toList();
-          }
-          if (pets.isEmpty) {
-            return Center(child: Text('pets.empty'.tr()));
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            itemCount: pets.length,
-            itemBuilder: (context, index) {
-              final pet = pets[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: PetCard(
-                  name: pet.name,
-                  species: pet.species,
-                  imageUrl: pet.imageUrl,
-                  description: pet.description,
-                  age: pet.age,
-                  gender: pet.gender,
-                  color: pet.color,
-                  vaccinationStatus: pet.vaccinationStatus,
-                  isAdopted: pet.isAdopted,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => PetDetailScreen(petId: pet.id),
-                      ),
-                    );
-                  },
-                  isMine: currentUserId != null && pet.ownerId == currentUserId,
-                ),
-              );
-            },
-          );
-        }
-        return Center(child: CircularProgressIndicator());
-      },
-    );
-  }
-}
-
-String _normalize(String input) {
-  return input
-      .toLowerCase()
-      .replaceAll('ç', 'c')
-      .replaceAll('ğ', 'g')
-      .replaceAll('ı', 'i')
-      .replaceAll('ö', 'o')
-      .replaceAll('ş', 's')
-      .replaceAll('ü', 'u')
-      .replaceAll('â', 'a')
-      .replaceAll('î', 'i')
-      .replaceAll('û', 'u');
 } 
