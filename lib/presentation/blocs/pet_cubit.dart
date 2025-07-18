@@ -1,130 +1,93 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/models/pet_dto.dart';
-import '../../domain/repositories/pet_repository.dart';
-import '../../data/providers/pet_owner_api_service.dart';
+import '../../data/models/pet_list_item.dart';
+import '../../data/providers/pet_api_service.dart';
 
 abstract class PetState {}
 class PetInitial extends PetState {}
 class PetLoading extends PetState {}
 class PetLoaded extends PetState {
-  final List<PetDto> allPets;
-  final List<PetDto> myPets;
+  final List<PetListItem> pets;
   final bool hasMore;
-  PetLoaded({required this.allPets, required this.myPets, required this.hasMore});
-}
-class PetDetailLoaded extends PetState {
-  final PetDto? pet;
-  PetDetailLoaded(this.pet);
+  PetLoaded({required this.pets, required this.hasMore});
 }
 class PetError extends PetState {
   final String error;
   PetError(this.error);
 }
-class PetFiltered extends PetState {
-  final List<PetDto> pets;
-  PetFiltered(this.pets);
-}
 
 class PetCubit extends Cubit<PetState> {
-  final PetRepository repository;
-  List<PetDto> _allPets = [];
-  int _loadedCount = 0;
-  final int _pageSize = 5;
-  PetOwnerApiService? petOwnerApiService;
-  int? currentUserId;
-  PetCubit(this.repository) : super(PetInitial());
+  final PetApiService apiService;
+  int _page = 1;
+  bool _hasMore = true;
+  List<PetListItem> _pets = [];
+  int _totalCount = 0;
+  String? _species;
+  String? _color;
+  String? _breed;
+  String? _adoptedStatus;
+  String? _search;
+  int? _ownerId;
+  final int _pageSize = 20;
 
-  @override
-  Future<void> getAll() async {
+  PetCubit(this.apiService) : super(PetInitial());
+
+  Future<void> fetchPets({
+    bool reset = false,
+    String? species,
+    String? color,
+    String? breed,
+    String? adoptedStatus,
+    String? search,
+    int? ownerId,
+  }) async {
+    if (reset) {
+      _page = 1;
+      _pets = [];
+      _hasMore = true;
+      _species = species;
+      _color = color;
+      _breed = breed;
+      _adoptedStatus = adoptedStatus;
+      _search = search;
+      _ownerId = ownerId;
+    }
+    if (!_hasMore && !reset) return;
     emit(PetLoading());
     try {
-      final allList = await repository.getPets();
-      _allPets = allList;
-      _loadedCount = _pageSize;
-      emit(PetLoaded(
-        allPets: _allPets.take(_loadedCount).toList(),
-        myPets: [],
-        hasMore: _allPets.length > _loadedCount,
-      ));
+      final result = await apiService.fetchPets(
+        page: _page,
+        pageSize: _pageSize,
+        species: _species,
+        color: _color,
+        breed: _breed,
+        adoptedStatus: _adoptedStatus,
+        search: _search,
+        ownerId: _ownerId,
+      );
+      final List<PetListItem> newPets = List<PetListItem>.from(result['pets']);
+      _totalCount = result['totalCount'];
+      if (reset) {
+        _pets = newPets;
+      } else {
+        _pets.addAll(newPets);
+      }
+      _hasMore = _pets.length < _totalCount;
+      emit(PetLoaded(pets: _pets, hasMore: _hasMore));
+      _page++;
     } catch (e) {
       emit(PetError(e.toString()));
     }
   }
 
-  void loadMore() {
-    if (_loadedCount >= _allPets.length) return;
-    _loadedCount += _pageSize;
-    emit(PetLoaded(
-      allPets: _allPets.take(_loadedCount).toList(),
-      myPets: [],
-      hasMore: _allPets.length > _loadedCount,
-    ));
-  }
-
-  Future<void> getAllWithOwners({required int? userId, required PetOwnerApiService petOwnerApiService}) async {
-    emit(PetLoading());
-    try {
-      final list = await repository.getAll();
-      final petsWithOwner = (await Future.wait(list.map((pet) async {
-        final owner = await petOwnerApiService.getByPetId(pet.id);
-        return pet.copyWith(ownerId: owner?.userId);
-      }))).cast<PetDto>();
-      final myPets = userId == null ? <PetDto>[] : petsWithOwner.where((pet) => pet.ownerId == userId).toList();
-      if (!isClosed) emit(PetLoaded(allPets: petsWithOwner, myPets: myPets, hasMore: false));
-    } catch (e) {
-      if (!isClosed) emit(PetError(e.toString()));
-    }
-  }
-
-  void filterPets(String query) {
-    if (state is PetLoaded || state is PetFiltered) {
-      final filtered = _allPets.where((pet) {
-        final lower = query.toLowerCase();
-        return pet.name.toLowerCase().contains(lower) ||
-               pet.species.toLowerCase().contains(lower) ||
-               (pet.breed?.toLowerCase().contains(lower) ?? false);
-      }).toList();
-      if (!isClosed) emit(PetFiltered(filtered));
-    }
-  }
-
-  Future<void> getById(int id) async {
-    emit(PetLoading());
-    try {
-      final pet = await repository.getById(id);
-      if (!isClosed) emit(PetDetailLoaded(pet));
-    } catch (e) {
-      if (!isClosed) emit(PetError(e.toString()));
-    }
-  }
-
-  Future<void> create(PetDto dto, String token) async {
-    emit(PetLoading());
-    try {
-      await repository.create(dto, token);
-      if (!isClosed) emit(PetInitial());
-    } catch (e) {
-      if (!isClosed) emit(PetError(e.toString()));
-    }
-  }
-
-  Future<void> update(int id, PetDto dto, String token) async {
-    emit(PetLoading());
-    try {
-      await repository.update(id, dto, token);
-      if (!isClosed) emit(PetInitial());
-    } catch (e) {
-      if (!isClosed) emit(PetError(e.toString()));
-    }
-  }
-
-  Future<void> delete(int id, String token) async {
-    emit(PetLoading());
-    try {
-      await repository.delete(id, token);
-      if (!isClosed) emit(PetInitial());
-    } catch (e) {
-      if (!isClosed) emit(PetError(e.toString()));
-    }
+  void reset() {
+    _page = 1;
+    _pets = [];
+    _hasMore = true;
+    _species = null;
+    _color = null;
+    _breed = null;
+    _adoptedStatus = null;
+    _search = null;
+    _ownerId = null;
   }
 } 

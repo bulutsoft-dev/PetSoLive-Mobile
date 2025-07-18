@@ -27,7 +27,7 @@ class HomeScreen extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => PetCubit(sl())..getAll()),
+        BlocProvider(create: (_) => PetCubit(sl())..fetchPets(reset: true)),
         BlocProvider(create: (_) => LostPetAdCubit(sl())..getAll()),
         BlocProvider(create: (_) => HelpRequestCubit(sl())..getAll()),
       ],
@@ -101,8 +101,8 @@ class HomeScreen extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is PetError) {
                   return Center(child: Text('pets.error'.tr() + '\n' + state.error));
-                } else if (state is PetLoaded || state is PetFiltered) {
-                  final pets = state is PetLoaded ? state.allPets : (state as PetFiltered).pets;
+                } else if (state is PetLoaded) {
+                  final pets = state.pets;
                   if (pets.isEmpty) {
                     return Center(child: Text('pets.empty'.tr()));
                   }
