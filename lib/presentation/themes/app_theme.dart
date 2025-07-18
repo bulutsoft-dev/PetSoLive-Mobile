@@ -86,7 +86,7 @@ class AppTheme {
     ),
     scaffoldBackgroundColor: AppColors.darkBackground,
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.darkPrimary,
+      backgroundColor: AppColors.darkAppBar,
       foregroundColor: AppColors.darkOnPrimary,
       elevation: 2,
       iconTheme: IconThemeData(color: AppColors.darkOnPrimary),
@@ -98,8 +98,8 @@ class AppTheme {
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: AppColors.darkSurface,
-      selectedItemColor: AppColors.darkPrimary,
-      unselectedItemColor: AppColors.bsGray500,
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.white70,
       showUnselectedLabels: true,
     ),
     cardColor: AppColors.darkSurface,

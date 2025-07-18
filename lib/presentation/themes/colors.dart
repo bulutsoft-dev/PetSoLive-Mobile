@@ -64,4 +64,5 @@ class AppColors {
   static const Color darkOnBackground = bsGray100;
   static const Color darkOnSurface = bsGray100;
   static const Color darkOnError = bsWhite;
+  static const Color darkAppBar = Color(0xFF181F2A);
 } 
