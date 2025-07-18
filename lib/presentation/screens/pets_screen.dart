@@ -291,6 +291,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderSta
                 color: colorFilter,
                 breed: breedFilter,
                 search: searchQuery,
+                currentUserId: currentUserId,
               ),
               _PetListTab(
                 adoptedStatus: 'owned',
@@ -298,6 +299,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderSta
                 color: colorFilter,
                 breed: breedFilter,
                 search: searchQuery,
+                currentUserId: currentUserId,
               ),
               _PetListTab(
                 adoptedStatus: 'waiting',
@@ -305,6 +307,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderSta
                 color: colorFilter,
                 breed: breedFilter,
                 search: searchQuery,
+                currentUserId: currentUserId,
               ),
               if (showMyPetsTab)
                 _PetListTab(
