@@ -79,9 +79,14 @@ class PetCard extends StatelessWidget {
                       color: colorScheme.background,
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: _SafeNetworkImage(
+                    child: CachedNetworkImage(
                       imageUrl: imageUrl,
-                      placeholder: (context) => Image.asset(
+                      fit: BoxFit.cover,
+                      errorWidget: (context, url, error) => Image.asset(
+                        'assets/images/pet_placeholder.png',
+                        fit: BoxFit.cover,
+                      ),
+                      placeholder: (context, url) => Image.asset(
                         'assets/images/logo.png',
                         fit: BoxFit.contain,
                         height: 48,
