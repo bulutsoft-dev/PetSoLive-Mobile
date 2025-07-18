@@ -121,7 +121,6 @@ class HomeScreen extends StatelessWidget {
                           color: pet.color,
                           vaccinationStatus: pet.vaccinationStatus,
                           isAdopted: false,
-                          ownerName: null,
                           onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(
                               builder: (_) => PetDetailScreen(

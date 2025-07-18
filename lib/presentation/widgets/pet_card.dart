@@ -13,7 +13,6 @@ class PetCard extends StatelessWidget {
   final String? color;
   final String? vaccinationStatus;
   final bool isAdopted;
-  final String? ownerName;
   final VoidCallback? onTap;
   final bool isMine;
 
@@ -28,7 +27,6 @@ class PetCard extends StatelessWidget {
     this.color,
     this.vaccinationStatus,
     this.isAdopted = false,
-    this.ownerName,
     this.onTap,
     this.isMine = false,
   }) : super(key: key);
@@ -185,24 +183,6 @@ class PetCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: subTextColor, fontSize: 13),
                           ),
-                          if (isAdopted && ownerName != null && ownerName!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4, bottom: 2),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.person, size: 15, color: subTextColor),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      'pets.owner'.tr(args: [ownerName!]),
-                                      style: TextStyle(fontSize: 12, color: subTextColor, fontWeight: FontWeight.w600),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                         ],
                       ),
                     ),

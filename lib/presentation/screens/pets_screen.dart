@@ -6,6 +6,8 @@ import '../widgets/pet_card.dart';
 import '../../injection_container.dart';
 import '../../data/models/pet_list_item.dart';
 import '../../data/providers/pet_api_service.dart';
+import 'add_pet_screen.dart';
+import 'pet_detail_screen.dart';
 
 class PetsScreen extends StatelessWidget {
   const PetsScreen({Key? key}) : super(key: key);
@@ -21,27 +23,52 @@ class _PetsScreenBody extends StatefulWidget {
   State<_PetsScreenBody> createState() => _PetsScreenBodyState();
 }
 
-class _PetsScreenBodyState extends State<_PetsScreenBody> {
+class _PetsScreenBodyState extends State<_PetsScreenBody> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  int? currentUserId;
   String? speciesFilter;
   String? colorFilter;
   String? breedFilter;
-  String? adoptedStatusFilter;
-  String searchQuery = '';
-  int? currentUserId;
-  final TextEditingController _controller = TextEditingController();
+  String? searchQuery;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Kullanıcı id'sini al
-    // (Gerekirse AccountCubit ile entegre et)
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      _fetchTabPets(reset: true);
+    }
+  }
+
+  void _fetchTabPets({bool reset = false}) {
+    final cubit = context.read<PetCubit>();
+    String? adoptedStatus;
+    if (_tabController.index == 1) adoptedStatus = 'owned';
+    if (_tabController.index == 2) adoptedStatus = 'waiting';
+    cubit.fetchPets(
+      reset: reset,
+      adoptedStatus: adoptedStatus,
+      species: speciesFilter,
+      color: colorFilter,
+      breed: breedFilter,
+      search: searchQuery,
+    );
   }
 
   void _openFilterModal(BuildContext context) async {
     String? tempSpecies = speciesFilter;
     String? tempColor = colorFilter;
     String? tempBreed = breedFilter;
-    String? tempAdoptedStatus = adoptedStatusFilter;
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -104,22 +131,6 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                       controller: TextEditingController(text: tempBreed),
                       onChanged: (v) => setModalState(() => tempBreed = v),
                     ),
-                    const SizedBox(height: 14),
-                    Text('Sahiplenme Durumu', style: Theme.of(context).textTheme.labelLarge),
-                    DropdownButtonFormField<String>(
-                      value: tempAdoptedStatus,
-                      isDense: true,
-                      decoration: InputDecoration(
-                        hintText: 'Tümü',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      ),
-                      items: [null, 'owned', 'waiting'].map((s) => DropdownMenuItem(
-                        value: s,
-                        child: Text(s == null ? 'Tümü' : s == 'owned' ? 'Sahiplenilmiş' : 'Sahiplenilmeyi Bekleyen'),
-                      )).toList(),
-                      onChanged: (v) => setModalState(() => tempAdoptedStatus = v),
-                    ),
                     const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -130,8 +141,8 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                               speciesFilter = null;
                               colorFilter = null;
                               breedFilter = null;
-                              adoptedStatusFilter = null;
                             });
+                            _fetchTabPets(reset: true);
                             Navigator.pop(context);
                           },
                           child: Text('Temizle'),
@@ -142,17 +153,8 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                               speciesFilter = tempSpecies;
                               colorFilter = tempColor;
                               breedFilter = tempBreed;
-                              adoptedStatusFilter = tempAdoptedStatus;
                             });
-                            context.read<PetCubit>().fetchPets(
-                              reset: true,
-                              species: speciesFilter,
-                              color: colorFilter,
-                              breed: breedFilter,
-                              adoptedStatus: adoptedStatusFilter,
-                              search: searchQuery,
-                              ownerId: currentUserId,
-                            );
+                            _fetchTabPets(reset: true);
                             Navigator.pop(context);
                           },
                           child: Text('Uygula'),
@@ -173,76 +175,126 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => PetCubit(sl())
-        ..fetchPets(reset: true),
-      child: BlocBuilder<PetCubit, PetState>(
-        builder: (context, state) {
-          if (state is PetLoading) {
-            return Center(child: CircularProgressIndicator());
-          } else if (state is PetError) {
-            return Center(child: Text('pets.error'.tr() + '\n' + state.error));
-          } else if (state is PetLoaded) {
-            final pets = state.pets;
-            if (pets.isEmpty) {
-              return Center(child: Text('pets.empty'.tr()));
-            }
-            return NotificationListener<ScrollNotification>(
-              onNotification: (scrollInfo) {
-                if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent && state.hasMore) {
-                  context.read<PetCubit>().fetchPets();
-                }
-                return false;
-              },
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  await context.read<PetCubit>().fetchPets(reset: true,
-                    species: speciesFilter,
-                    color: colorFilter,
-                    breed: breedFilter,
-                    adoptedStatus: adoptedStatusFilter,
-                    search: searchQuery,
-                    ownerId: currentUserId,
-                  );
-                },
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  itemCount: pets.length + (state.hasMore ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index < pets.length) {
-                      final pet = pets[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: PetCard(
-                          name: pet.name,
-                          species: pet.species,
-                          imageUrl: pet.imageUrl,
-                          description: pet.description,
-                          age: pet.age,
-                          gender: pet.gender,
-                          color: pet.color,
-                          vaccinationStatus: pet.vaccinationStatus,
-                          isAdopted: pet.isAdopted,
-                          ownerName: pet.adoptedOwnerName,
-                          onTap: () async {
-                            // Detay ekranına git
-                          },
-                          isMine: currentUserId != null && pet.ownerId == currentUserId,
-                        ),
-                      );
-                    } else {
-                      return const Center(child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(),
-                      ));
-                    }
-                  },
-                ),
-              ),
-            );
-          }
-          return Center(child: CircularProgressIndicator());
-        },
+      create: (_) => PetCubit(sl())..fetchPets(reset: true),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('pets.title'.tr()),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.filter_list),
+              onPressed: () => _openFilterModal(context),
+              tooltip: 'Filtrele',
+            ),
+          ],
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: [
+              Tab(text: 'pets.tab_all'.tr()),
+              Tab(text: 'pets.tab_owned'.tr()),
+              Tab(text: 'pets.tab_waiting'.tr()),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _PetListTab(
+              adoptedStatus: null,
+              species: speciesFilter,
+              color: colorFilter,
+              breed: breedFilter,
+              search: searchQuery,
+            ),
+            _PetListTab(
+              adoptedStatus: 'owned',
+              species: speciesFilter,
+              color: colorFilter,
+              breed: breedFilter,
+              search: searchQuery,
+            ),
+            _PetListTab(
+              adoptedStatus: 'waiting',
+              species: speciesFilter,
+              color: colorFilter,
+              breed: breedFilter,
+              search: searchQuery,
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => AddPetScreen()));
+          },
+          child: Icon(Icons.add),
+        ),
       ),
+    );
+  }
+}
+
+class _PetListTab extends StatelessWidget {
+  final String? adoptedStatus;
+  final String? species;
+  final String? color;
+  final String? breed;
+  final String? search;
+  const _PetListTab({this.adoptedStatus, this.species, this.color, this.breed, this.search});
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PetCubit>().fetchPets(
+        reset: true,
+        adoptedStatus: adoptedStatus,
+        species: species,
+        color: color,
+        breed: breed,
+        search: search,
+      );
+    });
+    return BlocBuilder<PetCubit, PetState>(
+      builder: (context, state) {
+        if (state is PetLoading) {
+          return Center(child: CircularProgressIndicator());
+        } else if (state is PetError) {
+          return Center(child: Text('pets.error'.tr() + '\n' + state.error));
+        } else if (state is PetLoaded) {
+          final pets = state.pets;
+          if (pets.isEmpty) {
+            return Center(child: Text('pets.empty'.tr()));
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            itemCount: pets.length,
+            itemBuilder: (context, index) {
+              final pet = pets[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: PetCard(
+                  name: pet.name,
+                  species: pet.species,
+                  imageUrl: pet.imageUrl,
+                  description: pet.description,
+                  age: pet.age,
+                  gender: pet.gender,
+                  color: pet.color,
+                  vaccinationStatus: pet.vaccinationStatus,
+                  isAdopted: pet.isAdopted,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => PetDetailScreen(petId: pet.id),
+                      ),
+                    );
+                  },
+                  isMine: false,
+                ),
+              );
+            },
+          );
+        }
+        return Center(child: CircularProgressIndicator());
+      },
     );
   }
 } 
