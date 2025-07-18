@@ -6,6 +6,7 @@ import '../../main.dart';
 import 'register_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../localization/locale_keys.g.dart';
+import '../app/main_scaffold.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -45,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _onContinueWithoutLogin() {
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const MainScaffold()),
+      MaterialPageRoute(builder: (_) => MainScaffold()),
       (route) => false,
     );
   }
@@ -137,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (context.mounted) {
                           Navigator.pushAndRemoveUntil(
                             context,
-                            MaterialPageRoute(builder: (_) => const MainScaffold()),
+                            MaterialPageRoute(builder: (_) => MainScaffold()),
                             (route) => false,
                           );
                         }
