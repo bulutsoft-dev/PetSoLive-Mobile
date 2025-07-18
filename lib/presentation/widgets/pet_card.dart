@@ -75,23 +75,31 @@ class PetCard extends StatelessWidget {
                     height: 80,
                     margin: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(4),
                       color: colorScheme.background,
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: CachedNetworkImage(
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
-                      errorWidget: (context, url, error) => Image.asset(
-                        'assets/images/pet_placeholder.png',
-                        fit: BoxFit.cover,
+                      errorWidget: (context, url, error) => Container(
+                        color: colorScheme.surface,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.pets, size: 32, color: colorScheme.primary.withOpacity(0.5)),
+                              const SizedBox(height: 4),
+                              Text('pets.image_placeholder'.tr(), style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withOpacity(0.5))),
+                            ],
+                          ),
+                        ),
                       ),
-                      placeholder: (context, url) => Image.asset(
-                        'assets/images/logo.png',
-                        fit: BoxFit.contain,
-                        height: 48,
-                        color: colorScheme.primary.withOpacity(0.3),
-                        colorBlendMode: BlendMode.modulate,
+                      placeholder: (context, url) => Container(
+                        color: colorScheme.surface,
+                        child: Center(
+                          child: Icon(Icons.pets, size: 32, color: colorScheme.primary.withOpacity(0.2)),
+                        ),
                       ),
                     ),
                   ),

@@ -402,5 +402,6 @@
     "unsupported_media_type": "Desteklenmeyen medya türü",
     "bad_request": "Geçersiz istek",
     "internal_server_error": "Sunucu iç hatası"
-  }
+  },
+  "pets.image_placeholder": "Görsel bulunamadı"
 }

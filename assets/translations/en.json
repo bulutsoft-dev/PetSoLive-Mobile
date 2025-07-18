@@ -408,5 +408,6 @@
     "unsupported_media_type": "Unsupported media type",
     "bad_request": "Bad request",
     "internal_server_error": "Internal server error"
-  }
+  },
+  "pets.image_placeholder": "No image available"
 }
