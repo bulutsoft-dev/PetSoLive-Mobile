@@ -132,69 +132,69 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderSta
                         ),
                       ),
                     ),
-                    Text('Filtrele', style: Theme.of(context).textTheme.titleMedium),
+                    Text('pets.filter'.tr(), style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 18),
-                    Text('Tür', style: Theme.of(context).textTheme.labelLarge),
+                    Text('pets.species'.tr(), style: Theme.of(context).textTheme.labelLarge),
                     DropdownButtonFormField<String>(
                       value: tempSpecies,
                       isDense: true,
                       decoration: InputDecoration(
-                        hintText: 'Tümü',
+                        hintText: 'pets.all'.tr(),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       ),
                       items: speciesOptions.map((s) => DropdownMenuItem(
                         value: s,
-                        child: Text(s ?? 'Tümü'),
+                        child: Text(s ?? 'pets.all'.tr()),
                       )).toList(),
                       onChanged: (v) => setModalState(() => tempSpecies = v),
                     ),
                     const SizedBox(height: 14),
-                    Text('Renk', style: Theme.of(context).textTheme.labelLarge),
+                    Text('pets.color'.tr(), style: Theme.of(context).textTheme.labelLarge),
                     DropdownButtonFormField<String>(
                       value: tempColor,
                       isDense: true,
                       decoration: InputDecoration(
-                        hintText: 'Tümü',
+                        hintText: 'pets.all'.tr(),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       ),
                       items: colorOptions.map((c) => DropdownMenuItem(
                         value: c,
-                        child: Text(c ?? 'Tümü'),
+                        child: Text(c ?? 'pets.all'.tr()),
                       )).toList(),
                       onChanged: (v) => setModalState(() => tempColor = v),
                     ),
                     const SizedBox(height: 14),
-                    Text('Cins', style: Theme.of(context).textTheme.labelLarge),
+                    Text('pets.breed'.tr(), style: Theme.of(context).textTheme.labelLarge),
                     DropdownButtonFormField<String>(
                       value: tempBreed,
                       isDense: true,
                       decoration: InputDecoration(
-                        hintText: 'Tümü',
+                        hintText: 'pets.all'.tr(),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       ),
                       items: breedOptions.map((b) => DropdownMenuItem(
                         value: b,
-                        child: Text(b ?? 'Tümü'),
+                        child: Text(b ?? 'pets.all'.tr()),
                       )).toList(),
                       onChanged: (v) => setModalState(() => tempBreed = v),
                     ),
                     const SizedBox(height: 14),
-                    Text('Sahiplenme Durumu', style: Theme.of(context).textTheme.labelLarge),
+                    Text('pets.adopted_status'.tr(), style: Theme.of(context).textTheme.labelLarge),
                     DropdownButtonFormField<String>(
                       value: tempAdoptedStatus,
                       isDense: true,
                       decoration: InputDecoration(
-                        hintText: 'Tümü',
+                        hintText: 'pets.all'.tr(),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       ),
                       items: [
-                        DropdownMenuItem(value: null, child: Text('Tümü')),
-                        DropdownMenuItem(value: 'owned', child: Text('Sahiplenilmiş')),
-                        DropdownMenuItem(value: 'waiting', child: Text('Sahiplenilmeyi Bekleyen')),
+                        DropdownMenuItem(value: null, child: Text('pets.all'.tr())),
+                        DropdownMenuItem(value: 'owned', child: Text('pets.owned'.tr())),
+                        DropdownMenuItem(value: 'waiting', child: Text('pets.waiting'.tr())),
                       ],
                       onChanged: (v) => setModalState(() => tempAdoptedStatus = v),
                     ),
@@ -213,7 +213,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderSta
                             _fetchTabPets(reset: true);
                             Navigator.pop(context);
                           },
-                          child: Text('Temizle'),
+                          child: Text('pets.clear'.tr()),
                         ),
                         ElevatedButton(
                           onPressed: () {
@@ -234,7 +234,7 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderSta
                             _fetchTabPets(reset: true);
                             Navigator.pop(context);
                           },
-                          child: Text('Uygula'),
+                          child: Text('pets.apply'.tr()),
                         ),
                       ],
                     ),

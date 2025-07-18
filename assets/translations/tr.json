@@ -407,5 +407,15 @@
     "bad_request": "Geçersiz istek",
     "internal_server_error": "Sunucu iç hatası"
   },
-  "pets.image_placeholder": "Görsel bulunamadı"
+  "pets.image_placeholder": "Görsel bulunamadı",
+  "pets.filter": "Filtrele",
+  "pets.species": "Tür",
+  "pets.color": "Renk",
+  "pets.breed": "Cins",
+  "pets.adopted_status": "Sahiplenme Durumu",
+  "pets.all": "Tümü",
+  "pets.owned": "Sahiplenilmiş",
+  "pets.waiting": "Sahiplenilmeyi Bekleyen",
+  "pets.clear": "Temizle",
+  "pets.apply": "Uygula"
 }

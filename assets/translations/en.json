@@ -412,5 +412,15 @@
     "bad_request": "Bad request",
     "internal_server_error": "Internal server error"
   },
-  "pets.image_placeholder": "No image available"
+  "pets.image_placeholder": "No image available",
+  "pets.filter": "Filter",
+  "pets.species": "Species",
+  "pets.color": "Color",
+  "pets.breed": "Breed",
+  "pets.adopted_status": "Adoption Status",
+  "pets.all": "All",
+  "pets.owned": "Adopted",
+  "pets.waiting": "Waiting for Adoption",
+  "pets.clear": "Clear",
+  "pets.apply": "Apply"
 }
