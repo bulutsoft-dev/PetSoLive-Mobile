@@ -27,17 +27,32 @@ import 'presentation/blocs/comment_cubit.dart';
 import 'data/providers/pet_owner_api_service.dart';
 import 'data/providers/adoption_request_api_service.dart';
 import 'presentation/blocs/help_request_cubit.dart';
+import 'data/local/pet_local_data_source.dart';
+import 'data/local/lost_pet_ad_local_data_source.dart';
+import 'data/local/help_request_local_data_source.dart';
 
 final sl = GetIt.instance;
 
 void init() {
   sl.registerLazySingleton<PetApiService>(() => PetApiService());
   sl.registerLazySingleton<PetOwnerApiService>(() => PetOwnerApiService());
-  sl.registerLazySingleton<PetRepository>(() => PetRepositoryImpl(sl()));
+  sl.registerLazySingleton<PetLocalDataSource>(() => PetLocalDataSource());
+  sl.registerLazySingleton<PetRepository>(() => PetRepositoryImpl(
+    sl<PetApiService>(),
+    sl<PetLocalDataSource>(),
+  ));
   sl.registerLazySingleton<LostPetAdApiService>(() => LostPetAdApiService());
-  sl.registerLazySingleton<LostPetAdRepository>(() => LostPetAdRepositoryImpl(sl()));
+  sl.registerLazySingleton<LostPetAdLocalDataSource>(() => LostPetAdLocalDataSource());
+  sl.registerLazySingleton<LostPetAdRepository>(() => LostPetAdRepositoryImpl(
+    sl<LostPetAdApiService>(),
+    sl<LostPetAdLocalDataSource>(),
+  ));
   sl.registerLazySingleton<HelpRequestApiService>(() => HelpRequestApiService());
-  sl.registerLazySingleton<HelpRequestRepository>(() => HelpRequestRepositoryImpl(sl()));
+  sl.registerLazySingleton<HelpRequestLocalDataSource>(() => HelpRequestLocalDataSource());
+  sl.registerLazySingleton<HelpRequestRepository>(() => HelpRequestRepositoryImpl(
+    sl<HelpRequestApiService>(),
+    sl<HelpRequestLocalDataSource>(),
+  ));
   sl.registerFactory(() => HelpRequestCubit(sl<HelpRequestRepository>()));
   sl.registerLazySingleton<UserApiService>(() => UserApiService());
   sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(sl()));

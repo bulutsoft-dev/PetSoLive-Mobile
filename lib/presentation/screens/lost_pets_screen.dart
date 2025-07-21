@@ -27,6 +27,9 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool myAdsOnly = false;
   int? currentUserId;
+  int _filteredLoadedCount = 0;
+  final int _filteredPageSize = 5;
+  List<LostPetAdDto> _filteredAds = [];
 
   @override
   void initState() {
@@ -69,6 +72,22 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
       final matchesOwner = !myAdsOnly || (currentUserId != null && ad.userId == currentUserId);
       return matchesQuery && matchesCity && matchesDistrict && matchesOwner;
     }).toList();
+  }
+
+  void _resetFilteredChunk() {
+    _filteredLoadedCount = _filteredPageSize;
+  }
+
+  List<LostPetAdDto> getFilteredChunk(List<LostPetAdDto> allAds) {
+    _filteredAds = filterAds(allAds);
+    _filteredAds.sort((a, b) => b.id.compareTo(a.id));
+    return _filteredAds.take(_filteredLoadedCount).toList();
+  }
+
+  void _loadMoreFiltered() {
+    setState(() {
+      _filteredLoadedCount += _filteredPageSize;
+    });
   }
 
   @override
@@ -123,9 +142,10 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
             final allAds = state.ads;
             final cities = getCities(allAds);
             final districts = selectedCity.isNotEmpty ? getDistricts(allAds, selectedCity) : <String>[];
-            final filteredAds = filterAds(allAds);
-            filteredAds.sort((a, b) => b.id.compareTo(a.id));
+            if (_filteredLoadedCount == 0) _resetFilteredChunk();
+            final filteredChunk = getFilteredChunk(allAds);
             final userHasAds = currentUserId != null && allAds.any((ad) => ad.userId == currentUserId);
+            final hasMoreFiltered = _filteredAds.length > filteredChunk.length;
             return Column(
               children: [
                 // 'İlanlarım' butonu en yukarıda
@@ -196,40 +216,41 @@ class _LostPetsScreenState extends State<LostPetsScreen> {
                 ),
                 AdmobBannerWidget(),
                 const SizedBox(height: 8),
-                if (filteredAds.isEmpty)
+                if (filteredChunk.isEmpty)
                   Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.search_off, color: Theme.of(context).colorScheme.primary, size: 48),
-                          const SizedBox(height: 12),
-                          Text('lost_pets.empty'.tr(), style: Theme.of(context).textTheme.titleLarge),
-                        ],
-                      ),
-                    ),
+                    child: Center(child: Text('lost_pets.empty'.tr())),
                   )
                 else
                   Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: () async {
-                        context.read<LostPetAdCubit>().getAll();
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: (scrollInfo) {
+                        if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent && hasMoreFiltered) {
+                          _loadMoreFiltered();
+                        }
+                        return false;
                       },
                       child: ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        itemCount: filteredAds.length,
+                        itemCount: filteredChunk.length + (hasMoreFiltered ? 1 : 0),
                         itemBuilder: (context, index) {
-                          final ad = filteredAds[index];
-                          return LostPetAdCard(
-                            ad: ad,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => LostPetAdScreen(adId: ad.id),
-                                ),
-                              );
-                            },
-                          );
+                          if (index < filteredChunk.length) {
+                            final ad = filteredChunk[index];
+                            return LostPetAdCard(
+                              ad: ad,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => LostPetAdScreen(adId: ad.id),
+                                  ),
+                                );
+                              },
+                            );
+                          } else {
+                            return const Center(child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(),
+                            ));
+                          }
                         },
                       ),
                     ),

@@ -26,6 +26,8 @@ import 'package:flutter/widgets.dart';
 import '../../core/constants/admob_banner_widget.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../../core/constants/admob_constants.dart';
+import '../../data/local/pet_local_data_source.dart';
+import 'package:collection/collection.dart';
 
 // RouteObserver global tanımı (main.dart'ta da olması gerekir)
 final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
@@ -86,15 +88,34 @@ class _PetDetailScreenState extends State<PetDetailScreen> with RouteAware {
   }
 
   Future<_PetDetailBundle> _fetchAll(int petId) async {
-    final pet = await PetApiService().fetchPet(petId);
-    final owner = await PetOwnerApiService().getByPetId(petId);
-    final adoption = await AdoptionApiService().fetchAdoptionByPetId(petId);
-    final adoptionRequests = await AdoptionRequestApiService().getAllByPetId(petId);
+    // Önce local cache'den peti çek
+    PetDto? pet;
+    final localDataSource = PetLocalDataSource();
+    final localPets = await localDataSource.getPets();
+    pet = localPets.firstWhereOrNull((p) => p.id == petId);
+    if (pet == null) {
+      // Cache'de yoksa API'den çek
+      pet = await PetApiService().fetchPet(petId);
+      // API'den geleni cache'e ekle
+      final updatedPets = List<PetDto>.from(localPets)..add(pet);
+      await localDataSource.savePets(updatedPets);
+    }
+    final ownerFuture = PetOwnerApiService().getByPetId(petId);
+    final adoptionFuture = AdoptionApiService().fetchAdoptionByPetId(petId);
+    final adoptionRequestsFuture = AdoptionRequestApiService().getAllByPetId(petId);
+
+    final results = await Future.wait([
+      Future.value(pet),
+      ownerFuture,
+      adoptionFuture,
+      adoptionRequestsFuture,
+    ]);
+
     return _PetDetailBundle(
-      pet: pet,
-      owner: owner,
-      adoption: adoption,
-      adoptionRequests: adoptionRequests,
+      pet: results[0] as PetDto,
+      owner: results[1] as PetOwnerDto?,
+      adoption: results[2] as AdoptionDto?,
+      adoptionRequests: results[3] as List<AdoptionRequestDto>,
     );
   }
 

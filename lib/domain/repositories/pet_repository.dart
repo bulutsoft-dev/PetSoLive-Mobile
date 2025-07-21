@@ -2,7 +2,7 @@ import '../../data/models/pet_dto.dart';
 import '../../domain/entities/pet.dart';
 
 abstract class PetRepository {
-  Future<List<Pet>> getPets();
+  Future<List<PetDto>> getPets();
   Future<List<PetDto>> getAll();
   Future<PetDto?> getById(int id);
   Future<void> create(PetDto dto, String token);

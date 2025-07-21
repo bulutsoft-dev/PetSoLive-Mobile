@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../blocs/pet_cubit.dart';
-import '../widgets/pet_card.dart';
-import 'pet_detail_screen.dart';
-import 'add_pet_screen.dart';
-import '../../injection_container.dart';
-import '../../domain/repositories/adoption_repository.dart';
 import '../blocs/account_cubit.dart';
-import '../../data/providers/pet_owner_api_service.dart';
-import '../../data/providers/adoption_request_api_service.dart';
+import '../../injection_container.dart';
+import '../../data/models/pet_list_item.dart';
+import 'pets/pet_tab_bar.dart';
+import 'pets/pet_search_bar.dart';
+import 'pets/pet_list_tab.dart';
 import '../../core/constants/admob_banner_widget.dart';
 
 class PetsScreen extends StatelessWidget {
@@ -17,7 +15,10 @@ class PetsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _PetsScreenBody();
+    return BlocProvider(
+      create: (_) => PetCubit(sl())..fetchPets(reset: true),
+      child: _PetsScreenBody(),
+    );
   }
 }
 
@@ -26,119 +27,91 @@ class _PetsScreenBody extends StatefulWidget {
   State<_PetsScreenBody> createState() => _PetsScreenBodyState();
 }
 
-class _PetsScreenBodyState extends State<_PetsScreenBody> {
-  String searchQuery = '';
-  final TextEditingController _controller = TextEditingController();
-  Map<int, bool> adoptedStatus = {};
-  Map<int, String?> adoptedOwner = {};
-  bool adoptionLoading = false;
-  List petsCache = [];
+class _PetsScreenBodyState extends State<_PetsScreenBody> with TickerProviderStateMixin {
+  late TabController _tabController;
   int? currentUserId;
-
-  // Filtreler
-  String statusFilter = 'all'; // all, owned, waiting
   String? speciesFilter;
   String? colorFilter;
   String? breedFilter;
-
-  List<String> get speciesList => petsCache.map((p) => p.species as String).toSet().toList();
-  List<String> get colorList => petsCache.map((p) => p.color as String).toSet().toList();
-  List<String> get breedList => petsCache.map((p) => p.breed as String).toSet().toList();
-
-  Future<void> fetchAdoptionStatuses(List pets) async {
-    setState(() { adoptionLoading = true; });
-    final adoptionRepo = sl<AdoptionRepository>();
-    final adoptionRequestApi = sl<AdoptionRequestApiService>();
-    final Map<int, bool> statusMap = {};
-    final Map<int, String?> ownerMap = {};
-    final futures = pets.map((pet) async {
-      try {
-        final adoption = await adoptionRepo.getByPetId(pet.id);
-        final adopted = adoption != null;
-        statusMap[pet.id] = adopted;
-        ownerMap[pet.id] = adopted ? adoption?.userName : null;
-        if (!adopted) {
-          // Adoption yoksa, adoptionRequest'lere bak
-          final requests = await adoptionRequestApi.getAllByPetId(pet.id);
-          final hasApproved = requests.any((r) =>
-          (r.status?.toLowerCase() ?? '') == 'approved'
-          );
-          if (hasApproved) {
-            statusMap[pet.id] = true;
-            // İstersen ownerMap[pet.id] = ... ile kullanıcı adını da ekleyebilirsin
-          }
-        }
-      } catch (e) {
-        statusMap[pet.id] = false;
-        ownerMap[pet.id] = null;
-      }
-    }).toList();
-    await Future.wait(futures);
-    if (mounted) {
-      setState(() {
-        adoptedStatus = statusMap;
-        adoptedOwner = ownerMap;
-        adoptionLoading = false;
-      });
-    }
-  }
-
-  void _onPetStateChanged(PetState state) {
-    if (state is PetLoaded || state is PetFiltered) {
-      // Her zaman allPets üzerinden fetchAdoptionStatuses çağır
-      final pets = state is PetLoaded ? state.allPets : (state as PetFiltered).pets;
-      if (petsCache != pets) {
-        petsCache = pets;
-        fetchAdoptionStatuses(pets);
-      }
-    }
-  }
+  String? searchQuery;
+  String? adoptedStatusFilter;
+  List<PetListItem> _allPets = [];
+  final TextEditingController _controller = TextEditingController();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final accountState = context.read<AccountCubit>().state;
+    final accountState = context.watch<AccountCubit>().state;
     if (accountState is AccountSuccess) {
       currentUserId = accountState.response.user.id;
+    } else {
+      currentUserId = null;
     }
   }
 
-  List filterPets(List pets) {
-    // Sıralama: Sahiplendirilmemişler en üstte, sahiplendirilmişler en altta, yeni eklenenler en üstte (id'ye göre)
-    final sorted = List.from(pets);
-    sorted.sort((a, b) {
-      final aAdopted = adoptedStatus[a.id] ?? false;
-      final bAdopted = adoptedStatus[b.id] ?? false;
-      if (aAdopted != bAdopted) {
-        // Sahiplendirilmemişler önce gelsin
-        return aAdopted ? 1 : -1;
-      }
-      // id'ye göre yeni eklenenler en üstte
-      return b.id.compareTo(a.id); // id büyük olan önce
-    });
-    return sorted.where((pet) {
-      final adopted = adoptedStatus[pet.id] ?? false;
-      if (statusFilter == 'owned' && !adopted) return false;
-      if (statusFilter == 'waiting' && adopted) return false;
-      if (speciesFilter != null && speciesFilter!.isNotEmpty && pet.species != speciesFilter) return false;
-      if (colorFilter != null && colorFilter!.isNotEmpty && pet.color != colorFilter) return false;
-      if (breedFilter != null && breedFilter!.isNotEmpty && pet.breed != breedFilter) return false;
-      return true;
-    }).toList();
+  void _updateTabController(int tabCount) {
+    if (_tabController.length != tabCount) {
+      final oldIndex = _tabController.index;
+      _tabController.dispose();
+      _tabController = TabController(length: tabCount, vsync: this);
+      _tabController.index = oldIndex.clamp(0, tabCount - 1);
+      _tabController.addListener(_onTabChanged);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      _fetchTabPets(reset: true);
+    }
+  }
+
+  void _fetchTabPets({bool reset = false}) {
+    final cubit = context.read<PetCubit>();
+    String? adoptedStatus;
+    if (_tabController.index == 1) adoptedStatus = 'owned';
+    if (_tabController.index == 2) adoptedStatus = 'waiting';
+    cubit.fetchPets(
+      reset: reset,
+      adoptedStatus: adoptedStatusFilter ?? adoptedStatus,
+      species: speciesFilter,
+      color: colorFilter,
+      breed: breedFilter,
+      search: searchQuery,
+    );
   }
 
   void _openFilterModal(BuildContext context) async {
-    String tempStatus = statusFilter;
     String? tempSpecies = speciesFilter;
     String? tempColor = colorFilter;
     String? tempBreed = breedFilter;
+    String? tempAdoptedStatus = adoptedStatusFilter;
+
+    final speciesOptions = <String?>[null, 'Kedi', 'Köpek', 'Kuş', 'Hamster'];
+    final colorOptions = <String?>[null, 'Siyah', 'Beyaz', 'Kahverengi', 'Sarı', 'Gri'];
+    final breedOptions = <String?>[null, 'Tekir', 'Golden', 'Sarman', 'Haski', 'Papağan'];
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
+        final colorScheme = Theme.of(ctx).colorScheme;
         return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(ctx).viewInsets.bottom,
@@ -155,59 +128,76 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                         width: 40, height: 4,
                         margin: EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: Colors.grey[300],
+                          color: colorScheme.onSurface.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
-                    Text('Filtrele', style: Theme.of(context).textTheme.titleMedium),
+                    Text('pets.filter'.tr(), style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 18),
-                    Text('Tür', style: Theme.of(context).textTheme.labelLarge),
+                    Text('pets.species'.tr(), style: Theme.of(context).textTheme.labelLarge),
                     DropdownButtonFormField<String>(
                       value: tempSpecies,
                       isDense: true,
                       decoration: InputDecoration(
-                        hintText: 'pets.filter_species'.tr(),
+                        hintText: 'pets.all'.tr(),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       ),
-                      items: [null, ...speciesList].map((s) => DropdownMenuItem(
+                      items: speciesOptions.map((s) => DropdownMenuItem(
                         value: s,
-                        child: Text(s ?? 'pets.filter_all'.tr()),
+                        child: Text(s ?? 'pets.all'.tr()),
                       )).toList(),
                       onChanged: (v) => setModalState(() => tempSpecies = v),
                     ),
                     const SizedBox(height: 14),
-                    Text('Renk', style: Theme.of(context).textTheme.labelLarge),
+                    Text('pets.color'.tr(), style: Theme.of(context).textTheme.labelLarge),
                     DropdownButtonFormField<String>(
                       value: tempColor,
                       isDense: true,
                       decoration: InputDecoration(
-                        hintText: 'pets.filter_color'.tr(),
+                        hintText: 'pets.all'.tr(),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       ),
-                      items: [null, ...colorList].map((c) => DropdownMenuItem(
+                      items: colorOptions.map((c) => DropdownMenuItem(
                         value: c,
-                        child: Text(c ?? 'pets.filter_all'.tr()),
+                        child: Text(c ?? 'pets.all'.tr()),
                       )).toList(),
                       onChanged: (v) => setModalState(() => tempColor = v),
                     ),
                     const SizedBox(height: 14),
-                    Text('Cins', style: Theme.of(context).textTheme.labelLarge),
+                    Text('pets.breed'.tr(), style: Theme.of(context).textTheme.labelLarge),
                     DropdownButtonFormField<String>(
                       value: tempBreed,
                       isDense: true,
                       decoration: InputDecoration(
-                        hintText: 'pets.filter_breed'.tr(),
+                        hintText: 'pets.all'.tr(),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       ),
-                      items: [null, ...breedList].map((b) => DropdownMenuItem(
+                      items: breedOptions.map((b) => DropdownMenuItem(
                         value: b,
-                        child: Text(b ?? 'pets.filter_all'.tr()),
+                        child: Text(b ?? 'pets.all'.tr()),
                       )).toList(),
                       onChanged: (v) => setModalState(() => tempBreed = v),
+                    ),
+                    const SizedBox(height: 14),
+                    Text('pets.adopted_status'.tr(), style: Theme.of(context).textTheme.labelLarge),
+                    DropdownButtonFormField<String>(
+                      value: tempAdoptedStatus,
+                      isDense: true,
+                      decoration: InputDecoration(
+                        hintText: 'pets.all'.tr(),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      ),
+                      items: [
+                        DropdownMenuItem(value: null, child: Text('pets.all'.tr())),
+                        DropdownMenuItem(value: 'owned', child: Text('pets.owned'.tr())),
+                        DropdownMenuItem(value: 'waiting', child: Text('pets.waiting'.tr())),
+                      ],
+                      onChanged: (v) => setModalState(() => tempAdoptedStatus = v),
                     ),
                     const SizedBox(height: 24),
                     Row(
@@ -216,26 +206,36 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
                         TextButton(
                           onPressed: () {
                             setState(() {
-                              statusFilter = 'all';
                               speciesFilter = null;
                               colorFilter = null;
                               breedFilter = null;
+                              adoptedStatusFilter = null;
                             });
+                            _fetchTabPets(reset: true);
                             Navigator.pop(context);
                           },
-                          child: Text('Temizle'),
+                          child: Text('pets.clear'.tr()),
                         ),
                         ElevatedButton(
                           onPressed: () {
                             setState(() {
-                              statusFilter = tempStatus;
                               speciesFilter = tempSpecies;
                               colorFilter = tempColor;
                               breedFilter = tempBreed;
+                              adoptedStatusFilter = tempAdoptedStatus;
                             });
+                            // Eğer sahiplenme durumu seçildiyse, tabı da ona göre değiştir
+                            if (tempAdoptedStatus == 'owned') {
+                              _tabController.animateTo(1);
+                            } else if (tempAdoptedStatus == 'waiting') {
+                              _tabController.animateTo(2);
+                            } else {
+                              _tabController.animateTo(0);
+                            }
+                            _fetchTabPets(reset: true);
                             Navigator.pop(context);
                           },
-                          child: Text('Uygula'),
+                          child: Text('pets.apply'.tr()),
                         ),
                       ],
                     ),
@@ -250,346 +250,91 @@ class _PetsScreenBodyState extends State<_PetsScreenBody> {
     );
   }
 
-  void _clearFilterChip(String type) {
-    setState(() {
-      if (type == 'status') statusFilter = 'all';
-      if (type == 'species') speciesFilter = null;
-      if (type == 'color') colorFilter = null;
-      if (type == 'breed') breedFilter = null;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => PetCubit(sl())
-        ..getAllWithOwners(
-          userId: currentUserId,
-          petOwnerApiService: sl<PetOwnerApiService>(),
-                ),
-      child: BlocBuilder<PetCubit, PetState>(
-        builder: (context, state) {
-          if (state is PetLoaded) {
-            final showMyPetsTab = currentUserId != null && state.myPets.isNotEmpty;
-            final tabs = <Tab>[
-              Tab(text: 'pets.tab_all'.tr(context: context)),
-              Tab(text: 'pets.tab_owned'.tr(context: context)),
-              Tab(text: 'pets.tab_waiting'.tr(context: context)),
-              if (showMyPetsTab) Tab(text: 'pets.tab_my_pets'.tr(context: context)),
-            ];
-            final tabViews = <Widget>[
-              // All Pets
-              _PetListView(
-                filter: (pet) => true,
-                adoptedStatus: adoptedStatus,
-                adoptedOwner: adoptedOwner,
-                adoptionLoading: adoptionLoading,
-                filterPets: filterPets,
-                petsCache: state.allPets,
-                currentUserId: currentUserId,
-                onRefresh: () async {
-                  final petCubit = context.read<PetCubit>();
-                  final petOwnerApiService = sl<PetOwnerApiService>();
-                  await petCubit.getAllWithOwners(
-                    userId: currentUserId,
-                    petOwnerApiService: petOwnerApiService,
-                  );
-                  setState(() {});
-                },
-                onAfterDetailReturn: () async {
-                  final petCubit = context.read<PetCubit>();
-                  final petOwnerApiService = sl<PetOwnerApiService>();
-                  await petCubit.getAllWithOwners(
-                    userId: currentUserId,
-                    petOwnerApiService: petOwnerApiService,
-                  );
-                  await fetchAdoptionStatuses(petsCache);
-                  if (mounted) setState(() {});
-                },
-              ),
-              // Owned (adopted)
-              _PetListView(
-                filter: (pet) => adoptedStatus[pet.id] == true,
-                adoptedStatus: adoptedStatus,
-                adoptedOwner: adoptedOwner,
-                adoptionLoading: adoptionLoading,
-                filterPets: filterPets,
-                petsCache: state.allPets,
-                currentUserId: currentUserId,
-                onRefresh: () async {
-                  final petCubit = context.read<PetCubit>();
-                  final petOwnerApiService = sl<PetOwnerApiService>();
-                  await petCubit.getAllWithOwners(
-                    userId: currentUserId,
-                    petOwnerApiService: petOwnerApiService,
-                  );
-                  setState(() {});
-                },
-                onAfterDetailReturn: () async {
-                  final petCubit = context.read<PetCubit>();
-                  final petOwnerApiService = sl<PetOwnerApiService>();
-                  await petCubit.getAllWithOwners(
-                    userId: currentUserId,
-                    petOwnerApiService: petOwnerApiService,
-                  );
-                  await fetchAdoptionStatuses(petsCache);
-                  if (mounted) setState(() {});
-                },
-              ),
-              // Waiting (not adopted)
-              _PetListView(
-                filter: (pet) => adoptedStatus[pet.id] == false,
-                adoptedStatus: adoptedStatus,
-                adoptedOwner: adoptedOwner,
-                adoptionLoading: adoptionLoading,
-                filterPets: filterPets,
-                petsCache: state.allPets,
-                currentUserId: currentUserId,
-                onRefresh: () async {
-                  final petCubit = context.read<PetCubit>();
-                  final petOwnerApiService = sl<PetOwnerApiService>();
-                  await petCubit.getAllWithOwners(
-                    userId: currentUserId,
-                    petOwnerApiService: petOwnerApiService,
-                  );
-                  setState(() {});
-                },
-                onAfterDetailReturn: () async {
-                  final petCubit = context.read<PetCubit>();
-                  final petOwnerApiService = sl<PetOwnerApiService>();
-                  await petCubit.getAllWithOwners(
-                    userId: currentUserId,
-                    petOwnerApiService: petOwnerApiService,
-                  );
-                  await fetchAdoptionStatuses(petsCache);
-                  if (mounted) setState(() {});
-                },
-              ),
-              if (showMyPetsTab)
-                _PetListView(
-                  filter: (pet) => pet.ownerId == currentUserId,
-                  adoptedStatus: adoptedStatus,
-                  adoptedOwner: adoptedOwner,
-                  adoptionLoading: adoptionLoading,
-                  filterPets: filterPets,
-                  petsCache: state.myPets,
-                  currentUserId: currentUserId,
-                  onRefresh: () async {
-                    final petCubit = context.read<PetCubit>();
-                    final petOwnerApiService = sl<PetOwnerApiService>();
-                    await petCubit.getAllWithOwners(
-                      userId: currentUserId,
-                      petOwnerApiService: petOwnerApiService,
-                    );
-                    setState(() {});
-                  },
-                  onAfterDetailReturn: () async {
-                    final petCubit = context.read<PetCubit>();
-                    final petOwnerApiService = sl<PetOwnerApiService>();
-                    await petCubit.getAllWithOwners(
-                      userId: currentUserId,
-                      petOwnerApiService: petOwnerApiService,
-                    );
-                    await fetchAdoptionStatuses(petsCache);
-                    if (mounted) setState(() {});
-                  },
-                ),
-            ];
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _onPetStateChanged(state);
-            });
-            return DefaultTabController(
-              key: ValueKey(tabs.length),
-              length: tabs.length,
-              child: Scaffold(
-                body: Column(
-                  children: [
-                    TabBar(tabs: tabs),
-                    AdmobBannerWidget(),
-                    Expanded(child: TabBarView(children: tabViews)),
-                  ],
-                ),
-                floatingActionButton: BlocBuilder<AccountCubit, AccountState>(
-                  builder: (context, accountState) {
-                    final isLoggedIn = accountState is AccountSuccess;
-                    final colorScheme = Theme.of(context).colorScheme;
-                    return FloatingActionButton(
-                      heroTag: 'pets_screen_fab',
-                      onPressed: () async {
-                        if (isLoggedIn) {
-                          final result = await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => BlocProvider(
-                                create: (_) => PetCubit(sl()),
-                                child: AddPetScreen(),
-                              ),
-                            ),
-                          );
-                          // Kayıt sonrası otomatik reload ve tab güncellemesi
-                          if (mounted) {
-                            // getAllWithOwners ile myPets güncellenir
-                            final accountState = context.read<AccountCubit>().state;
-                            int? userId;
-                            if (accountState is AccountSuccess) {
-                              userId = accountState.response.user.id;
-                            }
-                            final petCubit = context.read<PetCubit>();
-                            final petOwnerApiService = sl<PetOwnerApiService>();
-                            await petCubit.getAllWithOwners(
-                              userId: userId,
-                              petOwnerApiService: petOwnerApiService,
-                            );
-                            setState(() {});
-                          }
-                        } else {
-                          Navigator.of(context).pushNamed('/login');
-                        }
-                      },
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(Icons.add, size: 28),
-                      tooltip: isLoggedIn ? 'pets.add'.tr() : 'Giriş yapmadan ekleyemezsiniz',
-                    );
-                  },
-                ),
-              ),
-            );
-          }
-          // ... handle other states ...
-          return Center(child: CircularProgressIndicator());
-          },
-      ),
-    );
-  }
-}
-
-// Pet listesi için ayrı widget
-class _PetListView extends StatelessWidget {
-  final bool Function(dynamic pet) filter;
-  final Map<int, bool> adoptedStatus;
-  final Map<int, String?> adoptedOwner;
-  final bool adoptionLoading;
-  final List petsCache;
-  final List Function(List) filterPets;
-  final Future<void> Function()? onRefresh;
-  final int? currentUserId;
-  final Future<void> Function()? onAfterDetailReturn;
-
-  const _PetListView({
-    required this.filter,
-    required this.adoptedStatus,
-    required this.adoptedOwner,
-    required this.adoptionLoading,
-    required this.filterPets,
-    required this.petsCache,
-    this.onRefresh,
-    this.currentUserId,
-    this.onAfterDetailReturn,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: onRefresh ?? () async {},
-      child: BlocBuilder<PetCubit, PetState>(
-        builder: (context, state) {
-          if (state is PetLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is PetError) {
-            return Center(child: Text('pets.error'.tr() + '\n' + state.error));
-          }
-            final pets = state is PetLoaded ? state.allPets : (state as PetFiltered).pets;
-            if (pets.isEmpty) {
-              return ListView(
-                children: [
-                  SizedBox(height: 200),
-                  Center(child: Text('pets.empty'.tr())),
-                ],
-              );
-            }
-            if (adoptedStatus.length != pets.length || adoptionLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            final filteredPets = filterPets(pets).where(filter).toList();
-            if (filteredPets.isEmpty) {
-              return ListView(
-                children: [
-                  SizedBox(height: 200),
-                  Center(child: Text('pets.empty'.tr())),
-                ],
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              itemCount: filteredPets.length,
-              itemBuilder: (context, index) {
-                final pet = filteredPets[index];
-                final isAdopted = adoptedStatus[pet.id] ?? false;
-                final ownerName = adoptedOwner[pet.id];
-                final isMine = currentUserId != null && pet.ownerId == currentUserId;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: PetCard(
-                    name: pet.name,
-                    species: pet.species,
-                    imageUrl: pet.imageUrl ?? '',
-                    description: pet.description ?? '',
-                    age: pet.age,
-                    gender: pet.gender,
-                    color: pet.color,
-                    vaccinationStatus: pet.vaccinationStatus,
-                    isAdopted: isAdopted,
-                    ownerName: ownerName,
-                  onTap: () async {
-                    final result = await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => PetDetailScreen(
-                          petId: pet.id,
-                        ),
-                      ),
-                    );
-                    if (result == true) {
-                      if (onAfterDetailReturn != null) {
-                        await onAfterDetailReturn!();
-                      }
-                    }
-                    },
-                    isMine: isMine,
-                  ),
-                );
+    // Arama kutusu ile searchQuery senkronizasyonu
+    if (_controller.text != (searchQuery ?? '')) {
+      _controller.text = searchQuery ?? '';
+      _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
+    }
+    return BlocBuilder<PetCubit, PetState>(
+      builder: (context, state) {
+        if (state is PetLoaded) {
+          _allPets = state.pets;
+        }
+        final myPets = currentUserId == null
+            ? <PetListItem>[]
+            : _allPets.where((pet) => pet.ownerId == currentUserId).toList();
+        final showMyPetsTab = currentUserId != null && myPets.isNotEmpty;
+        final tabs = <Tab>[
+          Tab(text: 'pets.tab_all'.tr()),
+          Tab(text: 'pets.tab_owned'.tr()),
+          Tab(text: 'pets.tab_waiting'.tr()),
+          if (showMyPetsTab) Tab(text: 'pets.tab_my_pets'.tr()),
+        ];
+        _updateTabController(tabs.length);
+        final colorScheme = Theme.of(context).colorScheme;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Column(
+          children: [
+            PetTabBar(controller: _tabController, tabs: tabs),
+            PetSearchBar(
+              controller: _controller,
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+                _fetchTabPets(reset: true);
               },
-            );
-        },
-      ),
-    );
-  }
-}
-
-// Hayvan sayısı badge'i
-class _CountBadge extends StatelessWidget {
-  final int count;
-  final String label;
-  final Color? color;
-  const _CountBadge({required this.count, required this.label, this.color});
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color ?? Colors.blueGrey[50],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        '$count $label',
-        style: TextStyle(
-          color: color != null ? Colors.white : Colors.blueGrey[800],
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        ),
-      ),
+              onFilterPressed: () => _openFilterModal(context),
+              isDark: isDark,
+            ),
+            const AdmobBannerWidget(),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  PetListTab(
+                    adoptedStatus: null,
+                    species: speciesFilter,
+                    color: colorFilter,
+                    breed: breedFilter,
+                    search: searchQuery,
+                    currentUserId: currentUserId,
+                  ),
+                  PetListTab(
+                    adoptedStatus: 'owned',
+                    species: speciesFilter,
+                    color: colorFilter,
+                    breed: breedFilter,
+                    search: searchQuery,
+                    currentUserId: currentUserId,
+                  ),
+                  PetListTab(
+                    adoptedStatus: 'waiting',
+                    species: speciesFilter,
+                    color: colorFilter,
+                    breed: breedFilter,
+                    search: searchQuery,
+                    currentUserId: currentUserId,
+                  ),
+                  if (showMyPetsTab)
+                    PetListTab(
+                      adoptedStatus: null,
+                      species: speciesFilter,
+                      color: colorFilter,
+                      breed: breedFilter,
+                      search: searchQuery,
+                      myPetsOnly: true,
+                      currentUserId: currentUserId,
+                    ),
+                ],
+              ),
+            ),
+            SizedBox(height: 8),
+          ],
+        );
+      },
     );
   }
 } 

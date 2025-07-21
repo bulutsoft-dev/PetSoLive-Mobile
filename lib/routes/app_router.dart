@@ -89,3 +89,6 @@ class AppRouter {
 // Kullanım örneği:
 // Navigator.of(context).pushNamed('/pets');
 // MaterialApp'da: onGenerateRoute: AppRouter.generateRoute, 
+
+// Global route observer for navigation events
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>(); 

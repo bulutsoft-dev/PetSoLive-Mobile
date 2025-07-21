@@ -12,6 +12,7 @@ import '../localization/locale_keys.g.dart';
 import 'package:petsolive/presentation/widgets/image_upload_button.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import '../app/main_scaffold.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -178,7 +179,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const MainScaffold(),
+                            builder: (_) => MainScaffold(),
                           ),
                           (route) => false,
                         );

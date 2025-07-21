@@ -13,7 +13,6 @@ class PetCard extends StatelessWidget {
   final String? color;
   final String? vaccinationStatus;
   final bool isAdopted;
-  final String? ownerName;
   final VoidCallback? onTap;
   final bool isMine;
 
@@ -28,7 +27,6 @@ class PetCard extends StatelessWidget {
     this.color,
     this.vaccinationStatus,
     this.isAdopted = false,
-    this.ownerName,
     this.onTap,
     this.isMine = false,
   }) : super(key: key);
@@ -77,18 +75,31 @@ class PetCard extends StatelessWidget {
                     height: 80,
                     margin: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(4),
                       color: colorScheme.background,
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: _SafeNetworkImage(
+                    child: CachedNetworkImage(
                       imageUrl: imageUrl,
-                      placeholder: (context) => Image.asset(
-                        'assets/images/logo.png',
-                        fit: BoxFit.contain,
-                        height: 48,
-                        color: colorScheme.primary.withOpacity(0.3),
-                        colorBlendMode: BlendMode.modulate,
+                      fit: BoxFit.cover,
+                      errorWidget: (context, url, error) => Container(
+                        color: colorScheme.surface,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.pets, size: 32, color: colorScheme.primary.withOpacity(0.5)),
+                              const SizedBox(height: 4),
+                              Text('pets.image_placeholder'.tr(), style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withOpacity(0.5))),
+                            ],
+                          ),
+                        ),
+                      ),
+                      placeholder: (context, url) => Container(
+                        color: colorScheme.surface,
+                        child: Center(
+                          child: Icon(Icons.pets, size: 32, color: colorScheme.primary.withOpacity(0.2)),
+                        ),
                       ),
                     ),
                   ),
@@ -185,24 +196,6 @@ class PetCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: subTextColor, fontSize: 13),
                           ),
-                          if (isAdopted && ownerName != null && ownerName!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4, bottom: 2),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.person, size: 15, color: subTextColor),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      'pets.owner'.tr(args: [ownerName!]),
-                                      style: TextStyle(fontSize: 12, color: subTextColor, fontWeight: FontWeight.w600),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                         ],
                       ),
                     ),

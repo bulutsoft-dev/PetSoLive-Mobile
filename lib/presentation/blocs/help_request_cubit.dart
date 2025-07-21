@@ -7,7 +7,8 @@ class HelpRequestInitial extends HelpRequestState {}
 class HelpRequestLoading extends HelpRequestState {}
 class HelpRequestLoaded extends HelpRequestState {
   final List<HelpRequestDto> helpRequests;
-  HelpRequestLoaded(this.helpRequests);
+  final bool hasMore;
+  HelpRequestLoaded(this.helpRequests, {required this.hasMore});
 }
 class HelpRequestDetailLoaded extends HelpRequestState {
   final HelpRequestDto? helpRequest;
@@ -20,19 +21,35 @@ class HelpRequestError extends HelpRequestState {
 
 class HelpRequestCubit extends Cubit<HelpRequestState> {
   final HelpRequestRepository repository;
+  List<HelpRequestDto> _allRequests = [];
+  int _loadedCount = 0;
+  final int _pageSize = 5;
   HelpRequestCubit(this.repository) : super(HelpRequestInitial());
 
-  Future<void> getAll() async {
+  Future<void> getAll({bool forceRefresh = false}) async {
     if (isClosed) return;
     emit(HelpRequestLoading());
     try {
-      final list = await repository.getAll();
+      List<HelpRequestDto> list;
+      if (forceRefresh) {
+        list = await repository.fetchFromApiAndSaveToLocal();
+      } else {
+        list = await repository.getAll();
+      }
       if (isClosed) return;
-      emit(HelpRequestLoaded(list));
+      _allRequests = list;
+      _loadedCount = _pageSize;
+      emit(HelpRequestLoaded(_allRequests.take(_loadedCount).toList(), hasMore: _allRequests.length > _loadedCount));
     } catch (e) {
       if (isClosed) return;
       emit(HelpRequestError(e.toString()));
     }
+  }
+
+  void loadMore() {
+    if (_loadedCount >= _allRequests.length) return;
+    _loadedCount += _pageSize;
+    emit(HelpRequestLoaded(_allRequests.take(_loadedCount).toList(), hasMore: _allRequests.length > _loadedCount));
   }
 
   Future<void> getById(int id) async {

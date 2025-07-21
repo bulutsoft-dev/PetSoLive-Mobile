@@ -4,6 +4,7 @@ import '../../core/constants/api_constants.dart';
 import '../models/pet_dto.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import '../models/pet_list_item.dart';
 
 class PetApiService {
   final String baseUrl = ApiConstants.baseUrl;
@@ -212,5 +213,42 @@ class PetApiService {
     final pet = await getById(id);
     if (pet == null) throw Exception('Pet not found');
     return pet;
+  }
+
+  Future<Map<String, dynamic>> fetchPets({
+    int page = 1,
+    int pageSize = 20,
+    String? species,
+    String? color,
+    String? breed,
+    String? adoptedStatus,
+    String? search,
+    int? ownerId,
+  }) async {
+    final queryParameters = {
+      'page': '$page',
+      'pageSize': '$pageSize',
+      if (species != null && species.isNotEmpty) 'species': species,
+      if (color != null && color.isNotEmpty) 'color': color,
+      if (breed != null && breed.isNotEmpty) 'breed': breed,
+      if (adoptedStatus != null && adoptedStatus.isNotEmpty) 'adoptedStatus': adoptedStatus,
+      if (search != null && search.isNotEmpty) 'search': search,
+      if (ownerId != null) 'ownerId': ownerId.toString(),
+    };
+
+    final uri = Uri.parse('$baseUrl/api/Pet/advanced-list?${Uri(queryParameters: queryParameters).query}');
+    final response = await http.get(uri, headers: {'x-api-key': apiKey});
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final List petsJson = data['pets'];
+      final pets = petsJson.map((json) => PetListItem.fromJson(json)).toList();
+      return {
+        'pets': pets,
+        'totalCount': data['totalCount'],
+      };
+    } else {
+      throw Exception('Failed to load pets');
+    }
   }
 }

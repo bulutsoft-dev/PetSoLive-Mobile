@@ -1,19 +1,35 @@
+import 'package:hive/hive.dart';
 import '../../core/enums/emergency_level.dart';
 import '../../core/enums/help_request_status.dart';
+part 'help_request_dto.g.dart';
 
+@HiveType(typeId: 2)
 class HelpRequestDto {
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final String title;
+  @HiveField(2)
   final String description;
+  @HiveField(3)
   final EmergencyLevel emergencyLevel;
+  @HiveField(4)
   final DateTime createdAt;
+  @HiveField(5)
   final int userId;
+  @HiveField(6)
   final String userName;
+  @HiveField(7)
   final String location;
+  @HiveField(8)
   final String? contactName;
+  @HiveField(9)
   final String? contactPhone;
+  @HiveField(10)
   final String? contactEmail;
+  @HiveField(11)
   final String? imageUrl;
+  @HiveField(12)
   final HelpRequestStatus status;
 
   HelpRequestDto({
